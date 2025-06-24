@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
+import './styles/login.scss'
 
 // Icons for UI feedback
 import {
@@ -64,7 +65,7 @@ export default function Login() {
 
   return (
     // UI Improvement: Added a subtle gradient background for more depth
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#1D2056] to-[#111330] p-4 font-sans">
+    <div className="lgn-hero">
       {/* UI Improvement: Added entry animations for the entire form */}
       <div
         className={`w-full max-w-md transform transition-all duration-700 ease-out ${
