@@ -135,12 +135,9 @@
                 }
 
                 .mn-login-btn:disabled{
-                    height: 3vmax;
-                    width: 100%;
                     background-color: #ca4670;
-                    color: #fff;
-                    font-family: 'Arimo', sans-serif;
-                    font-size: 1.2vmax;
+                    @include flex(center, center, row);
+                    gap: 1vmax;
                     cursor: not-allowed;
                 }
             }

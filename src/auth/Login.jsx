@@ -206,9 +206,9 @@ export default function Login() {
 
   return (
     <>
-    <Helmet>
-      <title>Login</title>
-    </Helmet>
+      <Helmet>
+        <title>Login</title>
+      </Helmet>
       {/* // UI Improvement: Added a subtle gradient background for more depth */}
       {/* UI Improvement: Added entry animations for the entire form */}
       <div className="lgn-hero">
@@ -320,7 +320,7 @@ export default function Login() {
                     <span>Signing In...</span>
                   </>
                 ) : (
-                  <>Login</>
+                  <> Login </>
                 )}
               </button>
             </form>
