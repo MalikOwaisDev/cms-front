@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
+import './styles/login.scss'
 
 // --- Self-contained SVG Icons ---
 const MailIcon = () => (
@@ -202,6 +203,10 @@ export default function Login() {
   };
 
   return (
+
+    // UI Improvement: Added a subtle gradient background for more depth
+    <div className="lgn-hero">
+      {/* UI Improvement: Added entry animations for the entire form */}
     <div className="relative min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900 p-4 font-sans transition-colors duration-300">
       <ThemeToggle />
       <div
