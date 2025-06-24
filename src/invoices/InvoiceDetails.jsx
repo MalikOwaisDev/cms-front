@@ -1,8 +1,10 @@
-import { useState, useEffect, useMemo } from "react";
-import { useNavigate, Link, useParams } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, Link, useParams, NavLink } from "react-router-dom";
+import Header from "../components/Header";
+import Footer from "../components/Footer";
 
-// --- MOCK API SERVICES (for demonstration) ---
-const mockInvoice = {
+// --- MOCK API SERVICES ---
+let mockInvoice = {
   _id: "inv_12345ABC",
   patient: {
     _id: "pat2",
@@ -19,22 +21,17 @@ const mockInvoice = {
   issueDate: "2025-06-23",
   dueDate: "2025-07-23",
 };
-
 const getInvoiceById = async (id, token) => {
-  console.log(`Fetching invoice ${id} with token: ${token}`);
-  await new Promise((resolve) => setTimeout(resolve, 800));
-  // In a real app, you would return the specific invoice
+  await new Promise((r) => setTimeout(r, 800));
   return { data: mockInvoice };
 };
-
 const markInvoicePaid = async (id, token) => {
-  console.log(`Marking invoice ${id} as paid with token: ${token}`);
-  await new Promise((resolve) => setTimeout(resolve, 1000));
-  mockInvoice.status = "paid"; // Update the mock data
+  await new Promise((r) => setTimeout(r, 1000));
+  mockInvoice.status = "paid";
   return { data: { message: "Invoice marked as paid." } };
 };
 
-// --- ICONS (Self-contained SVG components) ---
+// --- PAGE ICONS ---
 const PrintIcon = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -86,43 +83,19 @@ const CheckCircleIcon = () => (
   </svg>
 );
 
-// --- Reusable Header/Footer ---
-const Header = ({ user, onLogout }) => (
-  <header className="bg-[#1D2056] text-white shadow-md print:hidden">
-    <div className="container mx-auto flex items-center justify-between p-4">
-      <Link to="/" className="text-xl font-bold tracking-wider">
-        CarePulse
-      </Link>
-      <button
-        onClick={onLogout}
-        className="text-sm font-semibold hover:opacity-80"
-      >
-        Logout
-      </button>
-    </div>
-  </header>
-);
-const Footer = () => (
-  <footer className="bg-slate-100 text-center p-4 mt-auto print:hidden">
-    <p className="text-sm text-slate-500">
-      &copy; {new Date().getFullYear()} CarePulse
-    </p>
-  </footer>
-);
-
 // --- Loading Skeleton ---
 const InvoiceSkeleton = () => (
-  <div className="bg-white p-8 rounded-xl shadow-sm animate-pulse">
+  <div className="bg-white dark:bg-slate-800 p-8 rounded-xl shadow-sm animate-pulse">
     <div className="flex justify-between items-start mb-8">
       <div>
-        <div className="h-8 w-32 bg-slate-200 rounded"></div>
-        <div className="h-4 w-24 bg-slate-200 rounded mt-2"></div>
+        <div className="h-8 w-32 bg-slate-200 dark:bg-slate-700 rounded"></div>
+        <div className="h-4 w-24 bg-slate-200 dark:bg-slate-700 rounded mt-2"></div>
       </div>
-      <div className="h-10 w-28 bg-slate-200 rounded-full"></div>
+      <div className="h-10 w-28 bg-slate-200 dark:bg-slate-700 rounded-full"></div>
     </div>
-    <div className="h-40 bg-slate-200 rounded mt-8"></div>
+    <div className="h-40 bg-slate-200 dark:bg-slate-700 rounded mt-8"></div>
     <div className="flex justify-end mt-8">
-      <div className="h-12 w-40 bg-slate-200 rounded"></div>
+      <div className="h-12 w-40 bg-slate-200 dark:bg-slate-700 rounded"></div>
     </div>
   </div>
 );
@@ -132,7 +105,7 @@ export default function InvoiceDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [invoice, setInvoice] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const token = localStorage.getItem("token");
 
   useEffect(() => {
@@ -140,7 +113,6 @@ export default function InvoiceDetails() {
       navigate("/login");
       return;
     }
-    setLoading(true);
     getInvoiceById(id, token)
       .then((res) => setInvoice(res.data))
       .catch(console.error)
@@ -161,129 +133,137 @@ export default function InvoiceDetails() {
   };
 
   const StatusBadge = ({ status }) => {
-    const baseClasses = "px-3 py-1 text-sm font-semibold rounded-full";
-    if (status === "paid") {
-      return (
-        <div className={`${baseClasses} bg-green-100 text-green-800`}>Paid</div>
-      );
-    }
+    const paidClasses =
+      "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300";
+    const unpaidClasses =
+      "bg-orange-100 text-orange-800 dark:bg-orange-900/40 dark:text-orange-300";
+    const baseClasses = "px-3 py-1.5 text-sm font-semibold rounded-full";
     return (
-      <div className={`${baseClasses} bg-orange-100 text-orange-800`}>
-        Unpaid
+      <div
+        className={`${baseClasses} ${
+          status === "paid" ? paidClasses : unpaidClasses
+        }`}
+      >
+        {status}
       </div>
     );
   };
 
-  if (!invoice)
-    return (
-      <div className="min-h-screen flex flex-col bg-slate-100">
-        <Header user={{ name: "Admin" }} onLogout={() => navigate("/login")} />
-        <main className="flex-grow container mx-auto p-4 sm:p-6 lg:p-8">
-          <InvoiceSkeleton />
-        </main>
-        <Footer />
-      </div>
-    );
-
   return (
-    <div className="min-h-screen flex flex-col bg-slate-100 font-sans">
-      <Header user={{ name: "Admin" }} onLogout={() => navigate("/login")} />
+    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-900 transition-colors duration-300 font-sans">
+      <Header />
 
       <main className="flex-grow container mx-auto p-4 sm:p-6 lg:p-8">
-        <div className="bg-white p-6 sm:p-8 lg:p-10 rounded-xl shadow-sm">
-          {/* Invoice Header */}
-          <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-8">
-            <div>
-              <h1 className="text-4xl font-bold text-[#1D2056]">INVOICE</h1>
-              <p className="text-slate-500 mt-1">Invoice #: {invoice._id}</p>
-            </div>
-            <StatusBadge status={invoice.status} />
-          </div>
+        {loading ? (
+          <InvoiceSkeleton />
+        ) : (
+          invoice && (
+            <>
+              <div className="bg-white dark:bg-slate-800 p-6 sm:p-8 lg:p-10 rounded-xl shadow-sm">
+                <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-8">
+                  <div>
+                    <h1 className="text-4xl font-bold text-[#1D2056] dark:text-slate-100">
+                      INVOICE
+                    </h1>
+                    <p className="text-slate-500 dark:text-slate-400 mt-1 font-mono">
+                      #{invoice._id}
+                    </p>
+                  </div>
+                  <StatusBadge status={invoice.status} />
+                </div>
 
-          {/* Patient and Date Info */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 mb-10">
-            <div>
-              <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-2">
-                Billed To
-              </h2>
-              <p className="font-bold text-slate-800">{invoice.patient.name}</p>
-              <p className="text-slate-600">{invoice.patient.address}</p>
-            </div>
-            <div className="text-left sm:text-right">
-              <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-2">
-                Details
-              </h2>
-              <p className="text-slate-600">
-                <strong>Issue Date:</strong>{" "}
-                {new Date(invoice.issueDate).toLocaleDateString()}
-              </p>
-              <p className="text-slate-600">
-                <strong>Due Date:</strong>{" "}
-                {new Date(invoice.dueDate).toLocaleDateString()}
-              </p>
-            </div>
-          </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 mb-10 border-t border-slate-100 dark:border-slate-700 pt-8">
+                  <div>
+                    <h2 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
+                      Billed To
+                    </h2>
+                    <p className="font-bold text-slate-800 dark:text-slate-200">
+                      {invoice.patient.name}
+                    </p>
+                    <p className="text-slate-600 dark:text-slate-300">
+                      {invoice.patient.address}
+                    </p>
+                  </div>
+                  <div className="text-left sm:text-right">
+                    <h2 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
+                      Details
+                    </h2>
+                    <p className="text-slate-600 dark:text-slate-300">
+                      <strong>Issue Date:</strong>{" "}
+                      {new Date(invoice.issueDate).toLocaleDateString()}
+                    </p>
+                    <p className="text-slate-600 dark:text-slate-300">
+                      <strong>Due Date:</strong>{" "}
+                      {new Date(invoice.dueDate).toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
 
-          {/* Services Table */}
-          <div className="overflow-x-auto">
-            <table className="w-full text-left">
-              <thead>
-                <tr className="bg-slate-50 text-sm font-semibold text-slate-600">
-                  <th className="p-3 rounded-l-lg">Service Description</th>
-                  <th className="p-3 text-right">Amount</th>
-                </tr>
-              </thead>
-              <tbody>
-                {invoice.services.map((s, idx) => (
-                  <tr key={idx} className="border-b border-slate-100">
-                    <td className="p-3">{s.description}</td>
-                    <td className="p-3 text-right">${s.amount.toFixed(2)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead className="text-sm font-semibold text-slate-500 dark:text-slate-400">
+                      <tr className="border-b-2 border-slate-100 dark:border-slate-700">
+                        <th className="p-3">Service Description</th>
+                        <th className="p-3 text-right">Amount</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
+                      {invoice.services.map((s, idx) => (
+                        <tr key={idx}>
+                          <td className="p-3 text-slate-700 dark:text-slate-300">
+                            {s.description}
+                          </td>
+                          <td className="p-3 text-right text-slate-700 dark:text-slate-300">
+                            ${s.amount.toFixed(2)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
 
-          {/* Total */}
-          <div className="flex justify-end mt-6">
-            <div className="w-full max-w-xs space-y-2">
-              <div className="flex justify-between text-slate-600">
-                <span>Subtotal</span>
-                <span>${invoice.totalAmount.toFixed(2)}</span>
+                <div className="flex justify-end mt-8">
+                  <div className="w-full max-w-sm space-y-3">
+                    <div className="flex justify-between text-slate-600 dark:text-slate-300">
+                      <p>Subtotal</p>
+                      <p>${invoice.totalAmount.toFixed(2)}</p>
+                    </div>
+                    <div className="flex justify-between text-slate-600 dark:text-slate-300">
+                      <p>Tax (0%)</p>
+                      <p>$0.00</p>
+                    </div>
+                    <div className="flex justify-between font-bold text-lg text-[#1D2056] dark:text-slate-100 border-t border-slate-200 dark:border-slate-700 pt-3 mt-3 !">
+                      <p>Total Amount</p>
+                      <p>${invoice.totalAmount.toFixed(2)}</p>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div className="flex justify-between text-slate-600">
-                <span>Tax (0%)</span>
-                <span>$0.00</span>
-              </div>
-              <div className="flex justify-between font-bold text-lg text-[#1D2056] border-t pt-2">
-                <span>Total Amount</span>
-                <span>${invoice.totalAmount.toFixed(2)}</span>
-              </div>
-            </div>
-          </div>
-        </div>
 
-        {/* Action Buttons */}
-        <div className="mt-8 flex flex-col sm:flex-row justify-end gap-3 print:hidden">
-          <button
-            onClick={() => window.print()}
-            className="flex items-center justify-center gap-2 bg-slate-200 text-slate-800 font-bold py-2 px-4 rounded-lg hover:bg-slate-300 transition-all"
-          >
-            <PrintIcon /> Print
-          </button>
-          <button className="flex items-center justify-center gap-2 bg-slate-200 text-slate-800 font-bold py-2 px-4 rounded-lg hover:bg-slate-300 transition-all">
-            <DownloadIcon /> Download PDF
-          </button>
-          {invoice.status === "unpaid" && (
-            <button
-              onClick={handleMarkPaid}
-              disabled={loading}
-              className="flex items-center justify-center gap-2 bg-[#FE4982] text-white font-bold py-2 px-4 rounded-lg hover:bg-[#E03A6D] transition-all disabled:opacity-60"
-            >
-              <CheckCircleIcon /> {loading ? "Processing..." : "Mark as Paid"}
-            </button>
-          )}
-        </div>
+              <div className="mt-8 flex flex-col sm:flex-row justify-end gap-3 print:hidden">
+                <button
+                  onClick={() => window.print()}
+                  className="flex items-center justify-center gap-2 bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold py-2 px-4 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600 transition-all"
+                >
+                  <PrintIcon /> Print
+                </button>
+                <button className="flex items-center justify-center gap-2 bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold py-2 px-4 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600 transition-all">
+                  <DownloadIcon /> Download PDF
+                </button>
+                {invoice.status === "unpaid" && (
+                  <button
+                    onClick={handleMarkPaid}
+                    disabled={loading}
+                    className="flex items-center justify-center gap-2 bg-[#FE4982] text-white font-bold py-2 px-4 rounded-lg hover:bg-[#E03A6D] transition-all disabled:opacity-60"
+                  >
+                    <CheckCircleIcon />{" "}
+                    {loading ? "Processing..." : "Mark as Paid"}
+                  </button>
+                )}
+              </div>
+            </>
+          )
+        )}
       </main>
       <Footer />
     </div>
