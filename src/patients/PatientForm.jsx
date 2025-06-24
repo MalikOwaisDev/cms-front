@@ -1,20 +1,10 @@
 import { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, NavLink } from "react-router-dom";
 
-// --- MOCK API SERVICES (for demonstration) ---
-const createPatient = async (patientData, token) => {
-  console.log("Creating patient with token:", token);
-  console.log("Patient Data:", patientData);
-  await new Promise((resolve) => setTimeout(resolve, 1500));
-  return {
-    data: {
-      message: "Patient registered successfully!",
-      patient: { ...patientData, _id: `pat_${Math.random()}` },
-    },
-  };
-};
+import Header from "../components/Header";
+import Footer from "../components/Footer";
 
-// --- ICONS (Self-contained SVG components) ---
+// --- FORM ICONS ---
 const UserIcon = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -97,30 +87,12 @@ const SaveIcon = () => (
   </svg>
 );
 
-// --- Reusable Components (Header, Footer) ---
-const Header = ({ user, onLogout }) => (
-  <header className="bg-[#1D2056] text-white shadow-md">
-    <div className="container mx-auto flex items-center justify-between p-4">
-      <Link to="/" className="text-xl font-bold tracking-wider">
-        CarePulse
-      </Link>
-      <button
-        onClick={onLogout}
-        className="text-sm font-semibold hover:opacity-80"
-      >
-        Logout
-      </button>
-    </div>
-  </header>
-);
-
-const Footer = () => (
-  <footer className="bg-slate-100 text-center p-4 mt-auto">
-    <p className="text-sm text-slate-500">
-      &copy; {new Date().getFullYear()} CarePulse
-    </p>
-  </footer>
-);
+// --- MOCK API SERVICE ---
+const createPatient = async (patientData, token) => {
+  console.log("Creating patient with token:", token);
+  await new Promise((resolve) => setTimeout(resolve, 1500));
+  return { data: { message: "Patient registered successfully!" } };
+};
 
 // --- Patient Form Page Component ---
 export default function PatientForm() {
@@ -137,6 +109,10 @@ export default function PatientForm() {
 
   const token = localStorage.getItem("token");
 
+  useEffect(() => {
+    if (!token) navigate("/login");
+  }, [token, navigate]);
+
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
@@ -151,10 +127,10 @@ export default function PatientForm() {
     }
     setLoading(true);
     try {
-      const res = await createPatient(form, token);
-      setSuccess(res.data.message || "Patient registered successfully!");
-      setForm({ name: "", age: "", diagnosis: "", contact: "" }); // Reset form
-      setTimeout(() => setSuccess(""), 4000); // Clear success message after 4s
+      await createPatient(form, token);
+      setSuccess("Patient registered successfully!");
+      setForm({ name: "", age: "", diagnosis: "", contact: "" });
+      setTimeout(() => setSuccess(""), 4000);
     } catch (err) {
       setError("Failed to create patient. Please try again.");
     } finally {
@@ -163,58 +139,61 @@ export default function PatientForm() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-100 font-sans">
-      <Header user={{ name: "Admin" }} onLogout={() => navigate("/login")} />
+    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-900 transition-colors duration-300 font-sans">
+      <Header />
 
       <main className="flex-grow container mx-auto p-4 sm:p-6 lg:p-8">
         <div className="max-w-2xl mx-auto">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-slate-800">
+            <h1 className="text-3xl font-bold text-slate-800 dark:text-slate-100">
               Register New Patient
             </h1>
-            <p className="text-slate-600 mt-1">
+            <p className="text-slate-500 dark:text-slate-400 mt-1">
               Enter the patient's details below.
             </p>
           </div>
 
           <form
             onSubmit={handleSubmit}
-            className="bg-white p-6 sm:p-8 rounded-xl shadow-sm space-y-8"
+            className="bg-white dark:bg-slate-800 p-6 sm:p-8 rounded-xl shadow-sm space-y-8"
           >
-            {/* Fieldset for Personal Details */}
             <fieldset className="space-y-6">
-              <legend className="text-lg font-semibold text-[#1D2056] mb-4">
+              <legend className="text-lg font-semibold text-[#1D2056] dark:text-slate-200 mb-4 border-b border-slate-200 dark:border-slate-700 pb-2">
                 Personal Information
               </legend>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label
                     htmlFor="name"
-                    className="block text-sm font-medium text-slate-700 mb-2"
+                    className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                   >
                     Full Name
                   </label>
                   <div className="relative">
-                    <UserIcon className="absolute top-1/2 left-3 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                    <span className="absolute top-[70%] left-3 -translate-y-1/2 text-slate-400">
+                      <UserIcon />
+                    </span>
                     <input
                       id="name"
                       name="name"
                       value={form.name}
                       onChange={handleChange}
                       placeholder="Eleanor Vance"
-                      className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
+                      className="w-full pl-10 pr-4 py-3 bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-slate-200 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
                     />
                   </div>
                 </div>
                 <div>
                   <label
                     htmlFor="age"
-                    className="block text-sm font-medium text-slate-700 mb-2"
+                    className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                   >
                     Age
                   </label>
                   <div className="relative">
-                    <HashIcon className="absolute top-1/2 left-3 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                    <span className="absolute top-[70%] left-3 -translate-y-1/2 text-slate-400">
+                      <HashIcon />
+                    </span>
                     <input
                       id="age"
                       name="age"
@@ -222,7 +201,7 @@ export default function PatientForm() {
                       value={form.age}
                       onChange={handleChange}
                       placeholder="e.g., 68"
-                      className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
+                      className="w-full pl-10 pr-4 py-3 bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-slate-200 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
                     />
                   </div>
                 </div>
@@ -230,70 +209,76 @@ export default function PatientForm() {
               <div>
                 <label
                   htmlFor="contact"
-                  className="block text-sm font-medium text-slate-700 mb-2"
+                  className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                 >
                   Contact Number
                 </label>
                 <div className="relative">
-                  <PhoneIcon className="absolute top-1/2 left-3 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                  <span className="absolute top-[70%] left-3 -translate-y-1/2 text-slate-400">
+                    <PhoneIcon />
+                  </span>
                   <input
                     id="contact"
                     name="contact"
                     value={form.contact}
                     onChange={handleChange}
                     placeholder="(+92) 300-1234567"
-                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
+                    className="w-full pl-10 pr-4 py-3 bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-slate-200 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
                   />
                 </div>
               </div>
             </fieldset>
 
-            {/* Fieldset for Medical Details */}
             <fieldset className="space-y-6">
-              <legend className="text-lg font-semibold text-[#1D2056] mb-4">
+              <legend className="text-lg font-semibold text-[#1D2056] dark:text-slate-200 mb-4 border-b border-slate-200 dark:border-slate-700 pb-2">
                 Medical Information
               </legend>
               <div>
                 <label
                   htmlFor="diagnosis"
-                  className="block text-sm font-medium text-slate-700 mb-2"
+                  className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                 >
                   Primary Diagnosis
                 </label>
                 <div className="relative">
-                  <ActivityIcon className="absolute top-1/2 left-3 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                  <span className="absolute top-[70%] left-3 -translate-y-1/2 text-slate-400">
+                    <ActivityIcon />
+                  </span>
                   <input
                     id="diagnosis"
                     name="diagnosis"
                     value={form.diagnosis}
                     onChange={handleChange}
                     placeholder="e.g., Hypertension"
-                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
+                    className="w-full pl-10 pr-4 py-3 bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-slate-200 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
                   />
                 </div>
               </div>
             </fieldset>
 
-            {/* Form Actions and Feedback */}
-            <div className="pt-6 border-t border-slate-200 space-y-4">
+            <div className="pt-6 border-t border-slate-200 dark:border-slate-700 space-y-4">
               {error && (
-                <p className="text-red-600 text-sm text-center">{error}</p>
+                <p className="text-red-500 dark:text-red-400 text-sm text-center">
+                  {error}
+                </p>
               )}
               {success && (
-                <p className="text-green-600 text-sm text-center">{success}</p>
+                <p className="text-green-600 dark:text-green-400 text-sm text-center">
+                  {success}
+                </p>
               )}
               <div className="flex justify-end gap-4">
                 <button
                   type="button"
                   onClick={() => navigate(-1)}
-                  className="bg-slate-200 text-slate-800 font-bold py-2 px-6 rounded-lg hover:bg-slate-300 transition-all"
+                  className="bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold py-2 px-6 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600 transition-all"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full sm:w-auto bg-[#FE4982] text-white font-bold py-2 px-6 rounded-lg flex items-center justify-center gap-2 hover:bg-[#E03A6D] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#FE4982] transition-all disabled:bg-opacity-60"
+                  className="w-full sm:w-auto bg-[#FE4982] text-white font-bold py-2 px-6 rounded-lg flex items-center justify-center gap-2 hover:bg-[#E03A6D] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-50 dark:ring-offset-slate-900 focus:ring-[#FE4982] transition-all disabled:bg-opacity-60"
                 >
                   {loading ? (
                     "Saving..."

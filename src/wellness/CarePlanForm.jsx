@@ -1,27 +1,24 @@
 import { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, NavLink } from "react-router-dom";
+import Header from "../components/Header";
+import Footer from "../components/Footer";
 
-// --- MOCK API SERVICES (for demonstration) ---
+// --- MOCK API SERVICES ---
 const mockPatients = [
   { _id: "pat1", name: "Johnathan Doe" },
   { _id: "pat2", name: "Eleanor Vance" },
   { _id: "pat3", name: "Marcus Rivera" },
 ];
-
 const getPatients = async (token) => {
-  console.log("Fetching patients with token:", token);
-  await new Promise((resolve) => setTimeout(resolve, 500));
+  await new Promise((r) => setTimeout(r, 500));
   return { data: mockPatients };
 };
-
 const createCarePlan = async (planData, token) => {
-  console.log("Creating care plan with token:", token);
-  console.log("Plan Data:", planData);
-  await new Promise((resolve) => setTimeout(resolve, 1500));
+  await new Promise((r) => setTimeout(r, 1500));
   return { data: { message: "Care plan created successfully!" } };
 };
 
-// --- ICONS (Self-contained SVG components) ---
+// --- ICONS ---
 const UserIcon = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -139,30 +136,6 @@ const SaveIcon = () => (
   </svg>
 );
 
-// --- Reusable Header/Footer ---
-const Header = ({ user, onLogout }) => (
-  <header className="bg-[#1D2056] text-white shadow-md">
-    <div className="container mx-auto flex items-center justify-between p-4">
-      <Link to="/" className="text-xl font-bold tracking-wider">
-        CarePulse
-      </Link>
-      <button
-        onClick={onLogout}
-        className="text-sm font-semibold hover:opacity-80"
-      >
-        Logout
-      </button>
-    </div>
-  </header>
-);
-const Footer = () => (
-  <footer className="bg-slate-100 text-center p-4 mt-auto">
-    <p className="text-sm text-slate-500">
-      &copy; {new Date().getFullYear()} CarePulse
-    </p>
-  </footer>
-);
-
 // --- Care Plan Form Page Component ---
 export default function CarePlanForm() {
   const navigate = useNavigate();
@@ -179,30 +152,25 @@ export default function CarePlanForm() {
   const token = localStorage.getItem("token");
 
   useEffect(() => {
+    if (!token) navigate("/login");
     getPatients(token).then((res) => setPatients(res.data));
-  }, [token]);
+  }, [token, navigate]);
 
-  const handleFormChange = (e) => {
+  const handleFormChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
-  };
-
   const handleGoalChange = (index, value) => {
     const newGoals = [...form.goals];
     newGoals[index].goal = value;
     setForm({ ...form, goals: newGoals });
   };
 
-  const addGoal = () => {
+  const addGoal = () =>
     setForm({
       ...form,
       goals: [...form.goals, { goal: "", status: "pending" }],
     });
-  };
-
-  const removeGoal = (index) => {
-    const newGoals = form.goals.filter((_, i) => i !== index);
-    setForm({ ...form, goals: newGoals });
-  };
+  const removeGoal = (index) =>
+    setForm({ ...form, goals: form.goals.filter((_, i) => i !== index) });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -231,45 +199,46 @@ export default function CarePlanForm() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-100 font-sans">
-      <Header user={{ name: "Admin" }} onLogout={() => navigate("/login")} />
+    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-900 transition-colors duration-300 font-sans">
+      <Header />
 
       <main className="flex-grow container mx-auto p-4 sm:p-6 lg:p-8">
         <div className="max-w-3xl mx-auto">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-slate-800">
+            <h1 className="text-3xl font-bold text-slate-800 dark:text-slate-100">
               Create New Care Plan
             </h1>
-            <p className="text-slate-600 mt-1">
+            <p className="text-slate-500 dark:text-slate-400 mt-1">
               Develop a personalized health and wellness plan for a patient.
             </p>
           </div>
 
           <form
             onSubmit={handleSubmit}
-            className="bg-white p-6 sm:p-8 rounded-xl shadow-sm space-y-8"
+            className="bg-white dark:bg-slate-800 p-6 sm:p-8 rounded-xl shadow-sm space-y-8"
           >
-            {/* Plan Details */}
             <fieldset className="space-y-6">
-              <legend className="text-lg font-semibold text-[#1D2056] mb-4">
+              <legend className="text-lg font-semibold text-[#1D2056] dark:text-slate-200 mb-4 border-b border-slate-200 dark:border-slate-700 pb-2">
                 Plan Details
               </legend>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label
                     htmlFor="patient"
-                    className="block text-sm font-medium text-slate-700 mb-2"
+                    className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                   >
                     Patient
                   </label>
                   <div className="relative">
-                    <UserIcon className="absolute top-1/2 left-3 -translate-y-1/2 text-slate-400" />
+                    <span className="absolute top-[70%] left-3 -translate-y-1/2 text-slate-400">
+                      <UserIcon />
+                    </span>
                     <select
                       id="patient"
                       name="patient"
                       value={form.patient}
                       onChange={handleFormChange}
-                      className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
+                      className="w-full pl-10 pr-4 py-3 bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-slate-200 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
                     >
                       <option value="" disabled>
                         Select a patient
@@ -285,19 +254,21 @@ export default function CarePlanForm() {
                 <div>
                   <label
                     htmlFor="title"
-                    className="block text-sm font-medium text-slate-700 mb-2"
+                    className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                   >
                     Plan Title
                   </label>
                   <div className="relative">
-                    <ClipboardIcon className="absolute top-1/2 left-3 -translate-y-1/2 text-slate-400" />
+                    <span className="absolute top-[70%] left-3 -translate-y-1/2 text-slate-400">
+                      <ClipboardIcon />
+                    </span>
                     <input
                       id="title"
                       name="title"
                       value={form.title}
                       onChange={handleFormChange}
-                      placeholder="e.g., Post-Surgery Recovery Plan"
-                      className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
+                      placeholder="e.g., Post-Surgery Recovery"
+                      className="w-full pl-10 pr-4 py-3 bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-slate-200 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
                     />
                   </div>
                 </div>
@@ -305,12 +276,14 @@ export default function CarePlanForm() {
               <div>
                 <label
                   htmlFor="description"
-                  className="block text-sm font-medium text-slate-700 mb-2"
+                  className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                 >
                   Description
                 </label>
                 <div className="relative">
-                  <AlignLeftIcon className="absolute top-4 left-3 text-slate-400" />
+                  <span className="absolute top-4 left-3 text-slate-400">
+                    <AlignLeftIcon />
+                  </span>
                   <textarea
                     id="description"
                     name="description"
@@ -318,34 +291,35 @@ export default function CarePlanForm() {
                     onChange={handleFormChange}
                     rows="4"
                     placeholder="Briefly describe the purpose and scope of this care plan."
-                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
+                    className="w-full pl-10 pr-4 py-3 bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-slate-200 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
                   ></textarea>
                 </div>
               </div>
             </fieldset>
 
-            {/* Goals Section */}
             <fieldset>
-              <legend className="text-lg font-semibold text-[#1D2056] mb-4">
+              <legend className="text-lg font-semibold text-[#1D2056] dark:text-slate-200 mb-4 border-b border-slate-200 dark:border-slate-700 pb-2">
                 Patient Goals
               </legend>
               <div className="space-y-4">
                 {form.goals.map((g, idx) => (
                   <div key={idx} className="flex items-center gap-3">
                     <div className="relative flex-grow">
-                      <TargetIcon className="absolute top-1/2 left-3 -translate-y-1/2 text-slate-400" />
+                      <span className="absolute top-[70%] left-3 -translate-y-1/2 text-slate-400">
+                        <TargetIcon />
+                      </span>
                       <input
                         value={g.goal}
                         onChange={(e) => handleGoalChange(idx, e.target.value)}
                         placeholder={`Goal #${idx + 1}`}
-                        className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
+                        className="w-full pl-10 pr-4 py-3 bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-slate-200 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
                       />
                     </div>
                     {form.goals.length > 1 && (
                       <button
                         type="button"
                         onClick={() => removeGoal(idx)}
-                        className="text-red-500 hover:text-red-700 p-3 rounded-lg hover:bg-red-100 transition-colors"
+                        className="text-red-500 hover:text-red-700 p-3 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/20 transition-colors"
                       >
                         <TrashIcon />
                       </button>
@@ -355,33 +329,36 @@ export default function CarePlanForm() {
                 <button
                   type="button"
                   onClick={addGoal}
-                  className="flex items-center gap-2 text-[#1D2056] font-semibold py-2 px-4 rounded-lg hover:bg-slate-200 transition-colors"
+                  className="flex items-center gap-2 text-[#1D2056] dark:text-slate-200 font-semibold py-2 px-4 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
                 >
                   <PlusIcon /> Add Another Goal
                 </button>
               </div>
             </fieldset>
 
-            {/* Actions */}
-            <div className="pt-6 border-t border-slate-200 space-y-4">
+            <div className="pt-6 border-t border-slate-200 dark:border-slate-700 space-y-4">
               {error && (
-                <p className="text-red-600 text-sm text-center">{error}</p>
+                <p className="text-red-500 dark:text-red-400 text-sm text-center">
+                  {error}
+                </p>
               )}
               {success && (
-                <p className="text-green-600 text-sm text-center">{success}</p>
+                <p className="text-green-600 dark:text-green-400 text-sm text-center">
+                  {success}
+                </p>
               )}
               <div className="flex justify-end gap-4">
                 <button
                   type="button"
                   onClick={() => navigate(-1)}
-                  className="bg-slate-200 text-slate-800 font-bold py-2 px-6 rounded-lg hover:bg-slate-300"
+                  className="bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold py-2 px-6 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600 transition-all"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full sm:w-auto bg-[#FE4982] text-white font-bold py-2 px-6 rounded-lg flex items-center justify-center gap-2 hover:bg-[#E03A6D] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#FE4982] disabled:bg-opacity-60"
+                  className="w-full sm:w-auto bg-[#FE4982] text-white font-bold py-2 px-6 rounded-lg flex items-center justify-center gap-2 hover:bg-[#E03A6D] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-50 dark:ring-offset-slate-900 focus:ring-[#FE4982] transition-all disabled:bg-opacity-60"
                 >
                   {loading ? (
                     "Saving..."

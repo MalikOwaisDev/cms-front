@@ -37,8 +37,8 @@ const NotFound = () => {
     </svg>
   );
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#1D2056] text-white p-4">
-      <div className="text-center">
+    <div className="min-h-screen flex items-center justify-center bg-[#1D2056] text-white ">
+      <div className="text-center p-4">
         <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-[#FE4982] mb-8">
           <AlertTriangleIcon size={50} />
         </div>

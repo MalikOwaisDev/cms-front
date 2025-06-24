@@ -1,31 +1,29 @@
 import { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, NavLink } from "react-router-dom";
+import Header from "../components/Header";
+import Footer from "../components/Footer";
 
-// --- MOCK API SERVICES (for demonstration) ---
+// --- MOCK API SERVICES ---
 const mockCaregivers = [
   { _id: "user_1", name: "Alice Johnson" },
   { _id: "user_2", name: "Bob Williams" },
   { _id: "user_3", name: "Charlie Brown" },
   { _id: "user_4", name: "Diana Prince" },
+  { _id: "user_5", name: "Evan Green" },
+  { _id: "user_6", name: "Fiona White" },
 ];
-
-// In a real app, this would fetch users with the 'caregiver' role
 const getCaregivers = async (token) => {
-  console.log("Fetching caregivers with token:", token);
-  await new Promise((resolve) => setTimeout(resolve, 500));
+  await new Promise((r) => setTimeout(r, 500));
   return { data: mockCaregivers };
 };
-
 const createTraining = async (trainingData, token) => {
-  console.log("Creating training with token:", token);
-  console.log("Training Data:", trainingData);
-  await new Promise((resolve) => setTimeout(resolve, 1500));
+  await new Promise((r) => setTimeout(r, 1500));
   return {
     data: { message: "Training module created and assigned successfully!" },
   };
 };
 
-// --- ICONS (Self-contained SVG components) ---
+// --- ICONS ---
 const BookOpenIcon = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -95,30 +93,6 @@ const SendIcon = () => (
   </svg>
 );
 
-// --- Reusable Header/Footer ---
-const Header = ({ user, onLogout }) => (
-  <header className="bg-[#1D2056] text-white shadow-md">
-    <div className="container mx-auto flex items-center justify-between p-4">
-      <Link to="/" className="text-xl font-bold tracking-wider">
-        CarePulse
-      </Link>
-      <button
-        onClick={onLogout}
-        className="text-sm font-semibold hover:opacity-80"
-      >
-        Logout
-      </button>
-    </div>
-  </header>
-);
-const Footer = () => (
-  <footer className="bg-slate-100 text-center p-4 mt-auto">
-    <p className="text-sm text-slate-500">
-      &copy; {new Date().getFullYear()} CarePulse
-    </p>
-  </footer>
-);
-
 // --- Training Form Page Component ---
 export default function TrainingForm() {
   const navigate = useNavigate();
@@ -131,16 +105,15 @@ export default function TrainingForm() {
   const token = localStorage.getItem("token");
 
   useEffect(() => {
+    if (!token) navigate("/login");
     getCaregivers(token).then((res) => setCaregivers(res.data));
-  }, [token]);
+  }, [token, navigate]);
 
   const handleAssigneeChange = (e) => {
     const { value, checked } = e.target;
-    if (checked) {
-      setAssignedTo([...assignedTo, value]);
-    } else {
-      setAssignedTo(assignedTo.filter((id) => id !== value));
-    }
+    setAssignedTo((prev) =>
+      checked ? [...prev, value] : prev.filter((id) => id !== value)
+    );
   };
 
   const handleSubmit = async (e) => {
@@ -166,38 +139,39 @@ export default function TrainingForm() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-100 font-sans">
-      <Header user={{ name: "Admin" }} onLogout={() => navigate("/login")} />
+    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-900 transition-colors duration-300 font-sans">
+      <Header />
 
       <main className="flex-grow container mx-auto p-4 sm:p-6 lg:p-8">
         <div className="max-w-3xl mx-auto">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-slate-800">
+            <h1 className="text-3xl font-bold text-slate-800 dark:text-slate-100">
               Create New Training
             </h1>
-            <p className="text-slate-600 mt-1">
+            <p className="text-slate-500 dark:text-slate-400 mt-1">
               Design a module and assign it to caregivers.
             </p>
           </div>
 
           <form
             onSubmit={handleSubmit}
-            className="bg-white p-6 sm:p-8 rounded-xl shadow-sm space-y-8"
+            className="bg-white dark:bg-slate-800 p-6 sm:p-8 rounded-xl shadow-sm space-y-8"
           >
-            {/* Training Details */}
             <fieldset className="space-y-6">
-              <legend className="text-lg font-semibold text-[#1D2056] mb-4">
+              <legend className="text-lg font-semibold text-[#1D2056] dark:text-slate-200 mb-4 border-b border-slate-200 dark:border-slate-700 pb-2">
                 Module Details
               </legend>
               <div>
                 <label
                   htmlFor="title"
-                  className="block text-sm font-medium text-slate-700 mb-2"
+                  className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                 >
                   Training Title
                 </label>
                 <div className="relative">
-                  <BookOpenIcon className="absolute top-1/2 left-3 -translate-y-1/2 text-slate-400" />
+                  <span className="absolute top-[70%] left-3 -translate-y-1/2 text-slate-400">
+                    <BookOpenIcon />
+                  </span>
                   <input
                     id="title"
                     value={form.title}
@@ -205,19 +179,21 @@ export default function TrainingForm() {
                       setForm({ ...form, title: e.target.value })
                     }
                     placeholder="e.g., Patient Privacy & HIPAA"
-                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
+                    className="w-full pl-10 pr-4 py-3 bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-slate-200 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
                   />
                 </div>
               </div>
               <div>
                 <label
                   htmlFor="content"
-                  className="block text-sm font-medium text-slate-700 mb-2"
+                  className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                 >
                   Content / Instructions
                 </label>
                 <div className="relative">
-                  <AlignLeftIcon className="absolute top-4 left-3 text-slate-400" />
+                  <span className="absolute top-4 left-3 text-slate-400">
+                    <AlignLeftIcon className="absolute top-4 left-3 text-slate-400" />
+                  </span>
                   <textarea
                     id="content"
                     value={form.content}
@@ -226,19 +202,21 @@ export default function TrainingForm() {
                     }
                     rows="5"
                     placeholder="Describe the training requirements, link to materials, etc."
-                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
+                    className="w-full pl-10 pr-4 py-3 bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-slate-200 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
                   ></textarea>
                 </div>
               </div>
               <div>
                 <label
                   htmlFor="deadline"
-                  className="block text-sm font-medium text-slate-700 mb-2"
+                  className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                 >
                   Completion Deadline
                 </label>
                 <div className="relative">
-                  <CalendarIcon className="absolute top-1/2 left-3 -translate-y-1/2 text-slate-400" />
+                  <span className="absolute top-[70%] left-3 -translate-y-1/2 text-slate-400">
+                    <CalendarIcon />
+                  </span>
                   <input
                     type="date"
                     id="deadline"
@@ -246,26 +224,25 @@ export default function TrainingForm() {
                     onChange={(e) =>
                       setForm({ ...form, deadline: e.target.value })
                     }
-                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
+                    className="w-full pl-10 pr-4 py-3 bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-slate-200 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
                   />
                 </div>
               </div>
             </fieldset>
 
-            {/* Assignee Selection */}
             <fieldset>
-              <legend className="text-lg font-semibold text-[#1D2056] mb-4">
-                Assign to Caregivers
+              <legend className="text-lg font-semibold text-[#1D2056] dark:text-slate-200 mb-4 border-b border-slate-200 dark:border-slate-700 pb-2">
+                Assign to Caregivers ({assignedTo.length} selected)
               </legend>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 {caregivers.map((c) => (
                   <label
                     key={c._id}
                     htmlFor={`caregiver-${c._id}`}
                     className={`flex items-center p-3 rounded-lg border cursor-pointer transition-all ${
                       assignedTo.includes(c._id)
-                        ? "bg-pink-50 border-[#FE4982] ring-2 ring-[#FE4982]"
-                        : "bg-slate-50 border-slate-200 hover:bg-slate-100"
+                        ? "bg-pink-100 dark:bg-pink-900/40 border-pink-300 dark:border-pink-600 ring-2 ring-pink-500 dark:ring-pink-500"
+                        : "bg-slate-100 dark:bg-slate-700 border-slate-200 dark:border-slate-600 hover:bg-slate-200 dark:hover:bg-slate-600"
                     }`}
                   >
                     <input
@@ -276,7 +253,7 @@ export default function TrainingForm() {
                       onChange={handleAssigneeChange}
                       className="h-4 w-4 rounded border-gray-300 text-[#FE4982] focus:ring-[#E03A6D]"
                     />
-                    <span className="ml-3 font-medium text-slate-700">
+                    <span className="ml-3 font-medium text-slate-700 dark:text-slate-200">
                       {c.name}
                     </span>
                   </label>
@@ -284,26 +261,29 @@ export default function TrainingForm() {
               </div>
             </fieldset>
 
-            {/* Actions */}
-            <div className="pt-6 border-t border-slate-200 space-y-4">
+            <div className="pt-6 border-t border-slate-200 dark:border-slate-700 space-y-4">
               {error && (
-                <p className="text-red-600 text-sm text-center">{error}</p>
+                <p className="text-red-500 dark:text-red-400 text-sm text-center">
+                  {error}
+                </p>
               )}
               {success && (
-                <p className="text-green-600 text-sm text-center">{success}</p>
+                <p className="text-green-600 dark:text-green-400 text-sm text-center">
+                  {success}
+                </p>
               )}
               <div className="flex justify-end gap-4">
                 <button
                   type="button"
                   onClick={() => navigate(-1)}
-                  className="bg-slate-200 text-slate-800 font-bold py-2 px-6 rounded-lg hover:bg-slate-300"
+                  className="bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold py-2 px-6 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600 transition-all"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full sm:w-auto bg-[#FE4982] text-white font-bold py-2 px-6 rounded-lg flex items-center justify-center gap-2 hover:bg-[#E03A6D] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#FE4982] disabled:bg-opacity-60"
+                  className="w-full sm:w-auto bg-[#FE4982] text-white font-bold py-2 px-6 rounded-lg flex items-center justify-center gap-2 hover:bg-[#E03A6D] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-50 dark:ring-offset-slate-900 focus:ring-[#FE4982] transition-all disabled:bg-opacity-60"
                 >
                   {loading ? (
                     "Assigning..."
