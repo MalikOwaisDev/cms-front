@@ -206,7 +206,7 @@ export default function Login() {
     <>
     {/* // UI Improvement: Added a subtle gradient background for more depth */}
       {/* UI Improvement: Added entry animations for the entire form */}
-      <div className="relative min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900 p-4 font-sans transition-colors duration-300">
+      <div className="lgn-hero">
         <ThemeToggle />
         <div
           className={`w-full max-w-md transform transition-all duration-700 ease-out ${isMounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
