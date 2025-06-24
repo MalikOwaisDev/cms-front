@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { Helmet } from 'react-helmet'
 import axios from "axios";
 import './styles/login.scss'
 
@@ -161,6 +162,7 @@ const ThemeToggle = () => {
 
 // --- Main Login Page Component ---
 export default function Login() {
+
   const navigate = useNavigate();
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
@@ -204,15 +206,15 @@ export default function Login() {
 
   return (
     <>
-    {/* // UI Improvement: Added a subtle gradient background for more depth */}
+    <Helmet>
+      <title>Login</title>
+    </Helmet>
+      {/* // UI Improvement: Added a subtle gradient background for more depth */}
       {/* UI Improvement: Added entry animations for the entire form */}
       <div className="lgn-hero">
-        <ThemeToggle />
-        <div
-          className={`w-full max-w-md transform transition-all duration-700 ease-out ${isMounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
-            }`}
-        >
-          <div className="text-center mb-8">
+        {/* <ThemeToggle /> */}
+        <div className='frm-cnt'>
+          <div className="logo-cont">
             <img
               src="/logo3.png"
               alt="MindfulTrust Logo"
@@ -231,13 +233,9 @@ export default function Login() {
             />
           </div>
 
-          <div className="bg-white dark:bg-slate-800 p-6 sm:p-8 rounded-2xl shadow-lg">
-            <h2 className="text-2xl sm:text-3xl font-bold text-center text-[#1D2056] dark:text-slate-100 mb-2">
-              Welcome Back!
-            </h2>
-            <p className="text-center text-slate-500 dark:text-slate-400 mb-8">
-              Sign in to continue to your dashboard.
-            </p>
+          <div className="lgn-form-dv-cnt">
+            <h2 className="lgn-form-head">Sign In</h2>
+            {/* <p className="lgn-form-p-des">Welcome Back User!</p> */}
 
             {error && (
               <div
@@ -249,50 +247,45 @@ export default function Login() {
               </div>
             )}
 
-            <form onSubmit={handleSubmit} noValidate>
-              <div className="space-y-4">
-                <div className="relative">
-                  <span className="absolute top-[70%] left-3 -translate-y-1/2 text-slate-400">
-                    <MailIcon />
-                  </span>
+            <form onSubmit={handleSubmit} noValidate className="frm">
+
+              <div className="input-controller-cnt">
+
+                <div className="inpt-cont">
                   <input
                     name="email"
                     type="email"
                     placeholder="Email Address"
-                    className="w-full pl-10 pr-4 py-3 bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-slate-200 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE4982] transition-colors"
+                    className="email-inpt"
                     value={formData.email}
                     onChange={handleChange}
                     required
                   />
                 </div>
-                <div className="relative">
-                  <span className="absolute top-[70%] left-3 -translate-y-1/2 text-slate-400">
-                    <LockIcon />
-                  </span>
+
+                <div className="inpt-cont">
                   <input
                     name="password"
                     type={showPassword ? "text" : "password"}
                     placeholder="Password"
-                    className="w-full pl-10 pr-10 py-3 bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-slate-200 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE4982] transition-colors"
+                    className="email-inpt"
                     value={formData.password}
                     onChange={handleChange}
                     required
                   />
                   <button
                     type="button"
-                    className="absolute top-[70%] -translate-y-1/2 right-3 cursor-pointer text-slate-400 hover:text-[#1D2056] dark:hover:text-slate-200"
+                    className="eye-ico"
                     onClick={() => setShowPassword(!showPassword)}
                   >
                     {showPassword ? <EyeOffIcon /> : <EyeIcon />}
                   </button>
                 </div>
+
               </div>
 
-              <div className="text-right my-6">
-                <Link
-                  to="/forgot-password"
-                  className="text-sm font-semibold text-slate-500 dark:text-slate-400 hover:text-[#FE4982] hover:underline"
-                >
+              <div className="frgt-txt-cnt">
+                <Link to="/forgot-password" className="frgt-txt">
                   Forgot Password?
                 </Link>
               </div>
@@ -300,7 +293,7 @@ export default function Login() {
               <button
                 type="submit"
                 disabled={loading || !isFormComplete}
-                className="w-full bg-[#FE4982] text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center gap-2 hover:bg-[#E03A6D] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-slate-800 focus:ring-[#FE4982] transition-all duration-300 ease-in-out disabled:bg-opacity-60 disabled:cursor-not-allowed"
+                className="mn-login-btn"
               >
                 {loading ? (
                   <>
@@ -332,11 +325,11 @@ export default function Login() {
               </button>
             </form>
 
-            <p className="text-sm mt-8 text-center text-slate-600 dark:text-slate-400">
+            <p className="dnt-text">
               Don't have an account?{" "}
               <Link
                 to="/register"
-                className="font-semibold text-[#FE4982] hover:underline"
+                className="dnt-lnk"
               >
                 Register Here
               </Link>
