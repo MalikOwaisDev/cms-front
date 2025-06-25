@@ -176,6 +176,7 @@ export default function Login() {
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    setError("");
   };
 
   const handleSubmit = async (e) => {
@@ -201,6 +202,10 @@ export default function Login() {
       setError(err.response?.data?.message || "Registration failed.");
     } finally {
       setLoading(false);
+
+      // setTimeout(() => {
+      //   setError("");
+      // }, 5000);
     }
   };
 
@@ -238,13 +243,11 @@ export default function Login() {
             {/* <p className="lgn-form-p-des">Welcome Back User!</p> */}
 
             {error && (
-              <div
-                className="bg-red-100 dark:bg-red-900/20 border border-red-300 dark:border-red-500/30 text-red-800 dark:text-red-300 px-4 py-3 rounded-lg relative mb-6 flex items-center"
-                role="alert"
-              >
-                <AlertCircleIcon className="mr-3 flex-shrink-0" />
-                <span className="block sm:inline text-sm">{error}</span>
-              </div>
+            <div className="auth-error-flag" role="alert">
+              <AlertCircleIcon className="mr-3 flex-shrink-0" />
+              <span className="error-flag-txt">{error}</span>
+              {/* <span className="error-flag-txt">Registration Failed.</span> */}
+            </div>
             )}
 
             <form onSubmit={handleSubmit} noValidate className="frm">
@@ -256,7 +259,7 @@ export default function Login() {
                     name="email"
                     type="email"
                     placeholder="Email Address"
-                    className="email-inpt"
+                    className="inpt-fld"
                     value={formData.email}
                     onChange={handleChange}
                     required
@@ -268,7 +271,7 @@ export default function Login() {
                     name="password"
                     type={showPassword ? "text" : "password"}
                     placeholder="Password"
-                    className="email-inpt"
+                    className="inpt-fld"
                     value={formData.password}
                     onChange={handleChange}
                     required
