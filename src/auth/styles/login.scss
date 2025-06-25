@@ -42,11 +42,36 @@
             @include flex(center, start, column);
 
             .lgn-form-head {
-                font-size: 3vmax;
+                font-size: 4vmax;
                 text-align: center;
                 font-family: "Arima", system-ui;
                 font-weight: 500;
-                margin-bottom: 3vmax;
+                margin-bottom: 2vmax;
+
+            }
+
+            .auth-error-flag{
+                // bg-red-100 dark:bg-red-900/20 border border-red-300 dark:border-red-500/30 text-red-800 dark:text-red-300 px-4 py-3 rounded-lg relative mb-6 flex items-center
+                position: absolute;
+                bottom: 0;
+                height: auto;
+                width: 20vmax;
+                @include flex(center, center, row);
+                padding: 1vmax 2vmax;
+                margin: 3vmax 0;
+                border: 1px solid;
+                border-radius: .5vmax;
+                background-color: #ffc0c0;
+                border: .12vmax solid #ac4141;
+                color: #a61b1b;
+                // font-size: 1vmax;
+                gap: .5vmax;
+
+                .error-flag-txt{
+                    display: inline-block;
+                    font-size: .9vmax;
+                    font-weight: 500;
+                }
             }
 
             // .lgn-form-p-des {
@@ -84,23 +109,23 @@
                         color: rgb(34, 34, 34);
                     }
 
-                    .email-inpt {
+                    .inpt-fld {
                         height: 3vmax;
                         width: 100%;
-                        border: .15vmax solid rgb(34, 34, 34);
+                        border: .10vmax solid rgb(34, 34, 34);
                         padding: 1vmax .5vmax;
                         font-family: 'Arimo', 'sans-serif';
 
                         // absolute top-[70%] -translate-y-1/2 right-3 cursor-pointer text-slate-400 hover:text-[#1D2056] dark:hover:text-slate-200
                     }
 
-                    .email-inpt::placeholder {
+                    .inpt-fld::placeholder {
                         color: rgb(34, 34, 34);
                     }
 
-                    .email-inpt:focus{
+                    .inpt-fld:focus{
                         outline: none;
-                        border: .15vmax solid #B30038;
+                        border: .10vmax solid #B30038;
                     }
                 }
 
