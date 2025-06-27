@@ -223,19 +223,19 @@ export default function Login() {
             <img
               src="/logo3.png"
               alt="MindfulTrust Logo"
-              className="mx-auto h-16 sm:h-20 block dark:hidden"
+              className="mn-logo logo-light"
               onError={(e) => {
                 e.target.style.display = "none";
               }}
             />
-            <img
+            {/* <img
               src="/logo2.png"
               alt="MindfulTrust Logo"
-              className="mx-auto h-16 sm:h-20 hidden dark:block"
+              className="mn-logo-dark"
               onError={(e) => {
                 e.target.style.display = "none";
               }}
-            />
+            /> */}
           </div>
 
           <div className="lgn-form-dv-cnt">
@@ -280,6 +280,7 @@ export default function Login() {
                     type="button"
                     className="eye-ico"
                     onClick={() => setShowPassword(!showPassword)}
+                    aria-label="Reveal Password"
                   >
                     {showPassword ? <EyeOffIcon /> : <EyeIcon />}
                   </button>

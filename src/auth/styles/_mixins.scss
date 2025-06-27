@@ -5,3 +5,15 @@
     justify-content: $justify;
     flex-direction: $direction;
 }
+
+@mixin mobile(){
+    @media (max-width: 600px){
+        @content;
+    }
+}
+
+@mixin colorTheme($mode){
+    @media (prefers-color-scheme: $mode) {
+        @content;
+    }
+}
