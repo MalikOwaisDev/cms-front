@@ -1,9 +1,26 @@
 import { useState, useEffect, useMemo } from "react";
+// Assuming these are set up in your project's routing
 import { useNavigate, Link, NavLink } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
+import axios from "axios";
 
 // --- FORM ICONS ---
+const ChevronLeftIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="16"
+    height="16"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <polyline points="15 18 9 12 15 6"></polyline>
+  </svg>
+);
 const PlusIcon = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -52,35 +69,71 @@ const SendIcon = () => (
     <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
   </svg>
 );
+const BackIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <line x1="19" y1="12" x2="5" y2="12"></line>
+    <polyline points="12 19 5 12 12 5"></polyline>
+  </svg>
+);
 
-// --- MOCK API SERVICES ---
-const mockPatients = [
-  { _id: "pat1", name: "Johnathan Doe" },
-  { _id: "pat2", name: "Eleanor Vance" },
-  { _id: "pat3", name: "Marcus Rivera" },
-];
 const getPatients = async (token) => {
-  await new Promise((r) => setTimeout(r, 500));
-  return { data: mockPatients };
+  const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/patients`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  return { data: res.data };
 };
 const createInvoice = async (invoiceData, token) => {
-  await new Promise((r) => setTimeout(r, 1000));
-  return { data: { message: "Invoice created successfully!" } };
+  const res = await axios.post(
+    `${import.meta.env.VITE_API_URL}/api/invoices`,
+    invoiceData,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+  return res;
+  // return { data: { message: "Invoice created successfully!" } };
+};
+
+// --- Helper function for default due date ---
+const getDefaultDueDate = () => {
+  const date = new Date();
+  date.setDate(date.getDate() + 10);
+  return date.toISOString().split("T")[0];
 };
 
 // --- Main Create Invoice Page Component ---
 export default function CreateInvoice() {
   const navigate = useNavigate();
-  const [patientId, setPatientId] = useState("");
+  const [pID, setpID] = useState("");
   const [services, setServices] = useState([{ description: "", amount: "" }]);
   const [patients, setPatients] = useState([]);
   const [invoiceDate, setInvoiceDate] = useState(
     new Date().toISOString().split("T")[0]
   );
+  // State for the new due date field
+  const [dueDate, setDueDate] = useState(getDefaultDueDate);
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const token = localStorage.getItem("token");
+  const token =
+    typeof window !== "undefined"
+      ? localStorage.getItem("token") || "dummy-token"
+      : "dummy-token";
 
   useEffect(() => {
     if (!token) navigate("/login");
@@ -108,24 +161,30 @@ export default function CreateInvoice() {
     e.preventDefault();
     setError("");
     setSuccess("");
-    if (!patientId || services.some((s) => !s.description || !s.amount)) {
+    if (!pID || services.some((s) => !s.description || !s.amount)) {
       setError("Please select a patient and fill all service details.");
       return;
     }
     setLoading(true);
     try {
       const invoiceData = {
-        patient: patientId,
+        patient: pID,
         services: services.map((s) => ({ ...s, amount: Number(s.amount) })),
-        total: totalAmount,
-        issueDate: invoiceDate,
+        totalAmount: totalAmount,
+        issuedDate: invoiceDate,
+        dueDate: dueDate, // <-- Added dueDate to submission data
         status: "unpaid",
       };
       const res = await createInvoice(invoiceData, token);
       setSuccess(res.data.message);
-      setPatientId("");
+      setpID("");
       setServices([{ description: "", amount: "" }]);
-      setTimeout(() => setSuccess(""), 4000);
+      setInvoiceDate(new Date().toISOString().split("T")[0]);
+      setDueDate(getDefaultDueDate()); // Reset due date on success
+      setTimeout(() => {
+        navigate("/invoices");
+        setSuccess("");
+      }, 4000);
     } catch (err) {
       setError("Failed to create invoice. Please try again.");
     } finally {
@@ -139,32 +198,46 @@ export default function CreateInvoice() {
 
       <main className="flex-grow container mx-auto p-4 sm:p-6 lg:p-8">
         <div className="max-w-4xl mx-auto">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-slate-800 dark:text-slate-100">
-              Create New Invoice
-            </h1>
-            <p className="text-slate-500 dark:text-slate-400 mt-1">
-              Fill in the details below to generate an invoice for a patient.
-            </p>
+          <div className="flex items-center">
+            <div className="mb-6">
+              <button
+                onClick={() => navigate(-1)}
+                className="mr-4 p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700"
+              >
+                <span className="text-slate-600 dark:text-slate-300">
+                  <BackIcon />
+                </span>
+              </button>
+            </div>
+            <div className="mb-8">
+              <h1 className="text-3xl font-bold text-slate-800 dark:text-slate-100">
+                Create New Invoice
+              </h1>
+              <p className="text-slate-500 dark:text-slate-400 mt-1">
+                Fill in the details below to generate an invoice for a patient.
+              </p>
+            </div>
           </div>
 
           <form
             onSubmit={handleSubmit}
             className="bg-white dark:bg-slate-800 p-6 sm:p-8 rounded-xl shadow-sm"
           >
+            {/* --- Updated Patient and Date section --- */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-              <div>
+              <div className="md:col-span-2 relative">
                 <label
                   htmlFor="patient"
                   className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                 >
                   Patient
                 </label>
+
                 <select
                   id="patient"
-                  value={patientId}
-                  onChange={(e) => setPatientId(e.target.value)}
-                  className="w-full p-3 bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-slate-200 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
+                  value={pID}
+                  onChange={(e) => setpID(e.target.value)}
+                  className="w-full p-3 bg-slate-100 appearance-none dark:bg-slate-700 text-slate-900 dark:text-slate-200 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
                 >
                   <option value="" disabled>
                     Select a patient
@@ -175,6 +248,21 @@ export default function CreateInvoice() {
                     </option>
                   ))}
                 </select>
+                <div className="pointer-events-none absolute inset-y-0 top-6 right-3 flex items-center text-slate-400">
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
+                </div>
               </div>
               <div>
                 <label
@@ -191,11 +279,26 @@ export default function CreateInvoice() {
                   className="w-full p-3 bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-slate-200 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
                 />
               </div>
+              <div>
+                <label
+                  htmlFor="dueDate"
+                  className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
+                >
+                  Due Date
+                </label>
+                <input
+                  type="date"
+                  id="dueDate"
+                  value={dueDate}
+                  onChange={(e) => setDueDate(e.target.value)}
+                  className="w-full p-3 bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-slate-200 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
+                />
+              </div>
             </div>
 
             <div className="space-y-4">
               <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-200 border-b border-slate-200 dark:border-slate-700 pb-2">
-                Services Rendered
+                Services
               </h2>
               {services.map((service, index) => (
                 <div

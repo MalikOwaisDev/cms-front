@@ -2,57 +2,33 @@ import { useState, useEffect } from "react";
 import { useNavigate, Link, NavLink } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
+import axios from "axios";
 
-// --- MOCK API SERVICES ---
-const mockInvoices = [
-  {
-    _id: "inv_12345ABC",
-    patient: { name: "Eleanor Vance" },
-    totalAmount: 575.0,
-    status: "unpaid",
-    issueDate: "2025-06-23",
-    dueDate: "2025-07-23",
-  },
-  {
-    _id: "inv_67890DEF",
-    patient: { name: "Johnathan Doe" },
-    totalAmount: 320.5,
-    status: "paid",
-    issueDate: "2025-06-20",
-    dueDate: "2025-07-20",
-  },
-  {
-    _id: "inv_11223GHI",
-    patient: { name: "Marcus Rivera" },
-    totalAmount: 890.0,
-    status: "unpaid",
-    issueDate: "2025-06-15",
-    dueDate: "2025-07-15",
-  },
-  {
-    _id: "inv_44556JKL",
-    patient: { name: "Sophia Chen" },
-    totalAmount: 125.0,
-    status: "paid",
-    issueDate: "2025-05-30",
-    dueDate: "2025-06-30",
-  },
-  {
-    _id: "inv_77889MNO",
-    patient: { name: "David Miller" },
-    totalAmount: 650.0,
-    status: "paid",
-    issueDate: "2025-05-28",
-    dueDate: "2025-06-28",
-  },
-];
-
-const getInvoices = async () => {
-  // await new Promise((r) => setTimeout(r, 1000));
-  return { data: mockInvoices };
+const getInvoices = async (token) => {
+  const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/invoices`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  return { data: res.data };
 };
 
 // --- ICONS ---
+const ChevronLeftIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="16"
+    height="16"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <polyline points="15 18 9 12 15 6"></polyline>
+  </svg>
+);
 const PlusIcon = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -92,16 +68,32 @@ const InvoiceIcon = () => (
     viewBox="0 0 24 24"
     fill="none"
     stroke="currentColor"
-    stroke-width="1.5"
-    stroke-linecap="round"
-    stroke-linejoin="round"
-    class="lucide lucide-file-text"
+    strokeWidth="1.5"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className="lucide lucide-file-text"
   >
     <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
     <polyline points="14 2 14 8 20 8" />
     <line x1="16" x2="8" y1="13" y2="13" />
     <line x1="16" x2="8" y1="17" y2="17" />
     <line x1="10" x2="8" y1="9" y2="9" />
+  </svg>
+);
+const BackIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <line x1="19" y1="12" x2="5" y2="12"></line>
+    <polyline points="12 19 5 12 12 5"></polyline>
   </svg>
 );
 
@@ -161,21 +153,31 @@ export default function InvoiceList() {
       <Header />
 
       <main className="flex-grow container mx-auto p-4 sm:p-6 lg:p-8">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-slate-800 dark:text-slate-100">
-              Invoices
-            </h1>
-            <p className="text-slate-500 dark:text-slate-400 mt-1">
-              Manage and track all patient invoices.
-            </p>
-          </div>
-          <Link
-            to="/invoices/create"
-            className="w-full sm:w-auto flex items-center justify-center gap-2 bg-[#FE4982] text-white font-bold py-2 px-4 rounded-lg hover:bg-[#E03A6D] transition-all"
+        <div className="flex items-center mb-8">
+          <button
+            onClick={() => navigate(-1)}
+            className="mr-4 p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700"
           >
-            <PlusIcon /> Create New Invoice
-          </Link>
+            <span className="text-slate-600 dark:text-slate-300">
+              <BackIcon />
+            </span>
+          </button>
+          <div className="flex-grow flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <h1 className="text-3xl font-bold text-slate-800 dark:text-slate-100">
+                Invoices
+              </h1>
+              <p className="text-slate-500 dark:text-slate-400 mt-1">
+                Manage and track all patient invoices.
+              </p>
+            </div>
+            <Link
+              to="/invoices/create"
+              className="w-full sm:w-auto flex items-center justify-center gap-2 bg-[#FE4982] text-white font-bold py-2 px-4 rounded-lg hover:bg-[#E03A6D] transition-all"
+            >
+              <PlusIcon /> Create New Invoice
+            </Link>
+          </div>
         </div>
 
         <div className="bg-white dark:bg-slate-800 p-2 sm:p-4 rounded-xl shadow-sm">
@@ -207,22 +209,23 @@ export default function InvoiceList() {
                 <tbody>
                   {invoices.map((inv) => (
                     <tr
-                      key={inv._id}
+                      key={inv.invID}
                       className="border-b border-slate-100 dark:border-slate-700/50 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
                     >
                       <td className="p-4 font-mono text-sm text-[#1D2056] dark:text-pink-400 font-semibold hidden sm:table-cell">
                         <Link
-                          to={`/invoices/${inv._id}`}
+                          to={`/invoices/${inv.invID}`}
                           className="hover:underline"
                         >
-                          {inv._id.replace("inv_", "#")}
+                          {/* {inv.invID} */}
+                          {inv.invID.replace("inv_", "#")}
                         </Link>
                       </td>
                       <td className="p-4 text-slate-700 dark:text-slate-200 font-semibold">
-                        {inv.patient.name}
+                        {inv.patient?.name}
                       </td>
                       <td className="p-4 text-slate-500 dark:text-slate-400 hidden md:table-cell">
-                        {new Date(inv.issueDate).toLocaleDateString()}
+                        {new Date(inv.issuedDate).toLocaleDateString()}
                       </td>
                       <td className="p-4 text-slate-700 dark:text-slate-200 font-semibold">
                         ${inv.totalAmount.toFixed(2)}
@@ -232,7 +235,7 @@ export default function InvoiceList() {
                       </td>
                       <td className="p-4 text-right">
                         <Link
-                          to={`/invoices/${inv._id}`}
+                          to={`/invoices/${inv.invID}`}
                           className="text-slate-400 hover:text-[#FE4982] dark:hover:text-pink-400"
                         >
                           <ChevronRightIcon />
@@ -244,8 +247,10 @@ export default function InvoiceList() {
               </table>
             </div>
           ) : (
-            <div className="text-center py-16">
-              <InvoiceIcon className="mx-auto text-slate-400 dark:text-slate-500" />
+            <div className="text-center flex flex-col py-16">
+              <span className="mx-auto text-slate-400 dark:text-slate-500">
+                <InvoiceIcon />
+              </span>
               <h3 className="mt-4 text-lg font-semibold text-slate-800 dark:text-slate-200">
                 No Invoices Found
               </h3>

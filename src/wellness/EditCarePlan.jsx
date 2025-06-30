@@ -1,25 +1,66 @@
 import { useState, useEffect } from "react";
-import { useNavigate, Link, NavLink } from "react-router-dom";
+import { useNavigate, useParams, Link } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import axios from "axios";
 
-// // --- MOCK API SERVICES ---
-// const mockPatients = [
-//   { _id: "pat1", name: "Johnathan Doe" },
-//   { _id: "pat2", name: "Eleanor Vance" },
-//   { _id: "pat3", name: "Marcus Rivera" },
-// ];
-const getPatients = async (token) => {
-  const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/patients`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+// Mock database
+let mockCarePlans = [
+  {
+    _id: "plan1",
+    patient: "pat1",
+    title: "Post-Surgery Recovery",
+    description:
+      "A plan to help Johnathan Doe recover from his recent knee surgery.",
+    goals: [
+      {
+        goal: "Complete physical therapy sessions twice a week",
+        status: "pending",
+      },
+      { goal: "Walk 10 minutes daily", status: "completed" },
+    ],
+  },
+  {
+    _id: "plan2",
+    patient: "pat2",
+    title: "Diabetes Management",
+    description: "Wellness plan for Eleanor Vance to manage Type 2 Diabetes.",
+    goals: [
+      { goal: "Monitor blood sugar daily", status: "pending" },
+      { goal: "Follow dietary recommendations", status: "pending" },
+    ],
+  },
+];
 
+// const getPatients = async (token) => {
+//   // Mocked patient data
+//   //   const mockPatients = [
+//   //     { _id: "pat1", name: "Johnathan Doe" },
+//   //     { _id: "pat2", name: "Eleanor Vance" },
+//   //     { _id: "pat3", name: "Marcus Rivera" },
+//   //   ];
+//   //   In a real app, you would fetch from your API
+//   const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/patients`, {
+//     headers: { Authorization: `Bearer ${token}` },
+//   });
+//   return { data: res.data };
+//   //   return { data: mockPatients };
+// };
+
+const getCarePlanById = async (id, token) => {
+  // In a real app, you would fetch from your API
+  const res = await axios.get(
+    `${import.meta.env.VITE_API_URL}/api/wellness/care-plan/${id}`,
+    {
+      headers: { Authorization: `Bearer ${token}` },
+    }
+  );
   return { data: res.data };
 };
-const createCarePlan = async (planData, token) => {
-  const res = await axios.post(
-    `${import.meta.env.VITE_API_URL}/api/wellness/care-plan`,
+
+const updateCarePlan = async (id, planData, token) => {
+  const res = await axios.put(
+    `${import.meta.env.VITE_API_URL}/api/wellness/care-plan/${id}`,
     planData,
     {
       headers: { Authorization: `Bearer ${token}` },
@@ -29,6 +70,7 @@ const createCarePlan = async (planData, token) => {
 };
 
 // --- ICONS ---
+// Re-using the same icons from the create form
 const UserIcon = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -162,28 +204,51 @@ const BackIcon = () => (
   </svg>
 );
 
-// --- Care Plan Form Page Component ---
-export default function CarePlanForm() {
+// --- Edit Care Plan Page Component ---
+export default function EditCarePlan() {
   const navigate = useNavigate();
-  const [patients, setPatients] = useState([]);
+  const { id } = useParams(); // Get the care plan ID from the URL
   const [form, setForm] = useState({
-    patient: "",
     title: "",
     description: "",
     goals: [{ goal: "", status: "pending" }],
   });
   const [loading, setLoading] = useState(false);
+  const [pageLoading, setPageLoading] = useState(true);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const token = localStorage.getItem("token");
+  const token = localStorage.getItem("token") || "mock-token"; // Using a mock token
 
   useEffect(() => {
-    if (!token) navigate("/login");
-    getPatients(token).then((res) => setPatients(res.data));
-  }, [token, navigate]);
+    // Since we have no login flow, we don't navigate away
+    // if (!token) navigate("/login");
+
+    const fetchData = async () => {
+      try {
+        const planRes = await getCarePlanById(id, token);
+
+        setForm({
+          patient: planRes.data.patient,
+          title: planRes.data.title,
+          description: planRes.data.description,
+          goals: planRes.data.goals,
+        });
+      } catch (err) {
+        setError(
+          "Failed to load care plan data. Please go back and try again."
+        );
+        console.error(err);
+      } finally {
+        setPageLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [id, token, navigate]);
 
   const handleFormChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
+
   const handleGoalChange = (index, value) => {
     const newGoals = [...form.goals];
     newGoals[index].goal = value;
@@ -195,6 +260,7 @@ export default function CarePlanForm() {
       ...form,
       goals: [...form.goals, { goal: "", status: "pending" }],
     });
+
   const removeGoal = (index) =>
     setForm({ ...form, goals: form.goals.filter((_, i) => i !== index) });
 
@@ -208,24 +274,29 @@ export default function CarePlanForm() {
     }
     setLoading(true);
     try {
-      await createCarePlan(form, token);
-      setSuccess("Care plan created successfully!");
-      setForm({
-        patient: "",
-        title: "",
-        description: "",
-        goals: [{ goal: "", status: "pending" }],
-      });
+      await updateCarePlan(id, form, token);
+      setSuccess("Care plan updated successfully!");
       setTimeout(() => {
         setSuccess("");
         navigate("/wellness/plans");
       }, 1000);
     } catch (err) {
-      setError("Failed to create care plan. Please try again.");
+      setError("Failed to update care plan. Please try again.");
+      console.error("Error updating care plan:", err);
     } finally {
       setLoading(false);
     }
   };
+
+  if (pageLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900">
+        <div className="text-slate-500 dark:text-slate-400">
+          Loading Care Plan...
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-900 transition-colors duration-300 font-sans">
@@ -244,10 +315,11 @@ export default function CarePlanForm() {
             </button>
             <div className="mb-8">
               <h1 className="text-3xl font-bold text-slate-800 dark:text-slate-100">
-                Create New Care Plan
+                Edit Care Plan
               </h1>
               <p className="text-slate-500 dark:text-slate-400 mt-1">
-                Develop a personalized health and wellness plan for a patient.
+                Update the details of this personalized health and wellness
+                plan.
               </p>
             </div>
           </div>
@@ -275,34 +347,16 @@ export default function CarePlanForm() {
                     <select
                       id="patient"
                       name="patient"
-                      value={form.patient}
+                      value={form.patient.name}
                       onChange={handleFormChange}
-                      className="w-full pl-10 pr-4 py-3 appearance-none bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-slate-200 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
+                      className="w-full pl-10 pr-4 py-3 appearance-none bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-slate-200 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE4982] disabled:opacity-70 disabled:cursor-not-allowed"
+                      disabled // Usually, you don't change the patient on an existing plan
                     >
                       <option value="" disabled>
                         Select a patient
                       </option>
-                      {patients.map((p) => (
-                        <option key={p._id} value={p._id}>
-                          {p.name}
-                        </option>
-                      ))}
+                      <option value="">{form.patient.name}</option>
                     </select>
-                    <div className="pointer-events-none absolute inset-y-0  right-2 flex items-center text-slate-400">
-                      <svg
-                        className="w-4 h-4"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M19 9l-7 7-7-7"
-                        />
-                      </svg>
-                    </div>
                   </div>
                 </div>
                 <div>
@@ -418,7 +472,7 @@ export default function CarePlanForm() {
                     "Saving..."
                   ) : (
                     <>
-                      <SaveIcon /> Create Plan
+                      <SaveIcon /> Save Changes
                     </>
                   )}
                 </button>

@@ -1,10 +1,10 @@
 import { useState, useEffect, useMemo } from "react";
-import { useNavigate, Link, NavLink } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import axios from "axios";
 
-// --- FORM ICONS ---
+// --- ICONS (Reused for consistency) ---
 const UserIcon = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -55,23 +55,6 @@ const ClockIcon = () => (
     <polyline points="12 6 12 12 16 14"></polyline>
   </svg>
 );
-
-const BackIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <line x1="19" y1="12" x2="5" y2="12"></line>
-    <polyline points="12 19 5 12 12 5"></polyline>
-  </svg>
-);
 const EditIcon = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -105,49 +88,92 @@ const SaveIcon = () => (
     <polyline points="7 3 7 8 15 8"></polyline>
   </svg>
 );
+const BackIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <line x1="19" y1="12" x2="5" y2="12"></line>
+    <polyline points="12 19 5 12 12 5"></polyline>
+  </svg>
+);
 
-const getPatients = async (token) => {
-  const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/patients`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+// --- API Calls ---
+const getTimeLog = (id, token) =>
+  axios.get(`${import.meta.env.VITE_API_URL}/api/time-logs/${id}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+const getPatients = (token) =>
+  axios.get(`${import.meta.env.VITE_API_URL}/api/patients`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+const updateTimeLog = (id, logData, token) =>
+  axios.put(`${import.meta.env.VITE_API_URL}/api/time-logs/${id}`, logData, {
+    headers: { Authorization: `Bearer ${token}` },
   });
 
-  return { data: res.data };
-};
-const createTimeLog = async (logData, token) => {
-  const res = await axios.post(
-    `${import.meta.env.VITE_API_URL}/api/time-logs`,
-    logData,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }
-  );
-  return { data: res.data };
-};
-
-// --- Log Time Page Component ---
-export default function LogTime() {
+// --- Edit Time Log Page Component ---
+export default function TimeLogEdit() {
+  const { id } = useParams();
   const navigate = useNavigate();
   const [patients, setPatients] = useState([]);
   const [form, setForm] = useState({
     patient: "",
-    date: new Date().toISOString().split("T")[0],
+    date: "",
     startTime: "",
     endTime: "",
     description: "",
   });
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true); // For initial data load
+  const [submitting, setSubmitting] = useState(false); // For form submission
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const token = localStorage.getItem("token");
 
   useEffect(() => {
-    if (!token) navigate("/login");
-    getPatients(token).then((res) => setPatients(res.data));
-  }, [token, navigate]);
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+
+    const fetchData = async () => {
+      try {
+        // Fetch both the time log and the patient list at the same time
+        const [timeLogRes, patientsRes] = await Promise.all([
+          getTimeLog(id, token),
+          getPatients(token),
+        ]);
+
+        const timeLogData = timeLogRes.data;
+
+        // Pre-populate the form with fetched data
+        setForm({
+          patient: timeLogData.patient?._id || "",
+          // The date input requires 'YYYY-MM-DD' format
+          date: new Date(timeLogData.date).toISOString().split("T")[0],
+          startTime: timeLogData.startTime,
+          endTime: timeLogData.endTime,
+          description: timeLogData.description,
+        });
+
+        setPatients(patientsRes.data);
+      } catch (err) {
+        setError("Failed to load time log data. Please try again.");
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [id, token, navigate]);
 
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -184,33 +210,29 @@ export default function LogTime() {
       setError(duration.error);
       return;
     }
-    setLoading(true);
+    setSubmitting(true);
     try {
-      await createTimeLog({ ...form, duration: duration?.text }, token);
-      setSuccess("Time log submitted successfully!");
-      setForm({
-        patient: "",
-        date: new Date().toISOString().split("T")[0],
-        startTime: "",
-        endTime: "",
-        description: "",
-      });
-
-      setTimeout(() => {
-        setSuccess("");
-        navigate("/timelogs");
-      }, 4000);
+      await updateTimeLog(id, { ...form, duration: duration?.text }, token);
+      setSuccess("Time log updated successfully!");
+      setTimeout(() => navigate(`/timelogs/${id}`), 2000);
     } catch (err) {
-      setError("Failed to submit time log. Please try again.");
+      setError("Failed to update time log. Please try again.");
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex justify-center items-center bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200">
+        Loading editor...
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-900 transition-colors duration-300 font-sans">
       <Header />
-
       <main className="flex-grow container mx-auto p-4 sm:p-6 lg:p-8">
         <div className="max-w-2xl mx-auto">
           <div className="flex items-center">
@@ -224,10 +246,10 @@ export default function LogTime() {
             </button>
             <div className="mb-8">
               <h1 className="text-3xl font-bold text-slate-800 dark:text-slate-100">
-                Log Work Time
+                Edit Time Log
               </h1>
               <p className="text-slate-500 dark:text-slate-400 mt-1">
-                Submit your hours for billing and tracking.
+                Make changes to your submitted hours.
               </p>
             </div>
           </div>
@@ -236,6 +258,7 @@ export default function LogTime() {
             onSubmit={handleSubmit}
             className="bg-white dark:bg-slate-800 p-6 sm:p-8 rounded-xl shadow-sm space-y-6"
           >
+            {/* --- Patient Select --- */}
             <div>
               <label
                 htmlFor="patient"
@@ -263,24 +286,11 @@ export default function LogTime() {
                     </option>
                   ))}
                 </select>
-                <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-slate-400">
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M19 9l-7 7-7-7"
-                    />
-                  </svg>
-                </div>
+                {/* ... other JSX for dropdown arrow ... */}
               </div>
             </div>
 
+            {/* --- Date, Start Time, End Time Inputs --- */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div>
                 <label
@@ -346,12 +356,15 @@ export default function LogTime() {
                 </div>
               </div>
             </div>
+
+            {/* --- Duration Display --- */}
             {duration?.text && (
               <div className="p-3 bg-blue-50 dark:bg-blue-900/20 text-[#1D2056] dark:text-blue-300 border border-blue-200 dark:border-blue-500/30 rounded-lg text-center font-semibold">
                 Total Duration: {duration.text}
               </div>
             )}
 
+            {/* --- Description Textarea --- */}
             <div>
               <label
                 htmlFor="description"
@@ -375,6 +388,7 @@ export default function LogTime() {
               </div>
             </div>
 
+            {/* --- Buttons and Messages --- */}
             <div className="pt-6 border-t border-slate-200 dark:border-slate-700 space-y-4">
               {error && (
                 <p className="text-red-500 dark:text-red-400 text-sm text-center">
@@ -396,14 +410,15 @@ export default function LogTime() {
                 </button>
                 <button
                   type="submit"
-                  disabled={loading}
+                  disabled={submitting}
                   className="w-full sm:w-auto bg-[#FE4982] text-white font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2 hover:bg-[#E03A6D] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-50 dark:ring-offset-slate-900 focus:ring-[#FE4982] transition-all disabled:bg-opacity-60"
                 >
-                  {loading ? (
-                    "Submitting..."
+                  {submitting ? (
+                    "Saving..."
                   ) : (
                     <>
-                      <SaveIcon /> Submit Log
+                      {" "}
+                      <SaveIcon /> Update Log{" "}
                     </>
                   )}
                 </button>
@@ -412,7 +427,6 @@ export default function LogTime() {
           </form>
         </div>
       </main>
-
       <Footer />
     </div>
   );
