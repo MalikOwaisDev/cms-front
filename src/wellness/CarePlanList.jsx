@@ -29,7 +29,19 @@ const updateGoalStatus = async ({ planId, goalIndex, status }, token) => {
   return { data: res.data };
 };
 
-// --- PAGE ICONS ---
+const deleteCarePlan = async (planId, token) => {
+  // This function now expects the API identifier, which is `careID`
+  const res = await axios.delete(
+    `${import.meta.env.VITE_API_URL}/api/wellness/care-plan/${planId}`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+  return { data: res.data };
+};
+
 const PlusIcon = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -116,6 +128,25 @@ const EditIcon = () => (
   </svg>
 );
 
+const TrashIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="20"
+    height="20"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <polyline points="3 6 5 6 21 6"></polyline>
+    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+    <line x1="10" y1="11" x2="10" y2="17"></line>
+    <line x1="14" y1="11" x2="14" y2="17"></line>
+  </svg>
+);
+
 // --- Loading Skeleton ---
 const CardSkeleton = () => (
   <div className="space-y-6 animate-pulse">
@@ -134,12 +165,13 @@ const CardSkeleton = () => (
     ))}
   </div>
 );
-
 // --- Care Plan List Page ---
 export default function CarePlanList() {
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState(null);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [planToDelete, setPlanToDelete] = useState(null); // This will now store the entire plan object
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
 
@@ -170,6 +202,26 @@ export default function CarePlanList() {
     const refreshedPlans = await getCarePlans(token);
     setPlans(refreshedPlans.data);
     setUpdatingId(null);
+  };
+
+  const handleDelete = async () => {
+    if (!planToDelete) return;
+    try {
+      // Use careID for the API call and _id for the local state update
+      await deleteCarePlan(planToDelete.careID, token);
+      setPlans(plans.filter((p) => p._id !== planToDelete._id));
+      setShowConfirm(false);
+      setPlanToDelete(null);
+    } catch (error) {
+      console.error("Failed to delete care plan", error);
+      // Optionally, show an error message to the user
+    }
+  };
+
+  const confirmDeletion = (plan) => {
+    // Store the entire plan object
+    setPlanToDelete(plan);
+    setShowConfirm(true);
   };
 
   const GoalStatusBadge = ({ status }) => {
@@ -223,7 +275,6 @@ export default function CarePlanList() {
     setActiveTab(tab);
     setCurrentPage(1); // Reset to first page on tab change
   };
-
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-900 transition-colors duration-300 font-sans">
       <Header />
@@ -312,7 +363,7 @@ export default function CarePlanList() {
                 className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm"
               >
                 <div className="flex justify-between items-start">
-                  <div className="border-b border-slate-100 dark:border-slate-700 pb-4 mb-4">
+                  <div className="border-b border-slate-100 dark:border-slate-700 pb-4 mb-4 flex-grow">
                     <h2 className="text-xl font-bold text-[#1D2056] dark:text-slate-100">
                       {plan.title}
                     </h2>
@@ -323,12 +374,21 @@ export default function CarePlanList() {
                       {plan.description}
                     </p>
                   </div>
-                  <Link
-                    to={`/wellness/plans/${plan.careID}`}
-                    className="text-slate-400 dark:text-slate-500"
-                  >
-                    <EditIcon />
-                  </Link>
+                  <div className="flex items-center ml-4">
+                    <Link
+                      to={`/wellness/plans/${plan.careID}`}
+                      className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 p-2"
+                    >
+                      <EditIcon />
+                    </Link>
+                    <button
+                      onClick={() => confirmDeletion(plan)} // Pass the entire plan object
+                      className="text-slate-400 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 p-2"
+                      title="Delete Care Plan"
+                    >
+                      <TrashIcon />
+                    </button>
+                  </div>
                 </div>
                 <ul className="space-y-3">
                   {plan.goals.map((g, i) => (
@@ -361,7 +421,7 @@ export default function CarePlanList() {
                           </select>
                         )}
                         {g.status !== "achieved" && (
-                          <div className="pointer-events-none absolute inset-y-0  right-[6px] flex items-center text-slate-400">
+                          <div className="pointer-events-none absolute inset-y-0  right-[6px] flex items-center text-slate-400">
                             <svg
                               className="w-3 h-3"
                               fill="none"
@@ -400,7 +460,6 @@ export default function CarePlanList() {
             </div>
           )}
         </div>
-        {/* Pagination Controls */}
         {totalPages > 1 && (
           <div className="flex justify-center items-center mt-8">
             <button
@@ -423,6 +482,35 @@ export default function CarePlanList() {
           </div>
         )}
       </main>
+
+      {showConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white dark:bg-slate-800 p-6 rounded-lg shadow-xl">
+            <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">
+              Confirm Deletion
+            </h3>
+            <p className="text-slate-500 dark:text-slate-400 mt-2">
+              Are you sure you want to delete this care plan? This action cannot
+              be undone.
+            </p>
+            <div className="mt-6 flex justify-end gap-4">
+              <button
+                onClick={() => setShowConfirm(false)}
+                className="px-4 py-2 rounded-lg text-slate-600 dark:text-slate-300 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDelete}
+                className="px-4 py-2 rounded-lg text-white bg-red-500 hover:bg-red-600"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <Footer />
     </div>
   );
