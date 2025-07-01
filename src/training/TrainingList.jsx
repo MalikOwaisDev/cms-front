@@ -2,68 +2,41 @@ import { useState, useEffect } from "react";
 import { useNavigate, Link, NavLink } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
+import axios from "axios";
 
-// --- MOCK API SERVICES (for demonstration) ---
-let mockTrainings = [
-  {
-    _id: "tr_1",
-    recordId: "rec_1",
-    title: "Patient Privacy & HIPAA",
-    content:
-      "Complete the online module regarding patient data protection and HIPAA regulations.",
-    status: "completed",
-    dateCompleted: "2025-06-20",
-    deadline: "2025-06-25",
-  },
-  {
-    _id: "tr_2",
-    recordId: "rec_2",
-    title: "Emergency Procedures",
-    content:
-      "Review the updated fire and medical emergency protocols document.",
-    status: "pending",
-    deadline: "2025-06-30",
-  },
-  {
-    _id: "tr_3",
-    recordId: "rec_3",
-    title: "Medication Administration Basics",
-    content:
-      "Pass the online quiz for safe medication handling and administration.",
-    status: "pending",
-    deadline: "2025-07-05",
-  },
-  {
-    _id: "tr_4",
-    recordId: "rec_4",
-    title: "Advanced First Aid",
-    content: "Attend the in-person workshop and get certified.",
-    status: "completed",
-    dateCompleted: "2025-05-30",
-    deadline: "2025-05-29",
-  },
-];
+const getMe = async (token) => {
+  const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/auth/me`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  return { data: res.data };
+};
 
 const getTrainings = async (token) => {
-  await new Promise((r) => setTimeout(r, 1000));
-  return { data: mockTrainings };
+  const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/trainings`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  return { data: res.data };
 };
 
-const markTrainingComplete = async (recordId, token) => {
-  await new Promise((r) => setTimeout(r, 1000));
-  mockTrainings = mockTrainings.map((t) =>
-    t.recordId === recordId
-      ? {
-          ...t,
-          status: "completed",
-          dateCompleted: new Date().toISOString().split("T")[0],
-        }
-      : t
+const deleteTraining = async (id, token) => {
+  console.log("Deleting training with ID:", id);
+  const res = await axios.delete(
+    `${import.meta.env.VITE_API_URL}/api/trainings/${id}`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
   );
-  return { data: { message: "Training marked as complete." } };
+  console.log("Training deleted:", res.data);
+  return { data: { message: "Training deleted successfully." } };
 };
 
-// --- ICONS (Self-contained SVG components) ---
+// --- ICONS ---
 const ClockIcon = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -78,21 +51,6 @@ const ClockIcon = () => (
   >
     <circle cx="12" cy="12" r="10"></circle>
     <polyline points="12 6 12 12 16 14"></polyline>
-  </svg>
-);
-const CheckIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <polyline points="20 6 9 17 4 12"></polyline>
   </svg>
 );
 const CheckCircleIcon = () => (
@@ -119,18 +77,127 @@ const BookOpenIcon = () => (
     viewBox="0 0 24 24"
     fill="none"
     stroke="currentColor"
-    stroke-width="1.5"
-    stroke-linecap="round"
-    stroke-linejoin="round"
-    className="lucide lucide-book-open-check"
+    strokeWidth="1.5"
+    strokeLinecap="round"
+    strokeLinejoin="round"
   >
     <path d="M8 3H2v15h7c1.7 0 3 1.3 3 3V7c0-2.2-1.8-4-4-4Z" />
     <path d="M16 3h6v15h-7c-1.7 0-3 1.3-3 3V7c0-2.2 1.8-4 4-4Z" />
     <path d="m9 12 2 2 4-4" />
   </svg>
 );
+const EditIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="18"
+    height="18"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+  </svg>
+);
+const TrashIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="18"
+    height="18"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <polyline points="3 6 5 6 21 6"></polyline>
+    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+  </svg>
+);
+const PlusIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="20"
+    height="20"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <line x1="12" y1="5" x2="12" y2="19"></line>
+    <line x1="5" y1="12" x2="19" y2="12"></line>
+  </svg>
+);
+const AlertTriangleIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+    <line x1="12" y1="9" x2="12" y2="13"></line>
+    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+  </svg>
+);
+const ChevronLeftIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="16"
+    height="16"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <polyline points="15 18 9 12 15 6"></polyline>
+  </svg>
+);
+const ChevronRightIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="16"
+    height="16"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <polyline points="9 18 15 12 9 6"></polyline>
+  </svg>
+);
+const BackIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <line x1="19" y1="12" x2="5" y2="12"></line>
+    <polyline points="12 19 5 12 12 5"></polyline>
+  </svg>
+);
 
-// --- Loading Skeleton for Cards ---
 const CardSkeleton = () => (
   <div className="space-y-6 animate-pulse">
     {[...Array(3)].map((_, i) => (
@@ -138,25 +205,61 @@ const CardSkeleton = () => (
         key={i}
         className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm"
       >
-        <div className="space-y-3">
-          <div className="h-5 bg-slate-200 dark:bg-slate-700 rounded w-3/4"></div>
-          <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded w-full"></div>
-          <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded w-1/2"></div>
-        </div>
-        <div className="mt-4 flex justify-between items-center">
-          <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-1/4"></div>
-          <div className="h-10 bg-slate-200 dark:bg-slate-700 rounded-lg w-32"></div>
-        </div>
+        <div className="h-5 bg-slate-200 dark:bg-slate-700 rounded w-3/4 mb-3"></div>
+        <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded w-full mb-2"></div>
+        <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded w-1/2"></div>
+        <div className="mt-4 h-10 bg-slate-200 dark:bg-slate-700 rounded-lg w-32 ml-auto"></div>
       </div>
     ))}
   </div>
 );
 
-// --- Training List Page Component (for Caregivers) ---
+const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, children }) => {
+  if (!isOpen) return null;
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-60 z-50 flex justify-center items-center font-sans">
+      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl p-6 w-full max-w-md m-4 transform transition-all animate-in zoom-in-95 fade-in-0">
+        <div className="flex items-start gap-4">
+          <div className="flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 dark:bg-red-900/30">
+            <span className="h-6 w-6 text-red-600 dark:text-red-400">
+              <AlertTriangleIcon />
+            </span>
+          </div>
+          <div className="flex-grow">
+            <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">
+              {title}
+            </h3>
+            <div className="mt-2 text-sm text-slate-600 dark:text-slate-400">
+              {children}
+            </div>
+          </div>
+        </div>
+        <div className="mt-6 flex justify-end gap-3">
+          <button
+            type="button"
+            onClick={onClose}
+            className="bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold py-2 px-5 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600 transition-all"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={onConfirm}
+            className="bg-red-600 text-white font-bold py-2 px-5 rounded-lg hover:bg-red-700 transition-all shadow-sm"
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// --- Training List Page Component ---
 export default function TrainingList() {
-  const [trainings, setTrainings] = useState([]);
+  const [user, setUser] = useState(null);
+  const [allTrainings, setAllTrainings] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [updatingId, setUpdatingId] = useState(null);
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
 
@@ -165,136 +268,476 @@ export default function TrainingList() {
       navigate("/login");
       return;
     }
-    fetchTrainings();
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const [userRes, trainingsRes] = await Promise.all([
+          getMe(token),
+          getTrainings(token),
+        ]);
+        setUser(userRes.data);
+        setAllTrainings(trainingsRes.data);
+      } catch (err) {
+        console.error("Failed to load data:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
   }, [token, navigate]);
 
-  const fetchTrainings = () => {
-    setLoading(true);
-    getTrainings(token)
-      .then((res) => setTrainings(res.data))
-      .catch(console.error)
-      .finally(() => setLoading(false));
+  // if (loading) {
+  //   return (
+  //     <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-900">
+  //       <Header />
+  //       <main className="flex-grow container mx-auto p-4 sm:p-6 lg:p-8">
+  //         <CardSkeleton />
+  //       </main>
+  //       <Footer />
+  //     </div>
+  //   );
+  // }
+
+  return user?.role === "admin" ? (
+    <AdminTrainingView
+      trainings={allTrainings}
+      setTrainings={setAllTrainings}
+      token={token}
+      loading={loading}
+    />
+  ) : (
+    <CaregiverTrainingView
+      allTrainings={allTrainings}
+      user={user}
+      token={token}
+      loading={loading}
+    />
+  );
+}
+
+// --- ADMIN VIEW COMPONENT ---
+const AdminTrainingView = ({ trainings, setTrainings, token, loading }) => {
+  const [filter, setFilter] = useState("upcoming");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [trainingToDelete, setTrainingToDelete] = useState(null);
+  const navigate = useNavigate();
+  const trainingsPerPage = 10;
+
+  const today = new Date();
+  const upcoming = trainings.filter(
+    (t) => new Date(t.deadline).setHours(23, 59, 59, 999) >= today
+  );
+  const past = trainings.filter(
+    (t) => new Date(t.deadline).setHours(23, 59, 59, 999) < today
+  );
+
+  const filteredTrainings = filter === "upcoming" ? upcoming : past;
+  const totalPages = Math.ceil(filteredTrainings.length / trainingsPerPage);
+  const currentTrainings = filteredTrainings.slice(
+    (currentPage - 1) * trainingsPerPage,
+    currentPage * trainingsPerPage
+  );
+
+  const handleDeleteClick = (id) => {
+    setTrainingToDelete(id);
+    setIsModalOpen(true);
   };
 
-  const handleComplete = async (recordId) => {
-    setUpdatingId(recordId);
+  const confirmDelete = async () => {
+    if (!trainingToDelete) return;
     try {
-      await markTrainingComplete(recordId, token);
-      setTrainings((prev) =>
-        prev.map((t) =>
-          t.recordId === recordId
-            ? {
-                ...t,
-                status: "completed",
-                dateCompleted: new Date().toISOString().split("T")[0],
-              }
-            : t
-        )
+      await deleteTraining(trainingToDelete, token);
+      const updatedList = trainings.filter((t) => t.tID !== trainingToDelete);
+      setTrainings(updatedList);
+      // After deleting, check if the current page is now empty and adjust
+      const newTotalPages = Math.ceil(
+        updatedList.filter((t) =>
+          filter === "upcoming"
+            ? new Date(t.deadline).setHours(23, 59, 59, 999) >= today
+            : new Date(t.deadline).setHours(23, 59, 59, 999) < today
+        ).length / trainingsPerPage
       );
+      if (currentPage > newTotalPages) {
+        setCurrentPage(newTotalPages || 1);
+      }
     } catch (error) {
-      console.error("Failed to mark complete:", error);
+      console.error("Failed to delete training:", error);
     } finally {
-      setUpdatingId(null);
+      setIsModalOpen(false);
+      setTrainingToDelete(null);
     }
-  };
-
-  const StatusBadge = ({ status }) => {
-    if (status === "completed") {
-      return (
-        <div className="flex items-center gap-2 text-sm font-medium text-green-600 dark:text-green-400">
-          <CheckCircleIcon /> Completed
-        </div>
-      );
-    }
-    return (
-      <div className="flex items-center gap-2 text-sm font-medium text-amber-600 dark:text-amber-400">
-        <ClockIcon /> Pending
-      </div>
-    );
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-900 transition-colors duration-300 font-sans">
+    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-900 font-sans">
       <Header />
-
       <main className="flex-grow container mx-auto p-4 sm:p-6 lg:p-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-slate-800 dark:text-slate-100">
-            My Assigned Trainings
-          </h1>
-          <p className="text-slate-500 dark:text-slate-400 mt-1">
-            Complete these modules to stay up-to-date with your certifications.
-          </p>
+        <div className="flex items-center mb-8">
+          <button
+            onClick={() => navigate(-1)}
+            className="mr-4 p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700"
+          >
+            <span className="text-slate-600 dark:text-slate-300">
+              <BackIcon />
+            </span>
+          </button>
+          <div className="flex-grow flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <h1 className="text-3xl font-bold text-slate-800 dark:text-slate-100">
+                Manage Trainings
+              </h1>
+              <p className="text-slate-500 dark:text-slate-400 mt-1">
+                Oversee all training modules for caregivers.
+              </p>
+            </div>
+            <Link
+              to="/trainings/create"
+              className="w-full sm:w-auto flex items-center justify-center gap-2 bg-[#FE4982] text-white font-bold py-2 px-4 rounded-lg hover:bg-[#E03A6D] transition-all"
+            >
+              <PlusIcon /> Create New Training
+            </Link>
+          </div>
         </div>
 
-        <div className="space-y-6">
-          {loading ? (
+        <div className="flex border-b border-slate-200 dark:border-slate-700 mb-6">
+          <button
+            onClick={() => {
+              setFilter("upcoming");
+              setCurrentPage(1);
+            }}
+            className={`px-4 py-2 text-sm font-semibold transition-colors ${
+              filter === "upcoming"
+                ? "border-b-2 border-[#FE4982] text-[#FE4982]"
+                : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+            }`}
+          >
+            Upcoming ({upcoming.length})
+          </button>
+          <button
+            onClick={() => {
+              setFilter("past");
+              setCurrentPage(1);
+            }}
+            className={`px-4 py-2 text-sm font-semibold transition-colors ${
+              filter === "past"
+                ? "border-b-2 border-red-500 text-red-600"
+                : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+            }`}
+          >
+            Past Deadline ({past.length})
+          </button>
+        </div>
+
+        {loading ? (
+          <div className="p-4">
             <CardSkeleton />
-          ) : trainings.length > 0 ? (
-            trainings.map((t) => (
+          </div>
+        ) : currentTrainings.length > 0 ? (
+          <div className="space-y-4">
+            {currentTrainings.map((t) => (
               <div
                 key={t._id}
-                className={`bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border-l-4 transition-colors ${
-                  t.status === "completed"
-                    ? "border-green-500"
-                    : "border-[#FE4982]"
-                }`}
+                className="bg-white dark:bg-slate-800 p-4 sm:p-5 rounded-xl shadow-sm hover:shadow-md transition-shadow group"
               >
-                <div className="flex flex-col sm:flex-row justify-between gap-4">
-                  <div>
-                    <h2 className="text-xl font-bold text-[#1D2056] dark:text-slate-100">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                  <div className="flex-grow">
+                    <h2 className="text-lg font-bold text-[#1D2056] dark:text-slate-100">
                       {t.title}
                     </h2>
-                    <p className="text-slate-600 dark:text-slate-300 mt-2 max-w-2xl">
-                      {t.content}
-                    </p>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-3">
+                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
                       Deadline:{" "}
-                      <span className="font-semibold">
-                        {new Date(t.deadline).toLocaleDateString("en-US", {
-                          year: "numeric",
-                          month: "long",
-                          day: "numeric",
-                        })}
-                      </span>
+                      {new Date(t.deadline).toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      })}
+                    </p>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                      Assigned to: {t.assignedTo?.length || 0} caregivers
                     </p>
                   </div>
-                  <div className="flex flex-col items-start sm:items-end gap-4 flex-shrink-0 pt-2 sm:pt-0">
-                    <StatusBadge status={t.status} />
-                    {t.status === "pending" && (
-                      <button
-                        onClick={() => handleComplete(t.recordId)}
-                        disabled={updatingId === t.recordId}
-                        className="w-full sm:w-auto bg-green-600 text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center gap-2 hover:bg-green-700 transition-all disabled:bg-green-400 disabled:cursor-wait"
-                      >
-                        {updatingId === t.recordId ? (
-                          "Updating..."
-                        ) : (
-                          <>
-                            <CheckIcon /> Mark Complete
-                          </>
-                        )}
-                      </button>
-                    )}
+                  <div className="flex items-center gap-2 self-start sm:self-center sm:opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Link
+                      to={`/trainings/edit/${t.tID}`}
+                      className="p-2 rounded-full text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-slate-800 dark:hover:text-slate-100"
+                    >
+                      <EditIcon />
+                    </Link>
+                    <button
+                      onClick={() => handleDeleteClick(t.tID)}
+                      className="p-2 rounded-full text-red-500 hover:bg-red-100 dark:hover:bg-red-900/40"
+                    >
+                      <TrashIcon />
+                    </button>
                   </div>
                 </div>
               </div>
-            ))
-          ) : (
-            <div className="text-center py-16 bg-white dark:bg-slate-800 rounded-xl shadow-sm">
-              <BookOpenIcon className="mx-auto text-slate-400 dark:text-slate-500" />
-              <h3 className="mt-4 text-lg font-semibold text-slate-800 dark:text-slate-200">
-                All Clear!
-              </h3>
-              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                You have no pending trainings at the moment.
-              </p>
-            </div>
-          )}
-        </div>
-      </main>
+            ))}
+          </div>
+        ) : (
+          <div className="flex flex-col text-center py-16 bg-white dark:bg-slate-800/50 rounded-xl">
+            <span className="mx-auto text-slate-400 dark:text-slate-500">
+              <BookOpenIcon />
+            </span>
+            <h3 className="mt-4 text-xl font-semibold text-slate-800 dark:text-slate-200">
+              No trainings in this category.
+            </h3>
+          </div>
+        )}
 
+        {totalPages > 1 && (
+          <div className="flex flex-col sm:flex-row justify-between items-center mt-8 pt-4 border-t border-slate-200 dark:border-slate-700 gap-4">
+            <div className="text-sm text-slate-600 dark:text-slate-400">
+              Showing{" "}
+              <span className="font-semibold text-slate-800 dark:text-slate-200">
+                {(currentPage - 1) * trainingsPerPage + 1}
+              </span>
+              -
+              <span className="font-semibold text-slate-800 dark:text-slate-200">
+                {Math.min(
+                  currentPage * trainingsPerPage,
+                  filteredTrainings.length
+                )}
+              </span>{" "}
+              of{" "}
+              <span className="font-semibold text-slate-800 dark:text-slate-200">
+                {filteredTrainings.length}
+              </span>{" "}
+              results
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+                disabled={currentPage === 1}
+                className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <ChevronLeftIcon /> Previous
+              </button>
+              <button
+                onClick={() =>
+                  setCurrentPage((p) => Math.min(p + 1, totalPages))
+                }
+                disabled={currentPage === totalPages}
+                className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Next <ChevronRightIcon />
+              </button>
+            </div>
+          </div>
+        )}
+      </main>
+      <Footer />
+      <ConfirmationModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onConfirm={confirmDelete}
+        title="Delete Training"
+      >
+        <p>
+          Are you sure you want to permanently delete this training module? This
+          action cannot be undone.
+        </p>
+      </ConfirmationModal>
+    </div>
+  );
+};
+
+// --- CAREGIVER VIEW COMPONENT ---
+const CaregiverTrainingView = ({ allTrainings, user, loading }) => {
+  const [myTrainings, setMyTrainings] = useState([]);
+  const [filter, setFilter] = useState("pending");
+  const [currentPage, setCurrentPage] = useState(1);
+  const navigate = useNavigate();
+  const trainingsPerPage = 10;
+
+  useEffect(() => {
+    if (user) {
+      setMyTrainings(
+        allTrainings.filter((t) => t.training?.assignedTo?.includes(user._id))
+      );
+    }
+  }, [allTrainings, user]);
+
+  const StatusBadge = ({ status }) =>
+    status === "completed" ? (
+      <div className="flex items-center gap-2 text-sm font-medium text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/30 px-3 py-1 rounded-full">
+        <CheckCircleIcon /> Completed
+      </div>
+    ) : (
+      <div className="flex items-center gap-2 text-sm font-medium text-amber-600 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/30 px-3 py-1 rounded-full">
+        <ClockIcon /> Pending
+      </div>
+    );
+
+  const filteredTrainings = myTrainings.filter((t) => t.status === filter);
+  const totalPages = Math.ceil(filteredTrainings.length / trainingsPerPage);
+  const currentTrainings = filteredTrainings.slice(
+    (currentPage - 1) * trainingsPerPage,
+    currentPage * trainingsPerPage
+  );
+
+  return (
+    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-900 font-sans">
+      <Header />
+      <main className="flex-grow container mx-auto p-4 sm:p-6 lg:p-8">
+        <div className="flex items-center">
+          <button
+            onClick={() => navigate(-1)}
+            className="mr-4 -mt-6 p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700"
+          >
+            <span className="text-slate-600 dark:text-slate-300">
+              <BackIcon />
+            </span>
+          </button>
+          <div className="mb-8">
+            <h1 className="text-4xl font-extrabold text-slate-800 dark:text-slate-100 tracking-tight">
+              My Assigned Trainings
+            </h1>
+            <p className="text-slate-500 dark:text-slate-400 mt-2 text-lg">
+              Complete these modules to stay up-to-date.
+            </p>
+          </div>
+        </div>
+
+        <div className="flex border-b border-slate-200 dark:border-slate-700 mb-6">
+          <button
+            onClick={() => {
+              setFilter("pending");
+              setCurrentPage(1);
+            }}
+            className={`px-4 py-2 text-sm font-semibold transition-colors ${
+              filter === "pending"
+                ? "border-b-2 border-[#FE4982] text-[#FE4982]"
+                : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+            }`}
+          >
+            Pending ({myTrainings.filter((t) => t.status === "pending").length})
+          </button>
+          <button
+            onClick={() => {
+              setFilter("completed");
+              setCurrentPage(1);
+            }}
+            className={`px-4 py-2 text-sm font-semibold transition-colors ${
+              filter === "completed"
+                ? "border-b-2 border-green-500 text-green-600"
+                : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+            }`}
+          >
+            Completed (
+            {myTrainings.filter((t) => t.status === "completed").length})
+          </button>
+        </div>
+
+        {loading ? (
+          <div className="p-4">
+            <CardSkeleton />
+          </div>
+        ) : currentTrainings.length > 0 ? (
+          <div className="space-y-6">
+            {currentTrainings.map((t) => {
+              const isCompleted = t.status === "completed";
+              const Wrapper = isCompleted ? "div" : Link;
+              const wrapperProps = isCompleted
+                ? {}
+                : { to: `/trainings/view/${t.training.tID}/` };
+
+              return (
+                <Wrapper
+                  key={t._id}
+                  {...wrapperProps}
+                  className={`block bg-white dark:bg-slate-800 p-6 rounded-xl shadow-md border-l-4 transition-all duration-300 ${
+                    isCompleted
+                      ? "border-green-500 hover:cursor-auto"
+                      : "border-[#FE4982] hover:scale-[1.005] hover:shadow-xl"
+                  }`}
+                >
+                  <div className="flex flex-col sm:flex-row justify-between gap-4">
+                    <div>
+                      <h2 className="text-xl font-bold text-[#1D2056] dark:text-slate-100">
+                        {t.training.title}
+                      </h2>
+                      <p className="text-slate-600 dark:text-slate-300 mt-2 max-w-2xl">
+                        {t.training.content}
+                      </p>
+                      <p className="text-sm text-slate-500 dark:text-slate-400 mt-3">
+                        {isCompleted ? "Completed on: " : "Deadline: "}
+                        <span className="font-semibold">
+                          {new Date(
+                            isCompleted ? t.dateCompleted : t.training.deadline
+                          ).toLocaleDateString("en-US", {
+                            year: "numeric",
+                            month: "long",
+                            day: "numeric",
+                          })}
+                        </span>
+                      </p>
+                    </div>
+                    <div className="flex items-center flex-shrink-0 pt-2 sm:pt-0">
+                      <StatusBadge status={t.status} />
+                    </div>
+                  </div>
+                </Wrapper>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="flex flex-col text-center py-16 bg-white dark:bg-slate-800/50 rounded-xl">
+            <span className="mx-auto text-slate-400 dark:text-slate-500">
+              <BookOpenIcon />
+            </span>
+            <h3 className="mt-4 text-xl font-semibold text-slate-800 dark:text-slate-200">
+              All Clear!
+            </h3>
+            <p className="mt-1 text-md text-slate-500 dark:text-slate-400">
+              You have no {filter} trainings.
+            </p>
+          </div>
+        )}
+
+        {totalPages > 1 && (
+          <div className="flex flex-col sm:flex-row justify-between items-center mt-8 pt-4 border-t border-slate-200 dark:border-slate-700 gap-4">
+            <div className="text-sm text-slate-600 dark:text-slate-400">
+              Showing{" "}
+              <span className="font-semibold text-slate-800 dark:text-slate-200">
+                {(currentPage - 1) * trainingsPerPage + 1}
+              </span>
+              -
+              <span className="font-semibold text-slate-800 dark:text-slate-200">
+                {Math.min(
+                  currentPage * trainingsPerPage,
+                  filteredTrainings.length
+                )}
+              </span>{" "}
+              of{" "}
+              <span className="font-semibold text-slate-800 dark:text-slate-200">
+                {filteredTrainings.length}
+              </span>{" "}
+              results
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+                disabled={currentPage === 1}
+                className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <ChevronLeftIcon /> Previous
+              </button>
+              <button
+                onClick={() =>
+                  setCurrentPage((p) => Math.min(p + 1, totalPages))
+                }
+                disabled={currentPage === totalPages}
+                className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Next <ChevronRightIcon />
+              </button>
+            </div>
+          </div>
+        )}
+      </main>
       <Footer />
     </div>
   );
-}
+};

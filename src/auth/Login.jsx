@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { login, logout } from "../services/auth";
 import { Helmet } from 'react-helmet'
 import axios from "axios";
 import './styles/login.scss'
@@ -170,7 +171,28 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
 
-  useEffect(() => setIsMounted(true), []);
+  useEffect(() => {
+    const reset = async () => {
+      const token = localStorage.getItem("token");
+
+      try {
+        if (token !== undefined && token !== null) {
+          localStorage.removeItem("token");
+          await logout(token);
+        }
+      } catch (error) {
+        // Optional: Log error in development only
+        if (import.meta.env.MODE === "development") {
+          console.error("Logout error:", error.response?.data || error.message);
+        }
+      } finally {
+        navigate("/login");
+        setIsMounted(true);
+      }
+    };
+
+    reset();
+  }, [navigate]);
 
   const isFormComplete = formData.email && formData.password;
 
@@ -184,22 +206,22 @@ export default function Login() {
     setLoading(true);
     setError("");
     try {
-      const res = await axios.post(
-        `${import.meta.env.VITE_API_URL}/api/auth/login`,
-        formData,
-        { withCredentials: true }
-      );
+      const res = await login(formData);
       const { token, user } = res.data;
 
       localStorage.setItem("token", token);
       // Corrected navigation logic: redirect to a dedicated admin route
       if (user.role === "admin") {
-        navigate("/admin/dashboard"); // Example admin route
+        navigate("/"); // Example admin route
       } else {
         navigate("/"); // Redirect to user dashboard
       }
     } catch (err) {
-      setError(err.response?.data?.message || "Registration failed.");
+      setError(
+        err.response?.data?.errors?.map((error) => error.msg) ||
+        err.response?.data?.message ||
+        "Registration failed."
+      );
     } finally {
       setLoading(false);
 
@@ -243,11 +265,19 @@ export default function Login() {
             {/* <p className="lgn-form-p-des">Welcome Back User!</p> */}
 
             {error && (
-            <div className="auth-error-flag" role="alert">
-              <AlertCircleIcon className="mr-3 flex-shrink-0" />
-              <span className="error-flag-txt">{error}</span>
-              {/* <span className="error-flag-txt">Registration Failed.</span> */}
-            </div>
+              <>
+                <div className="bg-red-100 dark:bg-red-900/20 border border-red-300 dark:border-red-500/30 text-red-800 dark:text-red-300 px-4 py-3 rounded-lg relative mb-6 flex items-center" role="alert">
+                  <span className="mr-3 flex-shrink-0">
+                    <AlertCircleIcon />
+                  </span>
+                  <span className="block sm:inline text-sm">{error}</span>
+                </div>
+
+                <div className="auth-error-flag" role="alert">
+                  <AlertCircleIcon className="mr-3 flex-shrink-0" />
+                  <span className="error-flag-txt">{error}</span>
+                </div>
+              </>
             )}
 
             <form onSubmit={handleSubmit} noValidate className="frm">

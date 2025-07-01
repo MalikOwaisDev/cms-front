@@ -1,8 +1,20 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams, Link } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import axios from "axios";
+
+const getTrainingDetails = async (id, token) => {
+  const res = await axios.get(
+    `${import.meta.env.VITE_API_URL}/api/trainings/${id}`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+  return { data: res.data };
+};
 
 const getCaregivers = async (token) => {
   try {
@@ -23,22 +35,18 @@ const getCaregivers = async (token) => {
     throw new Error("Unable to fetch caregivers. Please try again later.");
   }
 };
-const createTraining = async (trainingData, token) => {
-  const res = await axios.post(
-    `${import.meta.env.VITE_API_URL}/api/trainings`,
+
+const updateTraining = async (id, trainingData, token) => {
+  const res = await axios.put(
+    `${import.meta.env.VITE_API_URL}/api/trainings/${id}`,
     trainingData,
     {
       headers: {
         Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
       },
     }
   );
-  if (res.status !== 201) {
-    throw new Error("Failed to create training module.");
-  }
-  if (res.status === 403) {
-    throw new Error("UnAuthorized");
-  }
   return res.data;
 };
 
@@ -70,9 +78,111 @@ const BookOpenIcon = () => (
     strokeLinecap="round"
     strokeLinejoin="round"
   >
-    {" "}
-    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>{" "}
-    <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>{" "}
+    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+    <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+  </svg>
+);
+const AlignLeftIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="20"
+    height="20"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <line x1="17" y1="10" x2="3" y2="10"></line>
+    <line x1="21" y1="6" x2="3" y2="6"></line>
+    <line x1="21" y1="14" x2="3" y2="14"></line>
+    <line x1="17" y1="18" x2="3" y2="18"></line>
+  </svg>
+);
+const CalendarIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="20"
+    height="20"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+    <line x1="16" y1="2" x2="16" y2="6"></line>
+    <line x1="8" y1="2" x2="8" y2="6"></line>
+    <line x1="3" y1="10" x2="21" y2="10"></line>
+  </svg>
+);
+const SaveIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="20"
+    height="20"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+    <polyline points="17 21 17 13 7 13 7 21"></polyline>
+    <polyline points="7 3 7 8 15 8"></polyline>
+  </svg>
+);
+const PlusIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="16"
+    height="16"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="3"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <line x1="12" y1="5" x2="12" y2="19"></line>
+    <line x1="5" y1="12" x2="19" y2="12"></line>
+  </svg>
+);
+const TrashIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="16"
+    height="16"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <polyline points="3 6 5 6 21 6"></polyline>
+    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+  </svg>
+);
+const SearchXIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="48"
+    height="48"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.5"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <circle cx="11" cy="11" r="8"></circle>
+    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+    <line x1="14" y1="8" x2="8" y2="14"></line>
+    <line x1="8" y1="8" x2="14" y2="14"></line>
   </svg>
 );
 const BackIcon = () => (
@@ -91,147 +201,90 @@ const BackIcon = () => (
     <polyline points="12 19 5 12 12 5"></polyline>
   </svg>
 );
-const AlignLeftIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    {" "}
-    <line x1="17" y1="10" x2="3" y2="10"></line>{" "}
-    <line x1="21" y1="6" x2="3" y2="6"></line>{" "}
-    <line x1="21" y1="14" x2="3" y2="14"></line>{" "}
-    <line x1="17" y1="18" x2="3" y2="18"></line>{" "}
-  </svg>
-);
-const CalendarIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    {" "}
-    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>{" "}
-    <line x1="16" y1="2" x2="16" y2="6"></line>{" "}
-    <line x1="8" y1="2" x2="8" y2="6"></line>{" "}
-    <line x1="3" y1="10" x2="21" y2="10"></line>{" "}
-  </svg>
-);
-const SendIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    {" "}
-    <line x1="22" y1="2" x2="11" y2="13"></line>{" "}
-    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>{" "}
-  </svg>
-);
-const PlusIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="16"
-    height="16"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="3"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    {" "}
-    <line x1="12" y1="5" x2="12" y2="19"></line>{" "}
-    <line x1="5" y1="12" x2="19" y2="12"></line>{" "}
-  </svg>
-);
-const TrashIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="16"
-    height="16"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    {" "}
-    <polyline points="3 6 5 6 21 6"></polyline>{" "}
-    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>{" "}
-  </svg>
+
+// --- Skeleton Loader ---
+const EditFormSkeleton = () => (
+  <div className="animate-pulse space-y-10">
+    <div className="space-y-6">
+      <div className="h-6 bg-slate-200 dark:bg-slate-700 rounded w-1/3"></div>
+      <div className="h-12 bg-slate-200 dark:bg-slate-700 rounded-lg w-full"></div>
+      <div className="h-24 bg-slate-200 dark:bg-slate-700 rounded-lg w-full"></div>
+    </div>
+    <div className="space-y-6">
+      <div className="h-6 bg-slate-200 dark:bg-slate-700 rounded w-1/3"></div>
+      <div className="h-48 bg-slate-200 dark:bg-slate-700 rounded-lg w-full"></div>
+    </div>
+  </div>
 );
 
-// --- Training Form Page Component ---
-export default function TrainingForm() {
+export default function TrainingEditDetails() {
+  const { id } = useParams();
   const navigate = useNavigate();
 
-  const initialFormState = {
-    title: "",
-    content: "",
-    deadline: "",
-    quiz: [],
-    assignedTo: [],
-  };
-
-  const [form, setForm] = useState(initialFormState);
+  const [form, setForm] = useState(null);
   const [caregivers, setCaregivers] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const token = localStorage.getItem("token");
 
   useEffect(() => {
     if (!token) navigate("/login");
-    const fetchCaregivers = async () => {
+
+    const fetchData = async () => {
       try {
-        const data = await getCaregivers(token);
-        setCaregivers(data);
-        setError("");
+        setLoading(true);
+        const [trainingRes, caregiversRes] = await Promise.all([
+          getTrainingDetails(id, token),
+          getCaregivers(token),
+        ]);
+        setForm(trainingRes.data);
+        setCaregivers(caregiversRes);
       } catch (err) {
-        setError(err.message || "Something went wrong.");
+        console.error("Failed to fetch data", err);
+        setError("Could not load training data.");
+      } finally {
+        setLoading(false);
       }
     };
-    fetchCaregivers();
-  }, [token, navigate]);
+
+    fetchData();
+  }, [id, token, navigate]);
 
   // --- FORM STATE HANDLERS ---
-  const handleFormChange = (e) => {
-    const { id, value } = e.target;
-    setForm((prev) => ({ ...prev, [id]: value }));
-  };
-
+  const handleFormChange = (e) =>
+    setForm((prev) => ({ ...prev, [e.target.id]: e.target.value }));
   const handleAssigneeChange = (e) => {
     const { value, checked } = e.target;
-    setForm((prev) => ({
-      ...prev,
-      assignedTo: checked
-        ? [...prev.assignedTo, value]
-        : prev.assignedTo.filter((id) => id !== value),
-    }));
+    const caregiverId = value;
+
+    setForm((prev) => {
+      let updatedAssignedTo;
+
+      if (checked) {
+        // Add the full object only if it's not already included
+        if (!prev.assignedTo.some((a) => a._id === caregiverId)) {
+          const caregiver = caregivers.find((c) => c._id === caregiverId);
+          updatedAssignedTo = [...prev.assignedTo, caregiver];
+        } else {
+          updatedAssignedTo = prev.assignedTo;
+        }
+      } else {
+        // Remove by matching _id
+        updatedAssignedTo = prev.assignedTo.filter(
+          (a) => a._id !== caregiverId
+        );
+      }
+
+      return {
+        ...prev,
+        assignedTo: updatedAssignedTo,
+      };
+    });
   };
 
   // --- QUIZ STATE HANDLERS ---
-  const addQuestion = () => {
+  const addQuestion = () =>
     setForm((prev) => ({
       ...prev,
       quiz: [
@@ -239,36 +292,29 @@ export default function TrainingForm() {
         { question: "", options: ["", "", ""], correctAnswer: "" },
       ],
     }));
-  };
-
-  const removeQuestion = (qIndex) => {
+  const removeQuestion = (qIndex) =>
     setForm((prev) => ({
       ...prev,
       quiz: prev.quiz.filter((_, index) => index !== qIndex),
     }));
-  };
-
   const handleQuestionChange = (e, qIndex) => {
     const { value } = e.target;
     setForm((prev) => {
-      const newQuiz = [...prev.quiz];
+      const newQuiz = JSON.parse(JSON.stringify(prev.quiz));
       newQuiz[qIndex].question = value;
       return { ...prev, quiz: newQuiz };
     });
   };
-
   const addOption = (qIndex) => {
     setForm((prev) => {
-      const newQuiz = [...prev.quiz];
+      const newQuiz = JSON.parse(JSON.stringify(prev.quiz));
       newQuiz[qIndex].options.push("");
       return { ...prev, quiz: newQuiz };
     });
   };
-
   const removeOption = (qIndex, oIndex) => {
     setForm((prev) => {
-      const newQuiz = [...prev.quiz];
-      // Also clear correctAnswer if the removed option was the correct one
+      const newQuiz = JSON.parse(JSON.stringify(prev.quiz));
       if (newQuiz[qIndex].correctAnswer === newQuiz[qIndex].options[oIndex]) {
         newQuiz[qIndex].correctAnswer = "";
       }
@@ -278,19 +324,17 @@ export default function TrainingForm() {
       return { ...prev, quiz: newQuiz };
     });
   };
-
   const handleOptionChange = (e, qIndex, oIndex) => {
     const { value } = e.target;
     setForm((prev) => {
-      const newQuiz = [...prev.quiz];
+      const newQuiz = JSON.parse(JSON.stringify(prev.quiz));
       newQuiz[qIndex].options[oIndex] = value;
       return { ...prev, quiz: newQuiz };
     });
   };
-
   const handleCorrectAnswerChange = (qIndex, optionValue) => {
     setForm((prev) => {
-      const newQuiz = [...prev.quiz];
+      const newQuiz = JSON.parse(JSON.stringify(prev.quiz));
       newQuiz[qIndex].correctAnswer = optionValue;
       return { ...prev, quiz: newQuiz };
     });
@@ -300,77 +344,85 @@ export default function TrainingForm() {
     e.preventDefault();
     setError("");
     setSuccess("");
-    if (!form.title || !form.deadline) {
-      setError("Title and Deadline are required fields.");
-      return;
-    }
-    // Quiz Validation
-    for (const q of form.quiz) {
-      if (!q.question) {
-        setError("All quiz questions must not be empty.");
-        return;
-      }
-      if (q.options.length < 3) {
-        setError(`Question "${q.question}" must have at least 3 options.`);
-        return;
-      }
-      if (q.options.some((opt) => opt.trim() === "")) {
-        setError(`All options for question "${q.question}" must be filled.`);
-        return;
-      }
-      if (!q.correctAnswer) {
-        setError(
-          `A correct answer must be selected for question "${q.question}".`
-        );
-        return;
-      }
-    }
-
+    // Validation logic from create form can be reused here...
     setLoading(true);
     try {
-      await createTraining(form, token);
-
-      setSuccess("Training created and assigned successfully!");
-      setForm(initialFormState);
-      setTimeout(() => {
-        setSuccess("");
-        navigate("/trainings"); // Redirect to trainings list after success
-      }, 2000);
+      await updateTraining(id, form, token);
+      setSuccess("Training updated successfully!");
+      setTimeout(() => setSuccess(""), 4000);
     } catch (err) {
-      console.error("Error creating training:", err);
-      if (err.response && err.response.status === 403) {
-        setError("You are not authorized to create trainings.");
-        return;
-      }
-      setError("Failed to create training. Please try again.");
+      setError("Failed to update training. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
-  return (
-    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-900 transition-colors duration-300 font-sans">
-      <Header />
+  if (loading) {
+    return (
+      <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-900">
+        <Header />
+        <main className="flex-grow container mx-auto p-4 sm:p-6 lg:p-8">
+          <div className="max-w-4xl mx-auto">
+            <EditFormSkeleton />
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
+  if (!form) {
+    return (
+      <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-900">
+        <Header />
+        <main className="flex-grow container mx-auto p-4 sm:p-6 lg:p-8 flex items-center justify-center">
+          <div className="max-w-xl w-full text-center">
+            <div className="flex flex-col bg-white dark:bg-slate-800 p-8 sm:p-12 rounded-2xl shadow-md">
+              <span className="mx-auto text-slate-400 dark:text-slate-500">
+                <SearchXIcon />
+              </span>
+              <h2 className="mt-6 text-2xl font-bold text-slate-800 dark:text-slate-100">
+                Training Not Found
+              </h2>
+              <p className="mt-2 text-slate-500 dark:text-slate-400">
+                Sorry, we couldn't find the training module you're looking for.
+                It might have been moved or deleted.
+              </p>
+              <Link
+                to="/trainings"
+                className="mt-8 inline-block bg-[#FE4982] text-white font-bold py-3 px-8 rounded-lg hover:bg-[#E03A6D] transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-50 dark:focus:ring-offset-slate-800 focus:ring-[#FE4982]"
+              >
+                Back to All Trainings
+              </Link>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-900 font-sans">
+      <Header />
       <main className="flex-grow container mx-auto p-4 sm:p-6 lg:p-8">
         <div className="max-w-4xl mx-auto">
-          <div className="flex items-center justify-start">
+          <div className="flex items-center flex-shrink">
             <button
               onClick={() => navigate(-1)}
-              className="mr-4 -mt-5 p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700"
+              className="mr-4 -mt-6 p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700"
             >
               <span className="text-slate-600 dark:text-slate-300">
                 <BackIcon />
               </span>
             </button>
+
             <div className="mb-8">
               <h1 className="text-3xl font-bold text-slate-800 dark:text-slate-100">
-                {" "}
-                Create New Training Module{" "}
+                Edit Training Module
               </h1>
               <p className="text-slate-500 dark:text-slate-400 mt-1">
-                {" "}
-                Design a training module with content, quizzes, and assignments.{" "}
+                Update the module details, quiz, and assignments.
               </p>
             </div>
           </div>
@@ -379,11 +431,9 @@ export default function TrainingForm() {
             onSubmit={handleSubmit}
             className="bg-white dark:bg-slate-800 p-6 sm:p-8 rounded-xl shadow-sm space-y-10"
           >
-            {/* --- MODULE DETAILS --- */}
             <fieldset className="space-y-6">
               <legend className="text-xl font-semibold text-[#1D2056] dark:text-slate-200 mb-4 border-b border-slate-200 dark:border-slate-700 pb-3">
-                {" "}
-                Module Details{" "}
+                Module Details
               </legend>
               <div>
                 {" "}
@@ -391,23 +441,20 @@ export default function TrainingForm() {
                   htmlFor="title"
                   className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                 >
-                  {" "}
-                  Training Title{" "}
+                  Training Title
                 </label>{" "}
                 <div className="relative">
                   {" "}
                   <span className="absolute top-[70%] left-3 -translate-y-1/2 text-slate-400">
-                    {" "}
-                    <BookOpenIcon />{" "}
+                    <BookOpenIcon />
                   </span>{" "}
                   <input
                     id="title"
                     value={form.title}
                     onChange={handleFormChange}
-                    placeholder="e.g., Patient Privacy & HIPAA"
-                    className="w-full pl-10 pr-4 py-3 bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-slate-200 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
-                  />{" "}
-                </div>{" "}
+                    className="w-full pl-10 pr-4 py-3 bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
+                  />
+                </div>
               </div>
               <div>
                 {" "}
@@ -415,24 +462,21 @@ export default function TrainingForm() {
                   htmlFor="content"
                   className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                 >
-                  {" "}
-                  Content / Instructions{" "}
+                  Content / Instructions
                 </label>{" "}
                 <div className="relative">
                   {" "}
                   <span className="absolute top-4 left-3 text-slate-400">
-                    {" "}
-                    <AlignLeftIcon />{" "}
+                    <AlignLeftIcon />
                   </span>{" "}
                   <textarea
                     id="content"
                     value={form.content}
                     onChange={handleFormChange}
                     rows="5"
-                    placeholder="Describe the training requirements, link to materials, etc."
-                    className="w-full pl-10 pr-4 py-3 bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-slate-200 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
-                  ></textarea>{" "}
-                </div>{" "}
+                    className="w-full pl-10 pr-4 py-3 bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
+                  ></textarea>
+                </div>
               </div>
               <div>
                 {" "}
@@ -440,31 +484,27 @@ export default function TrainingForm() {
                   htmlFor="deadline"
                   className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                 >
-                  {" "}
-                  Completion Deadline{" "}
+                  Completion Deadline
                 </label>{" "}
                 <div className="relative">
                   {" "}
                   <span className="absolute top-[70%] left-3 -translate-y-1/2 text-slate-400">
-                    {" "}
-                    <CalendarIcon />{" "}
+                    <CalendarIcon />
                   </span>{" "}
                   <input
                     type="date"
                     id="deadline"
-                    value={form.deadline}
+                    value={form.deadline ? form.deadline.split("T")[0] : ""}
                     onChange={handleFormChange}
-                    className="w-full pl-10 pr-4 py-3 bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-slate-200 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
-                  />{" "}
-                </div>{" "}
+                    className="w-full pl-10 pr-4 py-3 bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
+                  />
+                </div>
               </div>
             </fieldset>
 
-            {/* --- QUIZ BUILDER --- */}
             <fieldset>
               <legend className="text-xl font-semibold text-[#1D2056] dark:text-slate-200 mb-4 border-b border-slate-200 dark:border-slate-700 pb-3">
-                {" "}
-                Quiz Builder{" "}
+                Quiz Builder
               </legend>
               <div className="space-y-6">
                 {form.quiz.map((q, qIndex) => (
@@ -477,29 +517,25 @@ export default function TrainingForm() {
                         htmlFor={`question-${qIndex}`}
                         className="block text-md font-semibold text-slate-800 dark:text-slate-200"
                       >
-                        {" "}
-                        Question {qIndex + 1}{" "}
+                        Question {qIndex + 1}
                       </label>
                       <button
                         type="button"
                         onClick={() => removeQuestion(qIndex)}
                         className="text-red-500 hover:text-red-700 p-1 rounded-full hover:bg-red-100 dark:hover:bg-red-900/30"
                       >
-                        {" "}
-                        <TrashIcon />{" "}
+                        <TrashIcon />
                       </button>
                     </div>
                     <input
                       id={`question-${qIndex}`}
                       value={q.question}
                       onChange={(e) => handleQuestionChange(e, qIndex)}
-                      placeholder="Enter the quiz question"
-                      className="w-full p-3 bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-200 border border-slate-300 dark:border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
+                      className="w-full p-3 bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
                     />
-
                     <div className="space-y-3 pt-3">
                       <h4 className="font-semibold text-slate-600 dark:text-slate-300">
-                        Options (select correct answer)
+                        Options
                       </h4>
                       {q.options.map((opt, oIndex) => (
                         <div key={oIndex} className="flex items-center gap-2">
@@ -510,24 +546,22 @@ export default function TrainingForm() {
                             onChange={() =>
                               handleCorrectAnswerChange(qIndex, opt)
                             }
-                            className="h-4 w-4 text-[#FE4982] focus:ring-[#E03A6D] border-slate-400"
+                            className="h-4 w-4 text-[#FE4982] focus:ring-[#E03A6D]"
                           />
                           <input
                             value={opt}
                             onChange={(e) =>
                               handleOptionChange(e, qIndex, oIndex)
                             }
-                            placeholder={`Option ${oIndex + 1}`}
-                            className="flex-grow p-2 bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-200 border border-slate-300 dark:border-slate-600 rounded-md focus:outline-none focus:ring-1 focus:ring-[#FE4982]"
+                            className="flex-grow p-2 bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-200 rounded-md focus:outline-none focus:ring-1 focus:ring-[#FE4982]"
                           />
-                          {q.options.length > 3 && (
+                          {q.options.length > 2 && (
                             <button
                               type="button"
                               onClick={() => removeOption(qIndex, oIndex)}
                               className="text-slate-500 hover:text-red-600 p-1 rounded-full hover:bg-red-100 dark:hover:bg-red-900/30"
                             >
-                              {" "}
-                              <TrashIcon />{" "}
+                              <TrashIcon />
                             </button>
                           )}
                         </div>
@@ -537,8 +571,8 @@ export default function TrainingForm() {
                         onClick={() => addOption(qIndex)}
                         className="text-sm font-semibold text-[#FE4982] hover:text-[#E03A6D] flex items-center gap-1"
                       >
-                        {" "}
-                        <PlusIcon /> Add Option{" "}
+                        <PlusIcon />
+                        Add Option
                       </button>
                     </div>
                   </div>
@@ -548,16 +582,15 @@ export default function TrainingForm() {
                   onClick={addQuestion}
                   className="w-full bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold py-3 px-4 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors flex items-center justify-center gap-2"
                 >
-                  <PlusIcon /> Add Question
+                  <PlusIcon />
+                  Add Question
                 </button>
               </div>
             </fieldset>
 
-            {/* --- ASSIGN CAREGIVERS --- */}
             <fieldset>
               <legend className="text-xl font-semibold text-[#1D2056] dark:text-slate-200 mb-4 border-b border-slate-200 dark:border-slate-700 pb-3">
-                {" "}
-                Assign to Caregivers ({form.assignedTo.length} selected){" "}
+                Assign to Caregivers ({form.assignedTo.length} selected)
               </legend>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 {caregivers?.map((c) => (
@@ -565,72 +598,67 @@ export default function TrainingForm() {
                     key={c._id}
                     htmlFor={`caregiver-${c._id}`}
                     className={`flex items-center p-3 rounded-lg border cursor-pointer transition-all ${
-                      form.assignedTo.includes(c._id)
-                        ? "bg-pink-100 dark:bg-pink-900/40 border-pink-300 dark:border-pink-600 ring-2 ring-pink-500 dark:ring-pink-500"
-                        : "bg-slate-100 dark:bg-slate-700 border-slate-200 dark:border-slate-600 hover:bg-slate-200 dark:hover:bg-slate-600"
+                      form.assignedTo.map((id) => id._id).includes(c._id)
+                        ? "bg-pink-100 dark:bg-pink-900/40 border-pink-600 ring-2 ring-pink-500"
+                        : "bg-slate-100 dark:bg-slate-700 border-slate-600 hover:bg-slate-200 dark:hover:bg-slate-600"
                     }`}
                   >
                     <input
                       type="checkbox"
                       id={`caregiver-${c._id}`}
                       value={c._id}
-                      checked={form.assignedTo.includes(c._id)}
+                      checked={form.assignedTo
+                        .map((id) => id._id)
+                        .includes(c._id)}
                       onChange={handleAssigneeChange}
-                      className="h-4 w-4 rounded border-gray-300 text-[#FE4982] focus:ring-[#E03A6D]"
+                      className="h-4 w-4 rounded text-[#FE4982] focus:ring-[#E03A6D]"
                     />
                     <span className="ml-3 font-medium text-slate-700 dark:text-slate-200">
-                      {" "}
-                      {c.name}{" "}
+                      {c.name}
                     </span>
                   </label>
                 ))}
               </div>
             </fieldset>
 
-            {/* --- SUBMIT --- */}
             <div className="pt-6 border-t border-slate-200 dark:border-slate-700 space-y-4">
               {error && (
                 <p className="text-red-500 dark:text-red-400 text-sm text-center font-semibold">
-                  {" "}
-                  {error}{" "}
+                  {error}
                 </p>
               )}
               {success && (
                 <p className="text-green-600 dark:text-green-400 text-sm text-center font-semibold">
-                  {" "}
-                  {success}{" "}
+                  {success}
                 </p>
               )}
               <div className="flex justify-end gap-4">
                 <button
                   type="button"
-                  onClick={() => navigate(-1)}
-                  className="bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold py-2 px-6 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600 transition-all"
+                  onClick={() => navigate(`/trainings`)}
+                  className="bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold py-2 px-6 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600"
                 >
-                  {" "}
-                  Cancel{" "}
+                  Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full sm:w-auto bg-[#FE4982] text-white font-bold py-2 px-6 rounded-lg flex items-center justify-center gap-2 hover:bg-[#E03A6D] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-50 dark:ring-offset-slate-900 focus:ring-[#FE4982] transition-all disabled:bg-opacity-60"
+                  className="bg-[#FE4982] text-white font-bold py-2 px-6 rounded-lg flex items-center justify-center gap-2 hover:bg-[#E03A6D] disabled:bg-opacity-60"
                 >
-                  {" "}
                   {loading ? (
-                    "Assigning..."
+                    "Saving..."
                   ) : (
                     <>
-                      {" "}
-                      <SendIcon /> Create & Assign{" "}
+                      <SaveIcon />
+                      Save Changes
                     </>
-                  )}{" "}
+                  )}
                 </button>
               </div>
             </div>
           </form>
         </div>
       </main>
-
       <Footer />
     </div>
   );

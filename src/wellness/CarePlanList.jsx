@@ -1,57 +1,47 @@
 import { useState, useEffect } from "react";
-import { useNavigate, Link, NavLink } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-// --- MOCK API SERVICES ---
-let mockCarePlans = [
-  {
-    _id: "cp_1",
-    title: "Post-Surgery Recovery Plan",
-    patient: { name: "Eleanor Vance" },
-    description:
-      "A 4-week plan to ensure proper healing and mobility restoration after knee surgery.",
-    goals: [
-      { goal: "Walk 500 steps daily without assistance", status: "achieved" },
-      {
-        goal: "Attend all scheduled physical therapy sessions",
-        status: "in progress",
-      },
-      { goal: "Follow prescribed medication schedule", status: "in progress" },
-    ],
-  },
-  {
-    _id: "cp_2",
-    title: "Diabetes Management",
-    patient: { name: "Johnathan Doe" },
-    description:
-      "Ongoing plan to monitor blood sugar levels and promote a healthy lifestyle.",
-    goals: [
-      {
-        goal: "Monitor and log blood sugar levels twice daily",
-        status: "in progress",
-      },
-      { goal: "Follow the low-sugar diet plan", status: "pending" },
-    ],
-  },
-];
+import axios from "axios";
+
 const getCarePlans = async (token) => {
-  await new Promise((r) => setTimeout(r, 1000));
-  return { data: mockCarePlans };
-};
-const updateGoalStatus = async ({ planId, goalIndex, status }, token) => {
-  await new Promise((r) => setTimeout(r, 1000));
-  mockCarePlans = mockCarePlans.map((plan) => {
-    if (plan._id === planId) {
-      const newGoals = [...plan.goals];
-      newGoals[goalIndex].status = status;
-      return { ...plan, goals: newGoals };
+  const res = await axios.get(
+    `${import.meta.env.VITE_API_URL}/api/wellness/care-plan`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
     }
-    return plan;
-  });
-  return { data: { message: "Status updated." } };
+  );
+  return { data: res.data };
 };
 
-// --- PAGE ICONS ---
+const updateGoalStatus = async ({ planId, goalIndex, status }, token) => {
+  const res = await axios.put(
+    `${import.meta.env.VITE_API_URL}/api/wellness/care-plan/goal`,
+    { planId, goalIndex, status },
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+  return { data: res.data };
+};
+
+const deleteCarePlan = async (planId, token) => {
+  // This function now expects the API identifier, which is `careID`
+  const res = await axios.delete(
+    `${import.meta.env.VITE_API_URL}/api/wellness/care-plan/${planId}`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+  return { data: res.data };
+};
+
 const PlusIcon = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -93,9 +83,9 @@ const ClipboardListIcon = () => (
     viewBox="0 0 24 24"
     fill="none"
     stroke="currentColor"
-    stroke-width="1.5"
-    stroke-linecap="round"
-    stroke-linejoin="round"
+    strokeWidth="1.5"
+    strokeLinecap="round"
+    strokeLinejoin="round"
   >
     <rect width="8" height="4" x="8" y="2" rx="1" ry="1" />
     <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
@@ -103,6 +93,57 @@ const ClipboardListIcon = () => (
     <path d="M12 16h4" />
     <path d="M8 11h.01" />
     <path d="M8 16h.01" />
+  </svg>
+);
+const BackIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <line x1="19" y1="12" x2="5" y2="12"></line>
+    <polyline points="12 19 5 12 12 5"></polyline>
+  </svg>
+);
+const EditIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="20"
+    height="20"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+  </svg>
+);
+
+const TrashIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="20"
+    height="20"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <polyline points="3 6 5 6 21 6"></polyline>
+    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+    <line x1="10" y1="11" x2="10" y2="17"></line>
+    <line x1="14" y1="11" x2="14" y2="17"></line>
   </svg>
 );
 
@@ -124,14 +165,20 @@ const CardSkeleton = () => (
     ))}
   </div>
 );
-
 // --- Care Plan List Page ---
 export default function CarePlanList() {
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState(null);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [planToDelete, setPlanToDelete] = useState(null); // This will now store the entire plan object
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
+
+  // New state for tabs and pagination
+  const [activeTab, setActiveTab] = useState("ongoing");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 7;
 
   useEffect(() => {
     if (!token) {
@@ -157,6 +204,26 @@ export default function CarePlanList() {
     setUpdatingId(null);
   };
 
+  const handleDelete = async () => {
+    if (!planToDelete) return;
+    try {
+      // Use careID for the API call and _id for the local state update
+      await deleteCarePlan(planToDelete.careID, token);
+      setPlans(plans.filter((p) => p._id !== planToDelete._id));
+      setShowConfirm(false);
+      setPlanToDelete(null);
+    } catch (error) {
+      console.error("Failed to delete care plan", error);
+      // Optionally, show an error message to the user
+    }
+  };
+
+  const confirmDeletion = (plan) => {
+    // Store the entire plan object
+    setPlanToDelete(plan);
+    setShowConfirm(true);
+  };
+
   const GoalStatusBadge = ({ status }) => {
     const statusStyles = {
       pending:
@@ -175,18 +242,61 @@ export default function CarePlanList() {
     );
   };
 
+  // Filter plans based on their goals' statuses
+  const ongoingPlans = plans.filter((plan) =>
+    plan.goals.some((goal) => goal.status !== "achieved")
+  );
+  const completedPlans = plans.filter((plan) =>
+    plan.goals.every((goal) => goal.status === "achieved")
+  );
+
+  // Pagination logic
+  const plansToDisplay =
+    activeTab === "ongoing" ? ongoingPlans : completedPlans;
+  const totalPages = Math.ceil(plansToDisplay.length / itemsPerPage);
+  const paginatedPlans = plansToDisplay.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  const handlePrevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
+  const handleTabClick = (tab) => {
+    setActiveTab(tab);
+    setCurrentPage(1); // Reset to first page on tab change
+  };
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-900 transition-colors duration-300 font-sans">
       <Header />
       <main className="flex-grow container mx-auto p-4 sm:p-6 lg:p-8">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-slate-800 dark:text-slate-100">
-              Patient Care Plans
-            </h1>
-            <p className="text-slate-500 dark:text-slate-400 mt-1">
-              Track and manage the progress of all wellness goals.
-            </p>
+          <div className="flex items-center">
+            <button
+              onClick={() => navigate(-1)}
+              className="mr-4 p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700"
+            >
+              <span className="text-slate-600 dark:text-slate-300">
+                <BackIcon />
+              </span>
+            </button>
+            <div>
+              <h1 className="text-3xl font-bold text-slate-800 dark:text-slate-100">
+                Patient Care Plans
+              </h1>
+              <p className="text-slate-500 dark:text-slate-400 mt-1">
+                Track and manage the progress of all wellness goals.
+              </p>
+            </div>
           </div>
           <Link
             to="/wellness/plans/create"
@@ -195,25 +305,90 @@ export default function CarePlanList() {
             <PlusIcon /> Create New Plan
           </Link>
         </div>
+
+        {/* Tabs for Ongoing and Completed */}
+        <div className="mb-6 border-b border-slate-200 dark:border-slate-700">
+          <nav className="flex space-x-4">
+            <button
+              onClick={() => handleTabClick("ongoing")}
+              className={`py-2 px-3 font-semibold flex items-center space-x-2 ${
+                activeTab === "ongoing"
+                  ? "text-[#FE4982] border-b-2 border-[#FE4982]"
+                  : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300"
+              }`}
+            >
+              <span>On Going</span>
+              {!loading && (
+                <span
+                  className={`px-2 py-0.5 text-xs rounded-full ${
+                    activeTab === "ongoing"
+                      ? "bg-[#FE4982] text-white"
+                      : "bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300"
+                  }`}
+                >
+                  {ongoingPlans.length}
+                </span>
+              )}
+            </button>
+            <button
+              onClick={() => handleTabClick("completed")}
+              className={`py-2 px-3 font-semibold flex items-center space-x-2 ${
+                activeTab === "completed"
+                  ? "text-[#FE4982] border-b-2 border-[#FE4982]"
+                  : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300"
+              }`}
+            >
+              <span>Completed</span>
+              {!loading && (
+                <span
+                  className={`px-2 py-0.5 text-xs rounded-full ${
+                    activeTab === "completed"
+                      ? "bg-[#FE4982] text-white"
+                      : "bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300"
+                  }`}
+                >
+                  {completedPlans.length}
+                </span>
+              )}
+            </button>
+          </nav>
+        </div>
         <div className="space-y-6">
           {loading ? (
             <CardSkeleton />
-          ) : plans.length > 0 ? (
-            plans.map((plan) => (
+          ) : paginatedPlans.length > 0 ? (
+            paginatedPlans.map((plan) => (
               <div
                 key={plan._id}
                 className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm"
               >
-                <div className="border-b border-slate-100 dark:border-slate-700 pb-4 mb-4">
-                  <h2 className="text-xl font-bold text-[#1D2056] dark:text-slate-100">
-                    {plan.title}
-                  </h2>
-                  <p className="text-sm text-slate-500 dark:text-slate-400 font-semibold">
-                    Patient: {plan.patient?.name}
-                  </p>
-                  <p className="text-slate-600 dark:text-slate-300 mt-2 text-sm">
-                    {plan.description}
-                  </p>
+                <div className="flex justify-between items-start">
+                  <div className="border-b border-slate-100 dark:border-slate-700 pb-4 mb-4 flex-grow">
+                    <h2 className="text-xl font-bold text-[#1D2056] dark:text-slate-100">
+                      {plan.title}
+                    </h2>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 font-semibold">
+                      Patient: {plan.patient?.name}
+                    </p>
+                    <p className="text-slate-600 dark:text-slate-300 mt-2 text-sm">
+                      {plan.description}
+                    </p>
+                  </div>
+                  <div className="flex items-center ml-4">
+                    <Link
+                      to={`/wellness/plans/${plan.careID}`}
+                      className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 p-2"
+                    >
+                      <EditIcon />
+                    </Link>
+                    <button
+                      onClick={() => confirmDeletion(plan)} // Pass the entire plan object
+                      className="text-slate-400 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 p-2"
+                      title="Delete Care Plan"
+                    >
+                      <TrashIcon />
+                    </button>
+                  </div>
                 </div>
                 <ul className="space-y-3">
                   {plan.goals.map((g, i) => (
@@ -229,7 +404,7 @@ export default function CarePlanList() {
                           {g.goal}
                         </span>
                       </div>
-                      <div className="flex items-center gap-3 self-end sm:self-center">
+                      <div className="relative flex items-center gap-3 self-end sm:self-center">
                         <GoalStatusBadge status={g.status} />
                         {g.status !== "achieved" && (
                           <select
@@ -238,12 +413,29 @@ export default function CarePlanList() {
                               handleStatusChange(plan._id, i, e.target.value)
                             }
                             disabled={updatingId === `${plan._id}-${i}`}
-                            className="bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-md text-xs p-1.5 focus:ring-1 focus:ring-[#FE4982] focus:outline-none disabled:opacity-50"
+                            className="bg-white appearance-none pr-6 dark:bg-slate-700 border text-slate-800 dark:text-slate-200 border-slate-300 dark:border-slate-600 rounded-md text-xs p-1.5 focus:ring-1 focus:ring-[#FE4982] focus:outline-none disabled:opacity-50"
                           >
                             <option value="pending">Pending</option>
                             <option value="in progress">In Progress</option>
                             <option value="achieved">Achieved</option>
                           </select>
+                        )}
+                        {g.status !== "achieved" && (
+                          <div className="pointer-events-none absolute inset-y-0  right-[6px] flex items-center text-slate-400">
+                            <svg
+                              className="w-3 h-3"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="M19 9l-7 7-7-7"
+                              />
+                            </svg>
+                          </div>
                         )}
                       </div>
                     </li>
@@ -252,18 +444,73 @@ export default function CarePlanList() {
               </div>
             ))
           ) : (
-            <div className="text-center py-16 bg-white dark:bg-slate-800 rounded-xl shadow-sm">
-              <ClipboardListIcon className="mx-auto text-slate-400 dark:text-slate-500" />
+            <div className="text-center flex flex-col py-16 bg-white dark:bg-slate-800 rounded-xl shadow-sm">
+              <span className="mx-auto text-slate-400 dark:text-slate-500">
+                <ClipboardListIcon />
+              </span>
               <h3 className="mt-4 text-lg font-semibold text-slate-800 dark:text-slate-200">
-                No Care Plans Found
+                No {activeTab === "ongoing" ? "On Going" : "Completed"} Care
+                Plans Found
               </h3>
               <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                Get started by creating a new care plan for a patient.
+                {activeTab === "ongoing"
+                  ? "All care plans are completed or none have been created."
+                  : "Get started by creating a new care plan for a patient."}
               </p>
             </div>
           )}
         </div>
+        {totalPages > 1 && (
+          <div className="flex justify-center items-center mt-8">
+            <button
+              onClick={handlePrevPage}
+              disabled={currentPage === 1}
+              className="px-4 py-2 mx-1 rounded-md bg-slate-200 dark:bg-slate-700 disabled:opacity-50"
+            >
+              Prev
+            </button>
+            <span className="px-4 py-2 mx-1 text-slate-700 dark:text-slate-200">
+              Page {currentPage} of {totalPages}
+            </span>
+            <button
+              onClick={handleNextPage}
+              disabled={currentPage === totalPages}
+              className="px-4 py-2 mx-1 rounded-md bg-slate-200 dark:bg-slate-700 disabled:opacity-50"
+            >
+              Next
+            </button>
+          </div>
+        )}
       </main>
+
+      {showConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white dark:bg-slate-800 p-6 rounded-lg shadow-xl">
+            <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">
+              Confirm Deletion
+            </h3>
+            <p className="text-slate-500 dark:text-slate-400 mt-2">
+              Are you sure you want to delete this care plan? This action cannot
+              be undone.
+            </p>
+            <div className="mt-6 flex justify-end gap-4">
+              <button
+                onClick={() => setShowConfirm(false)}
+                className="px-4 py-2 rounded-lg text-slate-600 dark:text-slate-300 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDelete}
+                className="px-4 py-2 rounded-lg text-white bg-red-500 hover:bg-red-600"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <Footer />
     </div>
   );
