@@ -18,7 +18,7 @@ import {
 const getCarers = async (token) => {
   try {
     const res = await getCaregivers(token);
-    return res.data; // Return caregiver data
+    return res.data;
   } catch (error) {
     if (error.response && error.response.status === 404) {
       throw new Error("No caregivers found.");
@@ -27,32 +27,47 @@ const getCarers = async (token) => {
   }
 };
 
-// --- Skeleton Loader ---
+// --- RESPONSIVE Skeleton Loader ---
 const EditFormSkeleton = () => (
   <div className="animate-pulse space-y-10">
     <div className="space-y-6">
       <div className="h-6 bg-slate-200 dark:bg-slate-700 rounded w-1/3"></div>
       <div className="h-12 bg-slate-200 dark:bg-slate-700 rounded-lg w-full"></div>
       <div className="h-24 bg-slate-200 dark:bg-slate-700 rounded-lg w-full"></div>
+      <div className="h-12 bg-slate-200 dark:bg-slate-700 rounded-lg w-full"></div>
     </div>
     <div className="space-y-6">
       <div className="h-6 bg-slate-200 dark:bg-slate-700 rounded w-1/3"></div>
-      <div className="h-48 bg-slate-200 dark:bg-slate-700 rounded-lg w-full"></div>
+      <div className="bg-slate-100 dark:bg-slate-800/50 p-5 rounded-lg space-y-4">
+        <div className="h-5 bg-slate-200 dark:bg-slate-700 rounded w-1/4"></div>
+        <div className="h-10 bg-slate-200 dark:bg-slate-700 rounded-md"></div>
+        <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-1/5 pt-2"></div>
+        <div className="h-10 bg-slate-200 dark:bg-slate-700 rounded-md"></div>
+        <div className="h-10 bg-slate-200 dark:bg-slate-700 rounded-md"></div>
+      </div>
     </div>
   </div>
 );
 
 export default function TrainingEditDetails() {
   const { id } = useParams();
-  document.title = `Edit ${id} Training | Care Management System`;
   const navigate = useNavigate();
 
   const [form, setForm] = useState(null);
   const [caregivers, setCaregivers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const token = localStorage.getItem("token");
+
+  useEffect(() => {
+    if (form?.title) {
+      document.title = `Edit: ${form.title} | Care Management System`;
+    } else {
+      document.title = "Edit Training | Care Management System";
+    }
+  }, [form?.title]);
 
   useEffect(() => {
     if (!token) navigate("/login");
@@ -77,112 +92,100 @@ export default function TrainingEditDetails() {
     fetchData();
   }, [id, token, navigate]);
 
-  // --- FORM STATE HANDLERS ---
   const handleFormChange = (e) =>
     setForm((prev) => ({ ...prev, [e.target.id]: e.target.value }));
+
   const handleAssigneeChange = (e) => {
-    const { value, checked } = e.target;
-    const caregiverId = value;
-
+    const { value: caregiverId, checked } = e.target;
     setForm((prev) => {
+      const isAssigned = prev.assignedTo.some((a) => a._id === caregiverId);
       let updatedAssignedTo;
-
-      if (checked) {
-        // Add the full object only if it's not already included
-        if (!prev.assignedTo.some((a) => a._id === caregiverId)) {
-          const caregiver = caregivers.find((c) => c._id === caregiverId);
-          updatedAssignedTo = [...prev.assignedTo, caregiver];
-        } else {
-          updatedAssignedTo = prev.assignedTo;
-        }
+      if (checked && !isAssigned) {
+        const caregiverToAdd = caregivers.find((c) => c._id === caregiverId);
+        updatedAssignedTo = [...prev.assignedTo, caregiverToAdd];
       } else {
-        // Remove by matching _id
         updatedAssignedTo = prev.assignedTo.filter(
           (a) => a._id !== caregiverId
         );
       }
-
-      return {
-        ...prev,
-        assignedTo: updatedAssignedTo,
-      };
+      return { ...prev, assignedTo: updatedAssignedTo };
     });
   };
 
-  // --- QUIZ STATE HANDLERS ---
   const addQuestion = () =>
     setForm((prev) => ({
       ...prev,
       quiz: [
         ...prev.quiz,
-        { question: "", options: ["", "", ""], correctAnswer: "" },
+        { question: "", options: ["", ""], correctAnswer: "" },
       ],
     }));
+
   const removeQuestion = (qIndex) =>
     setForm((prev) => ({
       ...prev,
       quiz: prev.quiz.filter((_, index) => index !== qIndex),
     }));
+
   const handleQuestionChange = (e, qIndex) => {
     const { value } = e.target;
-    setForm((prev) => {
-      const newQuiz = JSON.parse(JSON.stringify(prev.quiz));
-      newQuiz[qIndex].question = value;
-      return { ...prev, quiz: newQuiz };
-    });
+    const newQuiz = [...form.quiz];
+    newQuiz[qIndex].question = value;
+    setForm({ ...form, quiz: newQuiz });
   };
+
   const addOption = (qIndex) => {
-    setForm((prev) => {
-      const newQuiz = JSON.parse(JSON.stringify(prev.quiz));
-      newQuiz[qIndex].options.push("");
-      return { ...prev, quiz: newQuiz };
-    });
+    const newQuiz = [...form.quiz];
+    newQuiz[qIndex].options.push("");
+    setForm({ ...form, quiz: newQuiz });
   };
+
   const removeOption = (qIndex, oIndex) => {
-    setForm((prev) => {
-      const newQuiz = JSON.parse(JSON.stringify(prev.quiz));
-      if (newQuiz[qIndex].correctAnswer === newQuiz[qIndex].options[oIndex]) {
-        newQuiz[qIndex].correctAnswer = "";
-      }
-      newQuiz[qIndex].options = newQuiz[qIndex].options.filter(
-        (_, index) => index !== oIndex
-      );
-      return { ...prev, quiz: newQuiz };
-    });
+    const newQuiz = [...form.quiz];
+    const removedOption = newQuiz[qIndex].options[oIndex];
+    if (newQuiz[qIndex].correctAnswer === removedOption) {
+      newQuiz[qIndex].correctAnswer = "";
+    }
+    newQuiz[qIndex].options.splice(oIndex, 1);
+    setForm({ ...form, quiz: newQuiz });
   };
+
   const handleOptionChange = (e, qIndex, oIndex) => {
     const { value } = e.target;
-    setForm((prev) => {
-      const newQuiz = JSON.parse(JSON.stringify(prev.quiz));
-      newQuiz[qIndex].options[oIndex] = value;
-      return { ...prev, quiz: newQuiz };
-    });
+    const newQuiz = [...form.quiz];
+    newQuiz[qIndex].options[oIndex] = value;
+    setForm({ ...form, quiz: newQuiz });
   };
+
   const handleCorrectAnswerChange = (qIndex, optionValue) => {
-    setForm((prev) => {
-      const newQuiz = JSON.parse(JSON.stringify(prev.quiz));
-      newQuiz[qIndex].correctAnswer = optionValue;
-      return { ...prev, quiz: newQuiz };
-    });
+    const newQuiz = [...form.quiz];
+    newQuiz[qIndex].correctAnswer = optionValue;
+    setForm({ ...form, quiz: newQuiz });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setSuccess("");
-    // Validation logic from create form can be reused here...
-    setLoading(true);
+    setSubmitting(true);
     try {
       await updateTraining(id, form, token);
       setSuccess("Training updated successfully!");
       setTimeout(() => {
         navigate("/trainings");
-        setSuccess("");
-      }, 2000);
+      }, 1500);
     } catch (err) {
       setError("Failed to update training. Please try again.");
     } finally {
-      setLoading(false);
+      setSubmitting(false);
+    }
+  };
+
+  const handleGoBack = () => {
+    if (window.history.state && window.history.length > 2) {
+      navigate(-1);
+    } else {
+      navigate("/trainings");
     }
   };
 
@@ -215,11 +218,10 @@ export default function TrainingEditDetails() {
               </h2>
               <p className="mt-2 text-slate-500 dark:text-slate-400">
                 Sorry, we couldn't find the training module you're looking for.
-                It might have been moved or deleted.
               </p>
               <Link
                 to="/trainings"
-                className="mt-8 inline-block bg-[#FE4982] text-white font-bold py-3 px-8 rounded-lg hover:bg-[#E03A6D] transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-50 dark:focus:ring-offset-slate-800 focus:ring-[#FE4982]"
+                className="mt-8 inline-block bg-[#FE4982] text-white font-bold py-3 px-8 rounded-lg hover:bg-[#E03A6D] transition-colors"
               >
                 Back to All Trainings
               </Link>
@@ -231,31 +233,22 @@ export default function TrainingEditDetails() {
     );
   }
 
-  const handleGoBack = () => {
-    if (window.history.state && window.history.length > 1) {
-      navigate(-1);
-    } else {
-      navigate("/trainings");
-    }
-  };
-
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-900 font-sans">
       <Header />
       <main className="flex-grow container mx-auto p-4 sm:p-6 lg:p-8">
         <div className="max-w-4xl mx-auto">
-          <div className="flex items-center flex-shrink">
+          <div className="flex items-start gap-4 mb-8">
             <button
               onClick={handleGoBack}
-              className="mr-4 -mt-6 p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700"
+              className="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 flex-shrink-0"
             >
               <span className="text-slate-600 dark:text-slate-300">
                 <BackIcon />
               </span>
             </button>
-
-            <div className="mb-8">
-              <h1 className="text-3xl font-bold text-slate-800 dark:text-slate-100">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-slate-800 dark:text-slate-100">
                 Edit Training Module
               </h1>
               <p className="text-slate-500 dark:text-slate-400 mt-1">
@@ -273,18 +266,16 @@ export default function TrainingEditDetails() {
                 Module Details
               </legend>
               <div>
-                {" "}
                 <label
                   htmlFor="title"
                   className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                 >
                   Training Title
-                </label>{" "}
+                </label>
                 <div className="relative">
-                  {" "}
                   <span className="absolute top-[70%] left-3 -translate-y-1/2 text-slate-400">
                     <BookOpenIcon size={20} />
-                  </span>{" "}
+                  </span>
                   <input
                     id="title"
                     value={form.title}
@@ -294,18 +285,16 @@ export default function TrainingEditDetails() {
                 </div>
               </div>
               <div>
-                {" "}
                 <label
                   htmlFor="content"
                   className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                 >
                   Content / Instructions
-                </label>{" "}
+                </label>
                 <div className="relative">
-                  {" "}
                   <span className="absolute top-4 left-3 text-slate-400">
                     <AlignLeftIcon />
-                  </span>{" "}
+                  </span>
                   <textarea
                     id="content"
                     value={form.content}
@@ -316,18 +305,16 @@ export default function TrainingEditDetails() {
                 </div>
               </div>
               <div>
-                {" "}
                 <label
                   htmlFor="deadline"
                   className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                 >
                   Completion Deadline
-                </label>{" "}
+                </label>
                 <div className="relative">
-                  {" "}
                   <span className="absolute top-[70%] left-3 -translate-y-1/2 text-slate-400">
                     <CalendarIcon />
-                  </span>{" "}
+                  </span>
                   <input
                     type="date"
                     id="deadline"
@@ -361,21 +348,22 @@ export default function TrainingEditDetails() {
                         onClick={() => removeQuestion(qIndex)}
                         className="text-red-500 hover:text-red-700 p-1 rounded-full hover:bg-red-100 dark:hover:bg-red-900/30"
                       >
-                        <TrashIcon size={16} />
+                        <TrashIcon size={18} />
                       </button>
                     </div>
                     <input
                       id={`question-${qIndex}`}
                       value={q.question}
                       onChange={(e) => handleQuestionChange(e, qIndex)}
+                      placeholder="Enter the question text"
                       className="w-full p-3 bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
                     />
                     <div className="space-y-3 pt-3">
                       <h4 className="font-semibold text-slate-600 dark:text-slate-300">
-                        Options
+                        Options (select the correct one)
                       </h4>
                       {q.options.map((opt, oIndex) => (
-                        <div key={oIndex} className="flex items-center gap-2">
+                        <div key={oIndex} className="flex items-center gap-3">
                           <input
                             type="radio"
                             name={`correct-answer-${qIndex}`}
@@ -383,13 +371,14 @@ export default function TrainingEditDetails() {
                             onChange={() =>
                               handleCorrectAnswerChange(qIndex, opt)
                             }
-                            className="h-4 w-4 text-[#FE4982] focus:ring-[#E03A6D]"
+                            className="h-5 w-5 text-[#FE4982] focus:ring-[#E03A6D] flex-shrink-0"
                           />
                           <input
                             value={opt}
                             onChange={(e) =>
                               handleOptionChange(e, qIndex, oIndex)
                             }
+                            placeholder={`Option ${oIndex + 1}`}
                             className="flex-grow p-2 bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-200 rounded-md focus:outline-none focus:ring-1 focus:ring-[#FE4982]"
                           />
                           {q.options.length > 2 && (
@@ -406,7 +395,7 @@ export default function TrainingEditDetails() {
                       <button
                         type="button"
                         onClick={() => addOption(qIndex)}
-                        className="text-sm font-semibold text-[#FE4982] hover:text-[#E03A6D] flex items-center gap-1"
+                        className="text-sm font-semibold text-[#FE4982] hover:text-[#E03A6D] flex items-center gap-1 pt-2"
                       >
                         <PlusIcon size={16} />
                         Add Option
@@ -433,22 +422,18 @@ export default function TrainingEditDetails() {
                 {caregivers?.map((c) => (
                   <label
                     key={c._id}
-                    htmlFor={`caregiver-${c._id}`}
-                    className={`flex items-center p-3 rounded-lg border cursor-pointer transition-all ${
-                      form.assignedTo.map((id) => id._id).includes(c._id)
-                        ? "bg-pink-100 dark:bg-pink-900/40 border-pink-600 ring-2 ring-pink-500"
-                        : "bg-slate-100 dark:bg-slate-700 border-slate-600 hover:bg-slate-200 dark:hover:bg-slate-600"
+                    className={`flex items-center p-3 rounded-lg border-2 cursor-pointer transition-all ${
+                      form.assignedTo.some((a) => a._id === c._id)
+                        ? "bg-pink-50 dark:bg-pink-900/40 border-pink-500"
+                        : "bg-slate-50 dark:bg-slate-700/50 border-slate-200 dark:border-slate-700 hover:border-pink-400"
                     }`}
                   >
                     <input
                       type="checkbox"
-                      id={`caregiver-${c._id}`}
                       value={c._id}
-                      checked={form.assignedTo
-                        .map((id) => id._id)
-                        .includes(c._id)}
+                      checked={form.assignedTo.some((a) => a._id === c._id)}
                       onChange={handleAssigneeChange}
-                      className="h-4 w-4 rounded text-[#FE4982] focus:ring-[#E03A6D]"
+                      className="h-4 w-4 rounded text-[#FE4982] focus:ring-pink-500 bg-transparent"
                     />
                     <span className="ml-3 font-medium text-slate-700 dark:text-slate-200">
                       {c.name}
@@ -469,20 +454,20 @@ export default function TrainingEditDetails() {
                   {success}
                 </p>
               )}
-              <div className="flex justify-end gap-4">
+              <div className="flex flex-col-reverse sm:flex-row justify-end gap-4">
                 <button
                   type="button"
                   onClick={() => navigate(`/trainings`)}
-                  className="bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold py-2 px-6 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600"
+                  className="w-full sm:w-auto flex justify-center items-center bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold py-2.5 px-6 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  disabled={loading}
-                  className="bg-[#FE4982] text-white font-bold py-2 px-6 rounded-lg flex items-center justify-center gap-2 hover:bg-[#E03A6D] disabled:bg-opacity-60"
+                  disabled={submitting}
+                  className="w-full sm:w-auto bg-[#FE4982] text-white font-bold py-2.5 px-6 rounded-lg flex items-center justify-center gap-2 hover:bg-[#E03A6D] disabled:bg-opacity-60"
                 >
-                  {loading ? (
+                  {submitting ? (
                     "Saving..."
                   ) : (
                     <>

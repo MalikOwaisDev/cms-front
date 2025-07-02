@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, Link, NavLink, useSearchParams } from "react-router-dom";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { getPatients } from "../services/patient";
@@ -34,7 +34,9 @@ export default function CarePlanForm() {
 
   useEffect(() => {
     if (!token) navigate("/login");
-    getPatients(token).then((res) => setPatients(res.data));
+    getPatients(token)
+      .then((res) => setPatients(res.data))
+      .catch(() => setError("Could not load patients."));
   }, [token, navigate]);
 
   const handleFormChange = (e) =>
@@ -65,16 +67,9 @@ export default function CarePlanForm() {
     try {
       await createCarePlan(form, token);
       setSuccess("Care plan created successfully!");
-      setForm({
-        patient: "",
-        title: "",
-        description: "",
-        goals: [{ goal: "", status: "pending" }],
-      });
       setTimeout(() => {
-        setSuccess("");
-        navigate("/wellness/plans");
-      }, 1000);
+        navigate(`/patients/${form.patient}/wellness`);
+      }, 1500);
     } catch (err) {
       setError("Failed to create care plan. Please try again.");
     } finally {
@@ -83,7 +78,7 @@ export default function CarePlanForm() {
   };
 
   const handleGoBack = () => {
-    if (window.history.state && window.history.length > 1) {
+    if (window.history.state && window.history.length > 2) {
       navigate(-1);
     } else {
       navigate("/wellness/plans");
@@ -91,22 +86,23 @@ export default function CarePlanForm() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-900 transition-colors duration-300 font-sans">
+    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-900 font-sans">
       <Header />
 
       <main className="flex-grow container mx-auto p-4 sm:p-6 lg:p-8">
         <div className="max-w-3xl mx-auto">
-          <div className="flex items-center">
+          {/* --- RESPONSIVE Header --- */}
+          <div className="flex items-start gap-4 mb-8">
             <button
               onClick={handleGoBack}
-              className="mr-4 p-2 -mt-6 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700"
+              className="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 flex-shrink-0"
             >
               <span className="text-slate-600 dark:text-slate-300">
                 <BackIcon />
               </span>
             </button>
-            <div className="mb-8">
-              <h1 className="text-3xl font-bold text-slate-800 dark:text-slate-100">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-slate-800 dark:text-slate-100">
                 Create New Care Plan
               </h1>
               <p className="text-slate-500 dark:text-slate-400 mt-1">
@@ -132,6 +128,7 @@ export default function CarePlanForm() {
                     Patient
                   </label>
                   <div className="relative">
+                    {/* RESPONSIVE: Centered Icon */}
                     <span className="absolute top-[70%] left-3 -translate-y-1/2 text-slate-400">
                       <UserIcon />
                     </span>
@@ -140,7 +137,7 @@ export default function CarePlanForm() {
                       name="patient"
                       value={form.patient}
                       onChange={handleFormChange}
-                      className="w-full pl-10 pr-4 py-3 appearance-none bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-slate-200 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
+                      className="w-full pl-10 pr-10 py-3 appearance-none bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
                     >
                       <option value="" disabled>
                         Select a patient
@@ -151,9 +148,9 @@ export default function CarePlanForm() {
                         </option>
                       ))}
                     </select>
-                    <div className="pointer-events-none absolute inset-y-0  right-2 flex items-center text-slate-400">
+                    <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-slate-400">
                       <svg
-                        className="w-4 h-4"
+                        className="w-5 h-5"
                         fill="none"
                         stroke="currentColor"
                         strokeWidth="2"
@@ -185,7 +182,7 @@ export default function CarePlanForm() {
                       value={form.title}
                       onChange={handleFormChange}
                       placeholder="e.g., Post-Surgery Recovery"
-                      className="w-full pl-10 pr-4 py-3 bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-slate-200 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
+                      className="w-full pl-10 pr-4 py-3 bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
                     />
                   </div>
                 </div>
@@ -195,7 +192,7 @@ export default function CarePlanForm() {
                   htmlFor="description"
                   className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                 >
-                  Description
+                  Description (Optional)
                 </label>
                 <div className="relative">
                   <span className="absolute top-4 left-3 text-slate-400">
@@ -208,7 +205,7 @@ export default function CarePlanForm() {
                     onChange={handleFormChange}
                     rows="4"
                     placeholder="Briefly describe the purpose and scope of this care plan."
-                    className="w-full pl-10 pr-4 py-3 bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-slate-200 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
+                    className="w-full pl-10 pr-4 py-3 bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
                   ></textarea>
                 </div>
               </div>
@@ -229,14 +226,14 @@ export default function CarePlanForm() {
                         value={g.goal}
                         onChange={(e) => handleGoalChange(idx, e.target.value)}
                         placeholder={`Goal #${idx + 1}`}
-                        className="w-full pl-10 pr-4 py-3 bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-slate-200 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
+                        className="w-full pl-10 pr-4 py-3 bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
                       />
                     </div>
                     {form.goals.length > 1 && (
                       <button
                         type="button"
                         onClick={() => removeGoal(idx)}
-                        className="text-red-500 hover:text-red-700 p-3 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/20 transition-colors"
+                        className="text-red-500 hover:text-red-700 p-3 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors flex-shrink-0"
                       >
                         <TrashIcon />
                       </button>
@@ -246,7 +243,7 @@ export default function CarePlanForm() {
                 <button
                   type="button"
                   onClick={addGoal}
-                  className="flex items-center gap-2 text-[#1D2056] dark:text-slate-200 font-semibold py-2 px-4 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+                  className="flex items-center gap-2 text-[#1D2056] dark:text-slate-200 font-semibold py-2 px-3 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
                 >
                   <PlusIcon /> Add Another Goal
                 </button>
@@ -264,18 +261,20 @@ export default function CarePlanForm() {
                   {success}
                 </p>
               )}
-              <div className="flex justify-end gap-4">
+
+              {/* --- RESPONSIVE Action Buttons --- */}
+              <div className="flex flex-col-reverse sm:flex-row justify-end gap-4">
                 <button
                   type="button"
-                  onClick={() => navigate(-1)}
-                  className="bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold py-2 px-6 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600 transition-all"
+                  onClick={handleGoBack}
+                  className="w-full sm:w-auto flex justify-center items-center bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold py-2.5 px-6 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full sm:w-auto bg-[#FE4982] text-white font-bold py-2 px-6 rounded-lg flex items-center justify-center gap-2 hover:bg-[#E03A6D] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-50 dark:ring-offset-slate-900 focus:ring-[#FE4982] transition-all disabled:bg-opacity-60"
+                  className="w-full sm:w-auto bg-[#FE4982] text-white font-bold py-2.5 px-6 rounded-lg flex items-center justify-center gap-2 hover:bg-[#E03A6D] disabled:bg-opacity-60"
                 >
                   {loading ? (
                     "Saving..."

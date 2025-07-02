@@ -131,7 +131,8 @@ export default function PatientEditPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const { data: user } = useUser(); // Using the custom hook to fetch user data
+  const { userQuery } = useUser();
+  const { data: user } = userQuery;
   const [isModalOpen, setIsModalOpen] = useState(false); // State for modal
   const token = localStorage.getItem("token");
   const modalRef = useRef(null); // Ref for modal element
@@ -278,7 +279,8 @@ export default function PatientEditPage() {
       <Header />
       <main className="flex-grow container mx-auto p-4 sm:p-6 lg:p-8">
         <div className="max-w-4xl mx-auto">
-          <div className="flex justify-between items-center mb-8">
+          {/* RESPONSIVE: Header now stacks on mobile for better visibility */}
+          <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-8">
             <div className="flex items-center">
               <button
                 onClick={handleGoBack}
@@ -289,7 +291,8 @@ export default function PatientEditPage() {
                 </span>
               </button>
               <div>
-                <h1 className="text-3xl font-bold text-slate-800 dark:text-slate-100">
+                {/* RESPONSIVE: Title font size adjusts for smaller screens */}
+                <h1 className="text-2xl sm:text-3xl font-bold text-slate-800 dark:text-slate-100">
                   Edit Patient Profile
                 </h1>
                 <p className="text-slate-500 dark:text-slate-400 mt-1">
@@ -301,7 +304,7 @@ export default function PatientEditPage() {
               <button
                 onClick={() => setIsModalOpen(true)} // Open modal on click
                 disabled={loading}
-                className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg flex items-center gap-2 disabled:bg-opacity-60"
+                className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center sm:justify-start gap-2 disabled:bg-opacity-60"
               >
                 <TrashIcon />
                 Delete
@@ -312,8 +315,10 @@ export default function PatientEditPage() {
             onSubmit={handleSubmit}
             className="bg-white dark:bg-slate-800 p-6 sm:p-8 rounded-xl shadow-sm space-y-8"
           >
-            <div className="flex items-center gap-6">
-              <span className=" flex items-center justify-center w-32 h-32 text-5xl font-bold text-white capitalize rounded-full object-cover border-4 border-white dark:border-slate-700 bg-[#E5447D] shadow-md ">
+            {/* RESPONSIVE: Avatar container centers avatar on mobile */}
+            <div className="flex flex-col sm:flex-row items-center gap-6">
+              {/* RESPONSIVE: Avatar size and font are adjusted for mobile */}
+              <span className=" flex items-center justify-center w-24 h-24 sm:w-32 sm:h-32 text-4xl sm:text-5xl font-bold text-white capitalize rounded-full object-cover border-4 border-white dark:border-slate-700 bg-[#E5447D] shadow-md ">
                 {formData.name ? formData.name.charAt(0).toUpperCase() : "M"}
               </span>
             </div>
@@ -322,28 +327,26 @@ export default function PatientEditPage() {
               <legend className="text-lg font-semibold text-[#1D2056] dark:text-slate-200 border-b border-slate-200 dark:border-slate-700 pb-2 mb-4">
                 Personal & Contact
               </legend>
+              {/* NOTE: The grid system below is already responsive and works well. */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <div>
                   <label
                     htmlFor="name"
                     className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                   >
-                    {" "}
-                    Full Name{" "}
+                    Full Name
                   </label>
                   <div className="relative">
-                    {" "}
                     <span className="absolute top-[70%] left-3 -translate-y-1/2 text-slate-400">
-                      {" "}
-                      <UserIcon />{" "}
-                    </span>{" "}
+                      <UserIcon />
+                    </span>
                     <input
                       id="name"
                       name="name"
                       value={formData.name}
                       onChange={handleChange}
                       className="w-full pl-10 pr-4 py-3 text-slate-800 dark:text-slate-200 bg-slate-100 dark:bg-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
-                    />{" "}
+                    />
                   </div>
                 </div>
                 <div>
@@ -351,15 +354,12 @@ export default function PatientEditPage() {
                     htmlFor="age"
                     className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                   >
-                    {" "}
-                    Age{" "}
+                    Age
                   </label>
                   <div className="relative">
-                    {" "}
                     <span className="absolute top-[70%] left-3 -translate-y-1/2 text-slate-400">
-                      {" "}
-                      <HashIcon />{" "}
-                    </span>{" "}
+                      <HashIcon />
+                    </span>
                     <input
                       id="age"
                       name="age"
@@ -367,7 +367,7 @@ export default function PatientEditPage() {
                       value={formData.age}
                       onChange={handleChange}
                       className="w-full pl-10 pr-4 py-3 text-slate-800 dark:text-slate-200 bg-slate-100 dark:bg-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
-                    />{" "}
+                    />
                   </div>
                 </div>
                 <div>
@@ -375,39 +375,35 @@ export default function PatientEditPage() {
                     htmlFor="gender"
                     className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                   >
-                    {" "}
-                    Gender{" "}
+                    Gender
                   </label>
                   <div className="relative">
-                    {" "}
                     <select
                       id="gender"
                       name="gender"
                       value={formData.gender}
                       onChange={handleChange}
-                      className="w-full p-3 appearance-none bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
+                      className="w-full pl-4 pr-10 py-3 appearance-none bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
                     >
-                      {" "}
-                      <option>Male</option> <option>Female</option>{" "}
-                      <option>Other</option>{" "}
-                    </select>{" "}
-                    <div className="pointer-events-none absolute inset-y-0 top-1 right-3 flex items-center text-slate-400">
-                      {" "}
+                      <option>Male</option>
+                      <option>Female</option>
+                      <option>Other</option>
+                    </select>
+                    <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-slate-400">
                       <svg
-                        className="w-4 h-4"
+                        className="w-5 h-5"
                         fill="none"
                         stroke="currentColor"
                         strokeWidth="2"
                         viewBox="0 0 24 24"
                       >
-                        {" "}
                         <path
                           strokeLinecap="round"
                           strokeLinejoin="round"
                           d="M19 9l-7 7-7-7"
-                        />{" "}
-                      </svg>{" "}
-                    </div>{" "}
+                        />
+                      </svg>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -417,15 +413,12 @@ export default function PatientEditPage() {
                     htmlFor="phone"
                     className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                   >
-                    {" "}
-                    Phone{" "}
+                    Phone
                   </label>
                   <div className="relative">
-                    {" "}
                     <span className="absolute top-[70%] left-3 -translate-y-1/2 text-slate-400">
-                      {" "}
-                      <PhoneIcon />{" "}
-                    </span>{" "}
+                      <PhoneIcon />
+                    </span>
                     <input
                       id="phone"
                       name="phone"
@@ -433,7 +426,7 @@ export default function PatientEditPage() {
                       value={formData.phone}
                       onChange={handleChange}
                       className="w-full pl-10 pr-4 py-3 text-slate-800 dark:text-slate-200 bg-slate-100 dark:bg-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
-                    />{" "}
+                    />
                   </div>
                 </div>
                 <div>
@@ -441,15 +434,12 @@ export default function PatientEditPage() {
                     htmlFor="email"
                     className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                   >
-                    {" "}
-                    Email{" "}
+                    Email
                   </label>
                   <div className="relative">
-                    {" "}
                     <span className="absolute top-[70%] left-3 -translate-y-1/2 text-slate-400">
-                      {" "}
-                      <MailIcon />{" "}
-                    </span>{" "}
+                      <MailIcon />
+                    </span>
                     <input
                       id="email"
                       name="email"
@@ -457,7 +447,7 @@ export default function PatientEditPage() {
                       value={formData.email}
                       onChange={handleChange}
                       className="w-full pl-10 pr-4 py-3 text-slate-800 dark:text-slate-200 bg-slate-100 dark:bg-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
-                    />{" "}
+                    />
                   </div>
                 </div>
               </div>
@@ -465,146 +455,125 @@ export default function PatientEditPage() {
 
             <fieldset className="space-y-6">
               <legend className="text-lg font-semibold text-[#1D2056] dark:text-slate-200 border-b border-slate-200 dark:border-slate-700 pb-2 mb-4">
-                {" "}
-                Address{" "}
+                Address
               </legend>
               <div>
-                {" "}
                 <label
                   htmlFor="street"
                   className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                 >
-                  {" "}
-                  Street Address{" "}
-                </label>{" "}
+                  Street Address
+                </label>
                 <div className="relative">
-                  {" "}
                   <span className="absolute top-[70%] left-3 -translate-y-1/2 text-slate-400">
-                    {" "}
-                    <MapPinIcon />{" "}
-                  </span>{" "}
+                    <MapPinIcon />
+                  </span>
                   <input
                     id="street"
                     name="street"
                     value={formData?.address?.street}
                     onChange={handleAddressChange}
                     className="w-full pl-10 pr-4 py-3 text-slate-800 dark:text-slate-200 bg-slate-100 dark:bg-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
-                  />{" "}
-                </div>{" "}
+                  />
+                </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <div>
-                  {" "}
                   <label
                     htmlFor="city"
                     className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                   >
-                    {" "}
-                    City{" "}
-                  </label>{" "}
+                    City
+                  </label>
                   <input
                     id="city"
                     name="city"
                     value={formData?.address?.city}
                     onChange={handleAddressChange}
                     className="w-full px-4 py-3 bg-slate-100 text-slate-800 dark:text-slate-200 dark:bg-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
-                  />{" "}
+                  />
                 </div>
                 <div>
-                  {" "}
                   <label
                     htmlFor="state"
                     className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                   >
-                    {" "}
-                    State / Province{" "}
-                  </label>{" "}
+                    State / Province
+                  </label>
                   <input
                     id="state"
                     name="state"
                     value={formData?.address?.state}
                     onChange={handleAddressChange}
                     className="w-full px-4 py-3 bg-slate-100 text-slate-800 dark:text-slate-200 dark:bg-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
-                  />{" "}
+                  />
                 </div>
                 <div>
-                  {" "}
                   <label
                     htmlFor="postalCode"
                     className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                   >
-                    {" "}
-                    Postal Code{" "}
-                  </label>{" "}
+                    Postal Code
+                  </label>
                   <input
                     id="postalCode"
                     name="postalCode"
                     value={formData?.address?.postalCode}
                     onChange={handleAddressChange}
                     className="w-full px-4 py-3 bg-slate-100 text-slate-800 dark:text-slate-200 dark:bg-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
-                  />{" "}
+                  />
                 </div>
                 <div>
-                  {" "}
                   <label
                     htmlFor="country"
                     className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                   >
-                    {" "}
-                    Country{" "}
-                  </label>{" "}
+                    Country
+                  </label>
                   <input
                     id="country"
                     name="country"
                     value={formData?.address?.country}
                     onChange={handleAddressChange}
                     className="w-full px-4 py-3 bg-slate-100 text-slate-800 dark:text-slate-200 dark:bg-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
-                  />{" "}
+                  />
                 </div>
               </div>
             </fieldset>
 
             <fieldset className="space-y-6">
               <legend className="text-lg font-semibold text-[#1D2056] dark:text-slate-200 border-b border-slate-200 dark:border-slate-700 pb-2 mb-4">
-                {" "}
-                Medical & Admin{" "}
+                Medical & Admin
               </legend>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  {" "}
                   <label
                     htmlFor="diagnosis"
                     className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                   >
-                    {" "}
-                    Primary Diagnosis{" "}
-                  </label>{" "}
+                    Primary Diagnosis
+                  </label>
                   <div className="relative">
-                    {" "}
                     <span className="absolute top-[70%] left-3 -translate-y-1/2 text-slate-400">
-                      {" "}
-                      <ActivityIcon />{" "}
-                    </span>{" "}
+                      <ActivityIcon />
+                    </span>
                     <input
                       id="diagnosis"
                       name="diagnosis"
                       value={formData.diagnosis}
                       onChange={handleChange}
                       className="w-full pl-10 pr-4 py-3 text-slate-800 dark:text-slate-200 bg-slate-100 dark:bg-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
-                    />{" "}
-                  </div>{" "}
+                    />
+                  </div>
                 </div>
                 <div>
-                  {" "}
                   <label
                     htmlFor="assignedCaregiver"
                     className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                   >
-                    {" "}
-                    Assigned Caregiver{" "}
-                  </label>{" "}
+                    Assigned Caregiver
+                  </label>
                   <div className="relative">
-                    {" "}
                     <select
                       id="assignedCaregiver"
                       name="assignedCaregiver"
@@ -612,47 +581,40 @@ export default function PatientEditPage() {
                       onChange={handleChange}
                       className="w-full p-3 bg-slate-100 text-slate-800 dark:text-slate-200 dark:bg-slate-700 rounded-lg appearance-none focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
                     >
-                      {" "}
                       <option value="" disabled>
-                        {" "}
-                        Select a caregiver{" "}
-                      </option>{" "}
+                        Select a caregiver
+                      </option>
                       {caregivers.map((c) => (
                         <option key={c._id} value={c._id}>
-                          {" "}
-                          {c.name}{" "}
+                          {c.name}
                         </option>
-                      ))}{" "}
-                    </select>{" "}
-                    <div className="pointer-events-none absolute inset-y-0 top-1 right-3 flex items-center text-slate-400">
-                      {" "}
+                      ))}
+                    </select>
+                    <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-slate-400">
                       <svg
-                        className="w-4 h-4"
+                        className="w-5 h-5"
                         fill="none"
                         stroke="currentColor"
                         strokeWidth="2"
                         viewBox="0 0 24 24"
                       >
-                        {" "}
                         <path
                           strokeLinecap="round"
                           strokeLinejoin="round"
                           d="M19 9l-7 7-7-7"
-                        />{" "}
-                      </svg>{" "}
-                    </div>{" "}
-                  </div>{" "}
+                        />
+                      </svg>
+                    </div>
+                  </div>
                 </div>
               </div>
               <div>
-                {" "}
                 <label
                   htmlFor="notes"
                   className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                 >
-                  {" "}
-                  Additional Notes{" "}
-                </label>{" "}
+                  Additional Notes
+                </label>
                 <textarea
                   id="notes"
                   name="notes"
@@ -661,46 +623,42 @@ export default function PatientEditPage() {
                   rows="4"
                   placeholder="Any relevant notes about the patient's condition or preferences."
                   className="w-full px-4 py-3 bg-slate-100 text-slate-800 dark:text-slate-200 dark:bg-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
-                ></textarea>{" "}
+                ></textarea>
               </div>
             </fieldset>
 
             <div className="pt-6 border-t border-slate-200 dark:border-slate-700 space-y-4">
               {error && (
                 <p className="text-red-500 dark:text-red-400 text-sm text-center">
-                  {" "}
-                  {error}{" "}
+                  {error}
                 </p>
               )}
               {success && (
                 <p className="text-green-600 dark:text-green-400 text-sm text-center">
-                  {" "}
-                  {success}{" "}
+                  {success}
                 </p>
               )}
-              <div className="flex justify-end gap-4">
+              {/* RESPONSIVE: Button container stacks on mobile. col-reverse is for better UX on mobile. */}
+              <div className="flex flex-col-reverse sm:flex-row justify-end gap-4">
                 <button
                   type="button"
                   onClick={() => navigate(`/patients/${id}`)}
-                  className="bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold py-2 px-6 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600"
+                  className="w-full sm:w-auto justify-center bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold py-3 px-6 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600"
                 >
-                  {" "}
-                  Cancel{" "}
+                  Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full sm:w-auto bg-[#FE4982] text-white font-bold py-2 sm:px-6 px-2 rounded-lg flex items-center justify-center gap-2 hover:bg-[#E03A6D] disabled:bg-opacity-60"
+                  className="w-full sm:w-auto bg-[#FE4982] text-white font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2 hover:bg-[#E03A6D] disabled:bg-opacity-60"
                 >
-                  {" "}
                   {loading && !success ? (
                     "Saving..."
                   ) : (
                     <>
-                      {" "}
-                      <SaveIcon /> Save Changes{" "}
+                      <SaveIcon /> Save Changes
                     </>
-                  )}{" "}
+                  )}
                 </button>
               </div>
             </div>

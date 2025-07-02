@@ -31,6 +31,11 @@ export const markTrainingComplete = (recordId, token) =>
     }
   );
 
+export const getHistory = (token) =>
+  axios.get(`${API}/history`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
 export const deleteTraining = (id, token) =>
   axios.delete(`${API}/${id}`, {
     headers: { Authorization: `Bearer ${token}` },

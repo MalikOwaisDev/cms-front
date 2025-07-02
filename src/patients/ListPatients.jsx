@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useNavigate, Link, NavLink } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { getPatients, deletePatient } from "../services/patient";
@@ -26,7 +26,7 @@ const ConfirmationModal = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-60 z-50 flex justify-center items-center font-sans">
+    <div className="fixed inset-0 bg-black bg-opacity-60 z-50 flex justify-center items-center p-4 font-sans">
       <div
         ref={modalRef}
         className="modal bg-white dark:bg-slate-800 rounded-xl shadow-2xl p-6 w-full max-w-md m-4 transform transition-all animate-in zoom-in-95 fade-in-0"
@@ -52,16 +52,14 @@ const ConfirmationModal = ({
             onClick={onClose}
             className="bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold py-2 px-5 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600 transition-all duration-200"
           >
-            {" "}
-            Cancel{" "}
+            Cancel
           </button>
           <button
             type="button"
             onClick={onConfirm}
             className="bg-red-600 text-white font-bold py-2 px-5 rounded-lg hover:bg-red-700 transition-all duration-200 shadow-sm hover:shadow-md"
           >
-            {" "}
-            Delete{" "}
+            Delete
           </button>
         </div>
       </div>
@@ -69,21 +67,27 @@ const ConfirmationModal = ({
   );
 };
 
-// --- Loading Skeleton for Patient Table ---
+// --- Loading Skeleton for Patient List ---
 const TableSkeleton = () => (
   <div className="space-y-4 animate-pulse">
     {[...Array(5)].map((_, i) => (
       <div
         key={i}
-        className="h-20 bg-white dark:bg-slate-800/50 rounded-2xl p-4 flex items-center justify-between space-x-4"
+        className="h-auto sm:h-20 bg-white dark:bg-slate-800/50 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center gap-4"
       >
-        <div className="h-12 w-12 bg-slate-200 dark:bg-slate-700 rounded-full"></div>
-        <div className="flex-1 space-y-3">
+        <div className="flex items-center gap-4 w-full sm:w-auto">
+          <div className="h-12 w-12 bg-slate-200 dark:bg-slate-700 rounded-full"></div>
+          <div className="flex-1 space-y-3 sm:hidden">
+            <div className="h-5 bg-slate-200 dark:bg-slate-700 rounded-md w-3/4"></div>
+            <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded-md w-1/2"></div>
+          </div>
+        </div>
+        <div className="hidden sm:block flex-1 space-y-3">
           <div className="h-5 bg-slate-200 dark:bg-slate-700 rounded-md w-3/4"></div>
           <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded-md w-1/2"></div>
         </div>
-        <div className="w-1/4 h-5 bg-slate-200 dark:bg-slate-700 rounded-md"></div>
-        <div className="w-8 h-8 bg-slate-200 dark:bg-slate-700 rounded-full"></div>
+        <div className="w-1/4 h-5 bg-slate-200 dark:bg-slate-700 rounded-md hidden sm:block"></div>
+        <div className="w-8 h-8 bg-slate-200 dark:bg-slate-700 rounded-full self-end sm:self-auto"></div>
       </div>
     ))}
   </div>
@@ -95,7 +99,8 @@ export default function ListPatients() {
   const modalRef = useRef(null);
   const [patients, setPatients] = useState([]);
   const [loading, setLoading] = useState(true);
-  const { data: user } = useUser(); // Using the custom hook to fetch user data
+  const { userQuery } = useUser();
+  const { data: user } = userQuery;
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -124,11 +129,8 @@ export default function ListPatients() {
         setIsModalOpen(false);
       }
     };
-
     document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isModalOpen]);
 
   useEffect(() => {
@@ -171,7 +173,6 @@ export default function ListPatients() {
       const updatedPatients = patients.filter((p) => p._id !== patientToDelete);
       setPatients(updatedPatients);
 
-      // After deleting, check if the current page is now empty and adjust
       const newTotalPages = Math.ceil(updatedPatients.length / itemsPerPage);
       if (currentPage > newTotalPages) {
         setCurrentPage(newTotalPages || 1);
@@ -201,7 +202,7 @@ export default function ListPatients() {
     const color = colors[name.charCodeAt(0) % colors.length];
     return (
       <div
-        className={`w-11 h-11 rounded-full flex items-center justify-center font-bold text-lg ${color}`}
+        className={`w-11 h-11 rounded-full flex-shrink-0 flex items-center justify-center font-bold text-lg ${color}`}
       >
         {name ? name.charAt(0).toUpperCase() : "?"}
       </div>
@@ -212,7 +213,6 @@ export default function ListPatients() {
   const totalPages = Math.ceil(patients.length / itemsPerPage);
   const indexOfLastPatient = currentPage * itemsPerPage;
   const indexOfFirstPatient = indexOfLastPatient - itemsPerPage;
-  // This slice correctly creates a new array with only the items for the current page
   const currentPatients = patients.slice(
     indexOfFirstPatient,
     indexOfLastPatient
@@ -246,11 +246,10 @@ export default function ListPatients() {
           </button>
           <div className="flex-grow flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-slate-800 dark:text-slate-100">
+              <h1 className="text-2xl sm:text-3xl font-bold text-slate-800 dark:text-slate-100">
                 Patients
               </h1>
-              <p className="text-slate-500 dark:text-slate-400 mt-2 text-lg">
-                {" "}
+              <p className="text-slate-500 dark:text-slate-400 mt-1 sm:mt-2 text-base sm:text-lg">
                 {user && user.role === "admin"
                   ? "A comprehensive list of all registered patients."
                   : "View Your Parents"}
@@ -259,7 +258,7 @@ export default function ListPatients() {
             {user && user.role === "admin" && (
               <Link
                 to="/patients/new"
-                className="w-full sm:w-auto flex items-center justify-center gap-2 bg-[#FE4982] text-white font-bold py-2 px-4 rounded-lg hover:bg-[#E03A6D] transition-all"
+                className="w-full sm:w-auto flex items-center justify-center gap-2 bg-[#FE4982] text-white font-bold py-2.5 px-5 rounded-lg hover:bg-[#E03A6D] transition-all"
               >
                 <PlusIcon /> Add New Patient
               </Link>
@@ -286,38 +285,39 @@ export default function ListPatients() {
           ) : patients.length > 0 ? (
             <div>
               {/* --- Table Headers --- */}
-              <div className="hidden sm:grid grid-cols-12 items-center gap-x-6 px-6 py-4 border-b border-slate-200 dark:border-slate-700">
-                <div className="col-span-4 font-semibold text-sm text-slate-600 dark:text-slate-300">
+              <div className="hidden sm:grid grid-cols-[minmax(0,_3fr)_minmax(0,_2fr)_minmax(0,_1fr)_minmax(0,_2fr)_auto] items-center gap-x-6 px-6 py-4 border-b border-slate-200 dark:border-slate-700">
+                <div className="font-semibold text-sm text-slate-600 dark:text-slate-300">
                   Patient
                 </div>
-                <div className="col-span-3 font-semibold text-sm text-slate-600 dark:text-slate-300">
+                <div className="font-semibold text-sm text-slate-600 dark:text-slate-300">
                   Diagnosis
                 </div>
-                <div className="col-span-2 font-semibold text-sm text-slate-600 dark:text-slate-300">
+                <div className="font-semibold text-sm text-slate-600 dark:text-slate-300">
                   Age
                 </div>
-                <div className="col-span-3 font-semibold text-sm text-slate-600 dark:text-slate-300">
+                <div className="font-semibold text-sm text-slate-600 dark:text-slate-300">
                   Last Visit
+                </div>
+                <div className="font-semibold text-sm text-slate-600 dark:text-slate-300 text-right">
+                  Actions
                 </div>
               </div>
 
               <div className="divide-y divide-slate-200 dark:divide-slate-700">
-                {/* The .map function now correctly iterates over `currentPatients`, not the full `patients` array */}
                 {currentPatients.map((p) => (
                   <div
                     key={p._id}
-                    className="grid grid-cols-12 items-center gap-x-6 px-6 py-4 group hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors duration-200"
+                    className="grid grid-cols-1 sm:grid-cols-[minmax(0,_3fr)_minmax(0,_2fr)_minmax(0,_1fr)_minmax(0,_2fr)_auto] items-center gap-x-6 px-4 sm:px-6 py-4 group hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors duration-200"
                   >
-                    {/* --- Patient Name and Avatar (Mobile and Desktop) --- */}
-                    <div className="col-span-12 sm:col-span-4 flex items-center gap-4">
+                    {/* --- Patient Name and Avatar --- */}
+                    <div className="flex items-center gap-4">
                       <Avatar name={p.name} />
                       <div className="flex-grow">
                         <Link
                           to={`/patients/${p.pID}`}
                           className="font-bold text-md text-slate-800 dark:text-slate-100 hover:text-[#FE4982] dark:hover:text-[#FE4982] transition-colors"
                         >
-                          {" "}
-                          {p.name}{" "}
+                          {p.name}
                         </Link>
                         {/* Diagnosis shown under name on mobile */}
                         <div className="text-sm text-slate-500 dark:text-slate-400 sm:hidden mt-1">
@@ -327,13 +327,13 @@ export default function ListPatients() {
                     </div>
 
                     {/* --- Other details (Desktop only) --- */}
-                    <div className="hidden sm:block col-span-3 text-slate-600 dark:text-slate-300">
+                    <div className="hidden sm:block text-slate-600 dark:text-slate-300">
                       {p.diagnosis}
                     </div>
-                    <div className="hidden sm:block col-span-2 text-slate-600 dark:text-slate-300">
+                    <div className="hidden sm:block text-slate-600 dark:text-slate-300">
                       {p.age} years
                     </div>
-                    <div className="hidden sm:block col-span-2 text-slate-600 dark:text-slate-300">
+                    <div className="hidden sm:block text-slate-600 dark:text-slate-300">
                       {new Date(p.lastVisit).toLocaleDateString("en-US", {
                         year: "numeric",
                         month: "long",
@@ -342,7 +342,7 @@ export default function ListPatients() {
                     </div>
 
                     {/* --- Action Buttons --- */}
-                    <div className="hidden sm:flex col-span-1 items-center justify-end gap-2 ml-auto sm:opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="hidden sm:flex items-center justify-end gap-2 ml-auto sm:opacity-0 group-hover:opacity-100 transition-opacity">
                       {user.role === "admin" && (
                         <button
                           onClick={() => handleDeleteClick(p._id)}
@@ -362,12 +362,11 @@ export default function ListPatients() {
                     </div>
 
                     {/* Action buttons for mobile view */}
-                    <div className="col-span-12 sm:hidden flex justify-end gap-2 mt-4 pt-4 border-t border-slate-200 dark:border-slate-700">
+                    <div className="sm:hidden flex justify-end gap-2 mt-4 pt-4 border-t border-slate-200 dark:border-slate-700">
                       {user.role === "admin" && (
                         <button
                           onClick={() => handleDeleteClick(p._id)}
-                          className="flex-1 bg-red-50 hover:bg-red-100 text-red-600 font-semibold py-2 px-4 rounded-lg text-sm"
-                          title="Delete Patient"
+                          className="flex-1 bg-red-50 hover:bg-red-100 text-red-600 font-semibold py-2 px-4 rounded-lg text-sm text-center"
                         >
                           Delete
                         </button>
@@ -375,7 +374,6 @@ export default function ListPatients() {
                       <Link
                         to={`/patients/${p.pID}`}
                         className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-2 px-4 rounded-lg text-sm text-center"
-                        title="View Details"
                       >
                         View Details
                       </Link>
@@ -386,7 +384,7 @@ export default function ListPatients() {
 
               {/* --- Pagination Controls --- */}
               {totalPages > 1 && (
-                <div className="flex flex-col sm:flex-row justify-between items-center px-6 py-4 gap-4">
+                <div className="flex flex-col sm:flex-row justify-between items-center px-4 sm:px-6 py-4 gap-4">
                   <div className="text-sm text-slate-600 dark:text-slate-400">
                     Showing{" "}
                     <span className="font-semibold text-slate-800 dark:text-slate-200">
@@ -427,16 +425,13 @@ export default function ListPatients() {
           ) : (
             <div className="text-center py-24">
               <span className="inline-block mx-auto text-slate-400 dark:text-slate-500">
-                {" "}
-                <UserGroupIcon />{" "}
+                <UserGroupIcon />
               </span>
               <h3 className="mt-6 text-2xl font-semibold text-slate-800 dark:text-slate-200">
-                {" "}
-                No Patients Found{" "}
+                No Patients Found
               </h3>
               <p className="mt-2 text-md text-slate-500 dark:text-slate-400">
-                {" "}
-                Get started by adding a new patient to the system.{" "}
+                Get started by adding a new patient to the system.
               </p>
             </div>
           )}

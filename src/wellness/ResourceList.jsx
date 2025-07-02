@@ -25,22 +25,16 @@ const CardSkeleton = () => (
   </div>
 );
 
-// --- Confirmation Dialog Component ---
+// --- RESPONSIVE Confirmation Dialog Component ---
 const ConfirmationDialog = ({ onConfirm, onCancel }) => {
   const dialogRef = useRef(null);
 
-  // Close dialog on escape key press
   useEffect(() => {
-    const handleKeyDown = (event) => {
-      if (event.key === "Escape") {
-        onCancel();
-      }
-    };
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
+    const handleKeyDown = (event) => event.key === "Escape" && onCancel();
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, [onCancel]);
 
-  // Close dialog on click outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dialogRef.current && !dialogRef.current.contains(event.target)) {
@@ -52,7 +46,7 @@ const ConfirmationDialog = ({ onConfirm, onCancel }) => {
   }, [onCancel]);
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4">
       <div
         ref={dialogRef}
         className="bg-white dark:bg-slate-800 rounded-lg shadow-xl p-6 w-full max-w-sm"
@@ -64,16 +58,16 @@ const ConfirmationDialog = ({ onConfirm, onCancel }) => {
           Are you sure you want to delete this resource? This action cannot be
           undone.
         </p>
-        <div className="mt-6 flex justify-end space-x-3">
+        <div className="mt-6 flex flex-col-reverse sm:flex-row justify-end gap-3">
           <button
             onClick={onCancel}
-            className="px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-lg"
+            className="w-full sm:w-auto flex justify-center px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-lg"
           >
             Cancel
           </button>
           <button
             onClick={onConfirm}
-            className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg"
+            className="w-full sm:w-auto flex justify-center px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg"
           >
             Delete
           </button>
@@ -90,7 +84,8 @@ export default function ResourceList() {
   const [loading, setLoading] = useState(true);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [resourceToDelete, setResourceToDelete] = useState(null);
-  const { data: user } = useUser();
+  const { userQuery } = useUser();
+  const { data: user } = userQuery;
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
 
@@ -132,24 +127,19 @@ export default function ResourceList() {
   };
 
   const CategoryBadge = ({ category }) => {
-    // This component is kept as is.
     const categoryStyles = {
       diet: "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300",
-      "Mental Health":
-        "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300",
       mental:
-        "bg-orange-100 text-orange-800 dark:bg-orange-900/40 dark:text-orange-300",
-      "Medical Info":
-        "bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300",
+        "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300",
       exercise:
         "bg-pink-100 text-pink-700 dark:bg-pink-900/40 dark:text-pink-300",
-      default:
+      other:
         "bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300",
     };
     return (
       <span
         className={`px-2.5 py-1 text-xs font-semibold rounded-full capitalize ${
-          categoryStyles[category] || categoryStyles.default
+          categoryStyles[category] || categoryStyles.other
         }`}
       >
         {category}
@@ -158,7 +148,7 @@ export default function ResourceList() {
   };
 
   const handleGoBack = () => {
-    if (window.history.state && window.history.length > 1) {
+    if (window.history.state && window.history.length > 2) {
       navigate(-1);
     } else {
       navigate("/");
@@ -166,39 +156,37 @@ export default function ResourceList() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-900 transition-colors duration-300 font-sans">
+    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-900 font-sans">
       <Header />
-
       <main className="flex-grow container mx-auto p-4 sm:p-6 lg:p-8">
-        {/* ... (Your existing header and page title JSX remains unchanged) */}
-        <div className="flex items-center">
-          <button
-            onClick={handleGoBack}
-            className="mr-4 -mt-6 p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
-          >
-            <span className="text-slate-600 dark:text-slate-300">
-              <BackIcon />
-            </span>
-          </button>
-          <div className="mb-8 flex items-center justify-between w-full">
+        {/* --- RESPONSIVE Page Header --- */}
+        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-8">
+          <div className="flex items-start gap-4">
+            <button
+              onClick={handleGoBack}
+              className="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 flex-shrink-0"
+            >
+              <span className="text-slate-600 dark:text-slate-300">
+                <BackIcon />
+              </span>
+            </button>
             <div>
-              <h1 className="text-3xl font-bold text-slate-800 dark:text-slate-100">
+              <h1 className="text-2xl sm:text-3xl font-bold text-slate-800 dark:text-slate-100">
                 Wellness Resources
               </h1>
               <p className="text-slate-500 dark:text-slate-400 mt-1">
-                A curated library of articles, guides, and materials to support
-                patient well-being.
+                A curated library to support patient well-being.
               </p>
             </div>
-            {user && user.role === "admin" && (
-              <Link
-                to="/wellness/resource/create"
-                className="w-full sm:w-auto flex items-center justify-center gap-2 bg-[#FE4982] text-white font-bold py-2 px-4 rounded-lg hover:bg-[#E03A6D] transition-all"
-              >
-                <PlusIcon /> Create New Resource
-              </Link>
-            )}
           </div>
+          {user?.role === "admin" && (
+            <Link
+              to="/wellness/resource/create"
+              className="w-full sm:w-auto flex items-center justify-center gap-2 bg-[#FE4982] text-white font-bold py-2.5 px-4 rounded-lg hover:bg-[#E03A6D] transition-all flex-shrink-0"
+            >
+              <PlusIcon /> Create New
+            </Link>
+          )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -211,14 +199,13 @@ export default function ResourceList() {
                 className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm flex flex-col justify-between transition-all duration-300 hover:shadow-lg hover:-translate-y-1"
               >
                 <div>
-                  <div className="mb-3 w-full flex justify-between">
-                    <span>
-                      <CategoryBadge category={res.category} />
-                    </span>
-                    {user && user.role === "admin" && (
+                  <div className="mb-3 w-full flex justify-between items-start">
+                    <CategoryBadge category={res.category} />
+                    {user?.role === "admin" && (
                       <button
                         onClick={() => handleDeleteClick(res._id)}
-                        className="p-2 rounded-full text-red-500 hover:bg-red-100 dark:hover:bg-red-900/40"
+                        className="p-1.5 rounded-full text-red-500 hover:bg-red-100 dark:hover:bg-red-900/40"
+                        title="Delete Resource"
                       >
                         <TrashIcon size={18} />
                       </button>
@@ -227,7 +214,7 @@ export default function ResourceList() {
                   <h2 className="text-lg font-bold text-[#1D2056] dark:text-slate-100">
                     {res.title}
                   </h2>
-                  <p className="text-slate-600 dark:text-slate-300 mt-2 text-sm flex-grow">
+                  <p className="text-slate-600 dark:text-slate-300 mt-2 text-sm flex-grow line-clamp-3">
                     {res.description}
                   </p>
                 </div>

@@ -41,7 +41,8 @@ export default function CarePlanList() {
   const [loading, setLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState(null);
   const [showConfirm, setShowConfirm] = useState(false);
-  const { data: user } = useUser();
+  const { userQuery } = useUser();
+  const { data: user } = userQuery;
   const [planToDelete, setPlanToDelete] = useState(null);
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
@@ -157,18 +158,19 @@ export default function CarePlanList() {
     <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-900 transition-colors duration-300 font-sans">
       <Header />
       <main className="flex-grow container mx-auto p-4 sm:p-6 lg:p-8">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-          <div className="flex items-center">
+        {/* --- RESPONSIVE Header --- */}
+        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-8">
+          <div className="flex items-start gap-4">
             <button
               onClick={handleGoBack}
-              className="mr-4 p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700"
+              className="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 flex-shrink-0"
             >
               <span className="text-slate-600 dark:text-slate-300">
                 <BackIcon />
               </span>
             </button>
             <div>
-              <h1 className="text-3xl font-bold text-slate-800 dark:text-slate-100">
+              <h1 className="text-2xl sm:text-3xl font-bold text-slate-800 dark:text-slate-100">
                 Patient Care Plans
               </h1>
               <p className="text-slate-500 dark:text-slate-400 mt-1">
@@ -178,7 +180,7 @@ export default function CarePlanList() {
           </div>
           <Link
             to="/wellness/plans/create"
-            className="w-full sm:w-auto flex items-center justify-center gap-2 bg-[#FE4982] text-white font-bold py-2 px-4 rounded-lg hover:bg-[#E03A6D] transition-all"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 bg-[#FE4982] text-white font-bold py-2.5 px-4 rounded-lg hover:bg-[#E03A6D] transition-all flex-shrink-0"
           >
             <PlusIcon /> Create New Plan
           </Link>
@@ -212,7 +214,7 @@ export default function CarePlanList() {
               onClick={() => handleTabClick("completed")}
               className={`py-2 px-3 font-semibold flex items-center space-x-2 ${
                 activeTab === "completed"
-                  ? "text-[#FE4982] border-b-2 border-[#FE4982]"
+                  ? "text-green-500 border-b-2 border-green-500"
                   : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300"
               }`}
             >
@@ -221,7 +223,7 @@ export default function CarePlanList() {
                 <span
                   className={`px-2 py-0.5 text-xs rounded-full ${
                     activeTab === "completed"
-                      ? "bg-[#FE4982] text-white"
+                      ? "bg-green-500 text-white"
                       : "bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300"
                   }`}
                 >

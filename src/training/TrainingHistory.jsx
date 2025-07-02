@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import { getTrainings } from "../services/training";
+import { getHistory } from "../services/training";
 import { useUser } from "../hooks/useUser";
 import {
   CheckCircleIcon,
@@ -14,22 +14,27 @@ import {
   BackIcon,
 } from "../Icons";
 
-// --- Loading Skeleton ---
+// --- RESPONSIVE Loading Skeleton for the new table layout ---
 const ListSkeleton = () => (
-  <div className="space-y-3 animate-pulse">
+  <div className="space-y-4 animate-pulse">
     {[...Array(5)].map((_, i) => (
       <div
         key={i}
-        className="h-20 bg-white dark:bg-slate-800 rounded-lg p-4 flex items-center justify-between"
+        className="bg-white dark:bg-slate-800 rounded-lg p-4 space-y-3 sm:space-y-0 sm:flex sm:items-center sm:justify-between"
       >
-        <div className="flex items-center space-x-4">
-          <div className="h-8 w-8 bg-slate-200 dark:bg-slate-700 rounded-full"></div>
-          <div className="space-y-2">
-            <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-48"></div>
-            <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded w-32"></div>
-          </div>
+        {/* Mobile skeleton */}
+        <div className="w-full sm:hidden space-y-3">
+          <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-1/2"></div>
+          <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-3/4"></div>
+          <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-1/3"></div>
         </div>
-        <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-24"></div>
+        {/* Desktop skeleton */}
+        <div className="hidden sm:flex items-center space-x-4 w-1/2">
+          <div className="h-8 w-8 bg-slate-200 dark:bg-slate-700 rounded-full"></div>
+          <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-full"></div>
+        </div>
+        <div className="hidden sm:block h-4 bg-slate-200 dark:bg-slate-700 rounded w-1/4"></div>
+        <div className="hidden sm:block h-4 bg-slate-200 dark:bg-slate-700 rounded w-1/4"></div>
       </div>
     ))}
   </div>
@@ -43,7 +48,8 @@ export default function TrainingHistory() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const { data: user } = useUser(); // Use custom hook to fetch user data
+  const { userQuery } = useUser();
+  const { data: user } = userQuery;
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
   const itemsPerPage = 10;
@@ -53,73 +59,66 @@ export default function TrainingHistory() {
       navigate("/login");
       return;
     }
-    if (!user) return;
-    const fetchHistory = async () => {
-      await getTrainings(token)
-        .then((res) => {
-          // Create a flat list of individual completion records (existing logic)
-          const log = [];
-          res.data.forEach((training) => {
-            if (
-              training.status === "completed" &&
-              training.training.assignedTo
-            ) {
-              training.training.assignedTo.forEach((caregiver) => {
-                log.push({
-                  logId: `${training.training._id}-${caregiver._id}`,
-                  title: training.training.title,
-                  caregiverId: caregiver._id, // <-- MODIFIED: Store ID for filtering
-                  caregiverName: caregiver.name,
-                  dateCompleted: training.dateCompleted,
-                });
-              });
-            }
-          });
+    if (!user) return; // Wait for user data to be available
 
-          // Sort by most recent completion date
-          log.sort(
-            (a, b) => new Date(b.dateCompleted) - new Date(a.dateCompleted)
-          );
-          // --- NEW: Role-based filtering ---
-          if (user?.role === "caregiver") {
-            const caregiverLog = log.filter(
-              (item) => item.caregiverId === user?._id
-            );
-            setHistoryLog(caregiverLog);
-            setFilteredLog(caregiverLog);
-          } else {
-            // Admin sees all logs (original behavior)
-            setHistoryLog(log);
-            setFilteredLog(log);
+    const fetchHistory = async () => {
+      try {
+        const res = await getHistory(token);
+        const log = [];
+        res.data.forEach((training) => {
+          if (training.status === "completed" && training.training.assignedTo) {
+            training.training.assignedTo.forEach((caregiver) => {
+              log.push({
+                logId: `${training.training._id}-${caregiver._id}`,
+                title: training.training.title,
+                caregiverId: caregiver._id,
+                caregiverName: caregiver.name,
+                dateCompleted: training.dateCompleted,
+              });
+            });
           }
-        })
-        .catch(console.error)
-        .finally(() => setLoading(false));
+        });
+
+        log.sort(
+          (a, b) => new Date(b.dateCompleted) - new Date(a.dateCompleted)
+        );
+
+        if (user?.role === "caregiver") {
+          const caregiverLog = log.filter(
+            (item) => item.caregiverId === user?._id
+          );
+          setHistoryLog(caregiverLog);
+          setFilteredLog(caregiverLog);
+        } else {
+          setHistoryLog(log);
+          setFilteredLog(log);
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
     };
     fetchHistory();
   }, [token, navigate, user]);
 
   useEffect(() => {
-    // This search logic remains unchanged and works for both roles.
-    // For caregivers, it will search within their already-filtered list.
     const results = historyLog.filter(
       (log) =>
         log.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (user?.role !== "caregiver" && // Only search by name if user is not a caregiver
+        (user?.role !== "caregiver" &&
           log.caregiverName.toLowerCase().includes(searchTerm.toLowerCase()))
     );
     setFilteredLog(results);
-    setCurrentPage(1); // Reset to first page on search
+    setCurrentPage(1);
   }, [searchTerm, historyLog, user]);
 
-  // Pagination logic (unchanged)
   const totalPages = Math.ceil(filteredLog.length / itemsPerPage);
   const currentItems = filteredLog.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
 
-  // --- UI Titles & Placeholders based on Role ---
   const pageTitle =
     user?.role === "caregiver" ? "My Completed Trainings" : "Training History";
   const pageSubtitle =
@@ -132,7 +131,7 @@ export default function TrainingHistory() {
       : "Search by training or caregiver...";
 
   const handleGoBack = () => {
-    if (window.history.state && window.history.length > 1) {
+    if (window.history.state && window.history.length > 2) {
       navigate(-1);
     } else {
       navigate("/trainings");
@@ -143,32 +142,31 @@ export default function TrainingHistory() {
     <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-900 font-sans">
       <Header />
       <main className="flex-grow container mx-auto p-4 sm:p-6 lg:p-8">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-          <div className="flex items-center">
+        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-8">
+          <div className="flex items-start gap-4">
             <button
               onClick={handleGoBack}
-              className="mr-4 p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700"
+              className="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 flex-shrink-0"
             >
               <span className="text-slate-600 dark:text-slate-300">
                 <BackIcon />
               </span>
             </button>
             <div>
-              <h1 className="text-4xl font-extrabold text-slate-800 dark:text-slate-100 tracking-tight">
+              <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-800 dark:text-slate-100 tracking-tight">
                 {pageTitle}
               </h1>
-              <p className="text-slate-500 dark:text-slate-400 mt-2 text-lg">
+              <p className="text-slate-500 dark:text-slate-400 mt-2 text-base sm:text-lg">
                 {pageSubtitle}
               </p>
             </div>
           </div>
-          {/* NEW: Conditionally render "Create" button for admins only */}
           {user?.role === "admin" && (
             <Link
               to="/trainings/new"
-              className="w-full sm:w-auto flex items-center justify-center gap-2 bg-[#FE4982] text-white font-bold py-3 px-6 rounded-xl hover:bg-[#E03A6D] transition-all shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-50 dark:focus:ring-offset-slate-900 focus:ring-[#FE4982]"
+              className="w-full sm:w-auto flex-shrink-0 flex items-center justify-center gap-2 bg-[#FE4982] text-white font-bold py-2.5 px-5 rounded-lg hover:bg-[#E03A6D] transition-all shadow-md hover:shadow-lg"
             >
-              <PlusIcon /> Create New Training
+              <PlusIcon /> Create Training
             </Link>
           )}
         </div>
@@ -188,66 +186,94 @@ export default function TrainingHistory() {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm">
+        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm overflow-x-auto">
           {loading ? (
             <div className="p-4">
               <ListSkeleton />
             </div>
           ) : currentItems.length > 0 ? (
-            <div>
-              {/* NEW: Grid layout adapts based on role */}
-              <div
-                className={`hidden sm:grid ${
-                  user?.role === "admin" ? "grid-cols-12" : "grid-cols-9"
-                } gap-4 px-6 py-4 border-b border-slate-200 dark:border-slate-700`}
-              >
-                <div className="col-span-6 font-semibold text-sm text-slate-600 dark:text-slate-300">
-                  Training Module
-                </div>
-                {/* NEW: Show caregiver column for admins only */}
-                {user?.role === "admin" && (
-                  <div className="col-span-3 font-semibold text-sm text-slate-600 dark:text-slate-300">
-                    Caregiver
-                  </div>
-                )}
-                <div className="col-span-3 font-semibold text-sm text-slate-600 dark:text-slate-300 text-right">
-                  Date Completed
-                </div>
-              </div>
-              <div className="divide-y divide-slate-100 dark:divide-slate-700/50">
-                {currentItems.map((log) => (
-                  <div
-                    key={log.logId}
-                    className={`grid ${
-                      user?.role === "admin" ? "grid-cols-12" : "grid-cols-9"
-                    } gap-4 px-6 py-4 items-center`}
-                  >
-                    <div className="col-span-9 sm:col-span-6 flex items-center gap-4">
-                      <span className="text-green-500 flex-shrink-0">
-                        <CheckCircleIcon size={24} />
-                      </span>
-                      <span className="font-semibold text-slate-700 dark:text-slate-200">
-                        {log.title}
-                      </span>
-                    </div>
-                    {/* NEW: Show caregiver name for admins only */}
+            <>
+              <table className="w-full text-sm text-left">
+                {/* --- The 'sm:table-header-group' class makes this header appear only on desktop --- */}
+                <thead className="hidden sm:table-header-group bg-slate-50 dark:bg-slate-800/50">
+                  <tr>
+                    <th className="p-4 font-semibold text-slate-600 dark:text-slate-300 w-1/2">
+                      Training Module
+                    </th>
                     {user?.role === "admin" && (
-                      <div className="col-span-9 sm:col-span-3 text-slate-500 dark:text-slate-400 pl-10 sm:pl-0">
-                        {log.caregiverName}
-                      </div>
+                      <th className="p-4 font-semibold text-slate-600 dark:text-slate-300">
+                        Caregiver
+                      </th>
                     )}
-                    <div className="col-span-9 sm:col-span-3 text-slate-500 dark:text-slate-400 text-left sm:text-right pl-10 sm:pl-0">
-                      {new Date(log.dateCompleted).toLocaleDateString("en-US", {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                      })}
-                    </div>
-                  </div>
-                ))}
-              </div>
+                    <th className="p-4 font-semibold text-slate-600 dark:text-slate-300 text-right">
+                      Date Completed
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {currentItems.map((log) => (
+                    // --- Each TR is a card on mobile, a row on desktop ---
+                    <tr
+                      key={log.logId}
+                      className="block sm:table-row mb-4 sm:mb-0 border sm:border-0 rounded-lg sm:rounded-none border-slate-200 dark:border-slate-700"
+                    >
+                      {/* --- For each TD, data-label provides the mobile header --- */}
+                      <td
+                        data-label="Training Module"
+                        className="flex items-center justify-between sm:table-cell p-3 sm:p-4 border-b sm:border-none border-slate-200 dark:border-slate-700"
+                      >
+                        <span className="font-semibold text-slate-500 dark:text-slate-400 sm:hidden">
+                          Training Module
+                        </span>
+                        <div className="flex items-center gap-3">
+                          <span className="text-green-500">
+                            <CheckCircleIcon size={20} />
+                          </span>
+                          <span className="font-semibold text-slate-800 dark:text-slate-200 text-right sm:text-left">
+                            {log.title}
+                          </span>
+                        </div>
+                      </td>
+
+                      {user?.role === "admin" && (
+                        <td
+                          data-label="Caregiver"
+                          className="flex items-center justify-between sm:table-cell p-3 sm:p-4 border-b sm:border-none border-slate-200 dark:border-slate-700"
+                        >
+                          <span className="font-semibold text-slate-500 dark:text-slate-400 sm:hidden">
+                            Caregiver
+                          </span>
+                          <span className="text-slate-600 dark:text-slate-300">
+                            {log.caregiverName}
+                          </span>
+                        </td>
+                      )}
+
+                      <td
+                        data-label="Date Completed"
+                        className="flex items-center justify-between sm:table-cell p-3 sm:p-4 text-right"
+                      >
+                        <span className="font-semibold text-slate-500 dark:text-slate-400 sm:hidden">
+                          Date Completed
+                        </span>
+                        <span className="text-slate-600 dark:text-slate-300">
+                          {new Date(log.dateCompleted).toLocaleDateString(
+                            "en-US",
+                            {
+                              year: "numeric",
+                              month: "long",
+                              day: "numeric",
+                            }
+                          )}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+
               {totalPages > 1 && (
-                <div className="flex flex-col sm:flex-row justify-between items-center px-6 py-4 gap-4">
+                <div className="flex flex-col sm:flex-row justify-between items-center px-4 sm:px-6 py-4 gap-4 border-t border-slate-100 dark:border-slate-700/50">
                   <div className="text-sm text-slate-600 dark:text-slate-400">
                     Showing{" "}
                     <span className="font-semibold text-slate-800 dark:text-slate-200">
@@ -263,11 +289,11 @@ export default function TrainingHistory() {
                     </span>{" "}
                     results
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 w-full sm:w-auto">
                     <button
                       onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
                       disabled={currentPage === 1}
-                      className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <ChevronLeftIcon /> Previous
                     </button>
@@ -276,18 +302,18 @@ export default function TrainingHistory() {
                         setCurrentPage((p) => Math.min(p + 1, totalPages))
                       }
                       disabled={currentPage === totalPages}
-                      className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Next <ChevronRightIcon size={16} />
                     </button>
                   </div>
                 </div>
               )}
-            </div>
+            </>
           ) : (
-            <div className="flex flex-col text-center py-16">
+            <div className="flex flex-col text-center py-16 px-4">
               <span className="mx-auto text-slate-400 dark:text-slate-500">
-                <ArchiveIcon />
+                <ArchiveIcon size={40} />
               </span>
               <h3 className="mt-4 text-lg font-semibold text-slate-800 dark:text-slate-200">
                 No Completed Trainings Found

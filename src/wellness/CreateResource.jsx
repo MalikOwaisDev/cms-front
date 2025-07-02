@@ -26,7 +26,7 @@ export default function WellnessResourceForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const token = localStorage.getItem("token"); // Assuming you store the token in localStorage
+  const token = localStorage.getItem("token");
 
   const isFormValid =
     formData.title &&
@@ -46,21 +46,18 @@ export default function WellnessResourceForm() {
     setSuccess("");
 
     if (!isFormValid) {
-      setError("Please fill all fields correctly before submitting.");
+      setError("Please fill all required fields correctly before submitting.");
       return;
     }
 
     setLoading(true);
     try {
-      // Replace with your actual API endpoint
-      const res = await createResource(formData, token);
-      console.log("Resource created:", res.data);
-
+      await createResource(formData, token);
       setSuccess("Wellness resource created successfully!");
       setFormData({ title: "", description: "", link: "", category: "" });
       setTimeout(() => {
         setSuccess("");
-        navigate("/wellness/resources"); // Navigate to the resources list page
+        navigate("/wellness/resources");
       }, 1500);
     } catch (err) {
       setError("Failed to create the resource. Please try again.");
@@ -71,7 +68,7 @@ export default function WellnessResourceForm() {
   };
 
   const handleGoBack = () => {
-    if (window.history.state && window.history.length > 1) {
+    if (window.history.state && window.history.length > 2) {
       navigate(-1);
     } else {
       navigate("/wellness/resources");
@@ -79,23 +76,23 @@ export default function WellnessResourceForm() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-900 transition-colors duration-300 font-sans">
+    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-900 font-sans">
       <Header />
 
       <main className="flex-grow container mx-auto p-4 sm:p-6 lg:p-8">
         <div className="max-w-3xl mx-auto">
-          {/* --- Page Header --- */}
-          <div className="flex items-center mb-8">
+          {/* --- RESPONSIVE Page Header --- */}
+          <div className="flex items-start gap-4 mb-8">
             <button
               onClick={handleGoBack}
-              className="mr-4 p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+              className="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors flex-shrink-0"
             >
               <span className="text-slate-600 dark:text-slate-300">
                 <BackIcon />
               </span>
             </button>
             <div>
-              <h1 className="text-3xl font-bold text-slate-800 dark:text-slate-100">
+              <h1 className="text-2xl sm:text-3xl font-bold text-slate-800 dark:text-slate-100">
                 Create Wellness Resource
               </h1>
               <p className="text-slate-500 dark:text-slate-400 mt-1">
@@ -104,7 +101,6 @@ export default function WellnessResourceForm() {
             </div>
           </div>
 
-          {/* --- Form Container --- */}
           <form
             onSubmit={handleSubmit}
             className="bg-white dark:bg-slate-800 p-6 sm:p-8 rounded-xl shadow-sm space-y-8"
@@ -114,7 +110,6 @@ export default function WellnessResourceForm() {
                 Resource Details
               </legend>
 
-              {/* Title Field */}
               <div>
                 <label
                   htmlFor="title"
@@ -123,6 +118,7 @@ export default function WellnessResourceForm() {
                   Title
                 </label>
                 <div className="relative">
+                  {/* RESPONSIVE: Centered Icon */}
                   <span className="absolute top-[70%] left-3 -translate-y-1/2 text-slate-400">
                     <TitleIcon />
                   </span>
@@ -133,12 +129,12 @@ export default function WellnessResourceForm() {
                     onChange={handleFormChange}
                     placeholder="e.g., Guide to Mediterranean Diet"
                     maxLength="100"
-                    className="w-full pl-10 pr-4 py-3 bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-slate-200 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
+                    required
+                    className="w-full pl-10 pr-4 py-3 bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
                   />
                 </div>
               </div>
 
-              {/* Description Field */}
               <div>
                 <label
                   htmlFor="description"
@@ -157,13 +153,13 @@ export default function WellnessResourceForm() {
                     onChange={handleFormChange}
                     rows="4"
                     maxLength="500"
+                    required
                     placeholder="Briefly describe the resource and its benefits."
-                    className="w-full pl-10 pr-4 py-3 bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-slate-200 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
+                    className="w-full pl-10 pr-4 py-3 bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
                   ></textarea>
                 </div>
               </div>
 
-              {/* Link and Category Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label
@@ -183,7 +179,7 @@ export default function WellnessResourceForm() {
                       value={formData.link}
                       onChange={handleFormChange}
                       placeholder="https://example.com"
-                      className="w-full pl-10 pr-4 py-3 bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-slate-200 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
+                      className="w-full pl-10 pr-4 py-3 bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
                     />
                   </div>
                 </div>
@@ -203,19 +199,20 @@ export default function WellnessResourceForm() {
                       name="category"
                       value={formData.category}
                       onChange={handleFormChange}
-                      className="w-full pl-10 pr-4 py-3 appearance-none bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-slate-200 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
+                      required
+                      className="w-full pl-10 pr-10 py-3 appearance-none bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
                     >
                       <option value="" disabled>
                         Select a category
                       </option>
                       <option value="diet">Diet</option>
                       <option value="exercise">Exercise</option>
-                      <option value="mental">Mental</option>
+                      <option value="mental">Mental Health</option>
                       <option value="other">Other</option>
                     </select>
                     <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-slate-400">
                       <svg
-                        className="w-4 h-4"
+                        className="w-5 h-5"
                         fill="none"
                         stroke="currentColor"
                         strokeWidth="2"
@@ -233,7 +230,6 @@ export default function WellnessResourceForm() {
               </div>
             </fieldset>
 
-            {/* --- Submission Feedback and Actions --- */}
             <div className="pt-6 border-t border-slate-200 dark:border-slate-700 space-y-4">
               {error && (
                 <p className="text-red-500 dark:text-red-400 text-sm text-center">
@@ -246,18 +242,19 @@ export default function WellnessResourceForm() {
                 </p>
               )}
 
-              <div className="flex justify-end gap-4">
+              {/* --- RESPONSIVE Action Buttons --- */}
+              <div className="flex flex-col-reverse sm:flex-row justify-end gap-4">
                 <button
                   type="button"
-                  onClick={() => navigate(-1)}
-                  className="bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold py-2 px-6 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600 transition-all"
+                  onClick={handleGoBack}
+                  className="w-full sm:w-auto flex justify-center items-center bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold py-2.5 px-6 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600 transition-all"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={!isFormValid || loading}
-                  className="w-full sm:w-auto bg-[#FE4982] text-white font-bold py-2 px-6 rounded-lg flex items-center justify-center gap-2 hover:bg-[#E03A6D] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-50 dark:ring-offset-slate-900 focus:ring-[#FE4982] transition-all disabled:bg-opacity-60 disabled:cursor-not-allowed"
+                  className="w-full sm:w-auto bg-[#FE4982] text-white font-bold py-2.5 px-6 rounded-lg flex items-center justify-center gap-2 hover:bg-[#E03A6D] transition-all disabled:bg-opacity-60 disabled:cursor-not-allowed"
                 >
                   {loading ? (
                     "Saving..."

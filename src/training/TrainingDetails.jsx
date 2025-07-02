@@ -14,34 +14,32 @@ import {
 
 const TrainingDetailSkeleton = () => (
   <div className="animate-pulse">
-    <div className="h-8 bg-slate-200 dark:bg-slate-700 rounded-md w-2/3 mb-4"></div>
+    <div className="h-7 sm:h-8 bg-slate-200 dark:bg-slate-700 rounded-md w-2/3 mb-4"></div>
     <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded-md w-1/3 mb-8"></div>
-    <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-md">
-      <div className="h-5 bg-slate-200 dark:bg-slate-700 rounded w-1/4 mb-4"></div>
-      <div className="space-y-2">
+    <div className="bg-white dark:bg-slate-800 p-6 sm:p-8 rounded-2xl shadow-md mb-8">
+      <div className="h-6 bg-slate-200 dark:bg-slate-700 rounded w-1/4 mb-5"></div>
+      <div className="space-y-3">
+        <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded"></div>
         <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded"></div>
         <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-5/6"></div>
       </div>
     </div>
-    <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-md mt-6">
+    <div className="bg-white dark:bg-slate-800 p-6 sm:p-8 rounded-2xl shadow-md">
       <div className="h-6 bg-slate-200 dark:bg-slate-700 rounded w-1/3 mb-6"></div>
-      {[...Array(2)].map((_, i) => (
-        <div key={i} className="mb-6">
-          <div className="h-5 bg-slate-200 dark:bg-slate-700 rounded w-3/4 mb-4"></div>
-          <div className="space-y-3">
-            <div className="h-8 bg-slate-200 dark:bg-slate-700 rounded-md"></div>
-            <div className="h-8 bg-slate-200 dark:bg-slate-700 rounded-md"></div>
-            <div className="h-8 bg-slate-200 dark:bg-slate-700 rounded-md"></div>
-          </div>
-        </div>
-      ))}
+      <div className="space-y-4">
+        {[...Array(3)].map((_, i) => (
+          <div
+            key={i}
+            className="h-16 bg-slate-200 dark:bg-slate-700 rounded-lg"
+          ></div>
+        ))}
+      </div>
     </div>
   </div>
 );
 
 export default function TrainingDetails() {
   const { id } = useParams();
-  document.title = `${id} Training | Care Management System`;
   const navigate = useNavigate();
   const [training, setTraining] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -50,6 +48,14 @@ export default function TrainingDetails() {
   const [score, setScore] = useState(0);
   const [isCompleting, setIsCompleting] = useState(false);
   const token = localStorage.getItem("token");
+
+  useEffect(() => {
+    if (training?.title) {
+      document.title = `${training.title} | Care Management System`;
+    } else {
+      document.title = "Training | Care Management System";
+    }
+  }, [training]);
 
   useEffect(() => {
     if (!token || !id) {
@@ -82,11 +88,19 @@ export default function TrainingDetails() {
     setIsCompleting(true);
     try {
       await markTrainingComplete(training._id, token);
-      navigate("/trainings"); // Or wherever you list trainings
+      navigate("/trainings");
     } catch (error) {
       console.error("Failed to submit training", error);
     } finally {
       setIsCompleting(false);
+    }
+  };
+
+  const handleGoBack = () => {
+    if (window.history.state && window.history.length > 2) {
+      navigate(-1);
+    } else {
+      navigate("/trainings");
     }
   };
 
@@ -132,16 +146,8 @@ export default function TrainingDetails() {
         </main>
         <Footer />
       </div>
-    ); // Or a more styled 404 component
+    );
   }
-
-  const handleGoBack = () => {
-    if (window.history.state && window.history.length > 1) {
-      navigate(-1);
-    } else {
-      navigate("/trainings");
-    }
-  };
 
   const allQuestionsAnswered =
     Object.keys(answers).length === training.quiz.length;
@@ -151,17 +157,17 @@ export default function TrainingDetails() {
       <Header />
       <main className="flex-grow container mx-auto p-4 sm:p-6 lg:p-8">
         <div className="max-w-4xl mx-auto">
-          {/* --- Header --- */}
-          <div className="flex items-center">
+          {/* --- RESPONSIVE Header --- */}
+          <div className="flex items-start gap-4 mb-8">
             <button
               onClick={handleGoBack}
-              className="mr-4 -mt-6 p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700"
+              className="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 flex-shrink-0"
             >
               <span className="text-slate-600 dark:text-slate-300">
                 <BackIcon />
               </span>
             </button>
-            <div className="mb-8">
+            <div>
               <div className="flex items-center gap-3 text-sm text-slate-500 dark:text-slate-400 mb-2">
                 <CalendarIcon />
                 <span>
@@ -173,26 +179,24 @@ export default function TrainingDetails() {
                   })}
                 </span>
               </div>
-              <h1 className="text-4xl font-extrabold text-slate-800 dark:text-slate-100 tracking-tight">
+              <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-800 dark:text-slate-100 tracking-tight">
                 {training.title}
               </h1>
             </div>
           </div>
 
-          {/* --- Content Section --- */}
           <div className="bg-white dark:bg-slate-800 p-6 sm:p-8 rounded-2xl shadow-md mb-8">
-            <h2 className="text-2xl font-bold text-[#1D2056] dark:text-slate-200 flex items-center gap-3 mb-4">
+            <h2 className="text-xl sm:text-2xl font-bold text-[#1D2056] dark:text-slate-200 flex items-center gap-3 mb-4">
               <BookOpenIcon /> Module Content
             </h2>
-            <p className="text-slate-600 dark:text-slate-300 leading-relaxed">
+            <p className="text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">
               {training.content}
             </p>
           </div>
 
-          {/* --- Quiz Section --- */}
           {training.quiz && training.quiz.length > 0 && (
             <div className="bg-white dark:bg-slate-800 p-6 sm:p-8 rounded-2xl shadow-md">
-              <h2 className="text-2xl font-bold text-[#1D2056] dark:text-slate-200 mb-6">
+              <h2 className="text-xl sm:text-2xl font-bold text-[#1D2056] dark:text-slate-200 mb-6">
                 Quiz
               </h2>
               <div className="space-y-8">
@@ -206,14 +210,14 @@ export default function TrainingDetails() {
                         const isSelected = answers[q._id] === option;
                         const isCorrect = q.correctAnswer === option;
                         let optionStyle =
-                          "border-slate-300 dark:border-slate-600 hover:border-[#FE4982] dark:hover:border-[#FE4982]";
+                          "border-slate-300 dark:border-slate-600 hover:border-[#FE4982] dark:hover:border-[#FE4982] hover:bg-pink-50 dark:hover:bg-pink-900/20";
                         if (submitted) {
                           if (isCorrect)
                             optionStyle =
-                              "border-green-500 bg-green-50 dark:bg-green-900/30 ring-2 ring-green-500";
+                              "border-green-500 bg-green-50 dark:bg-green-500/20 ring-2 ring-green-500";
                           else if (isSelected && !isCorrect)
                             optionStyle =
-                              "border-red-500 bg-red-50 dark:bg-red-900/30 ring-2 ring-red-500";
+                              "border-red-500 bg-red-50 dark:bg-red-500/20 ring-2 ring-red-500";
                         }
 
                         return (
@@ -235,12 +239,12 @@ export default function TrainingDetails() {
                               {option}
                             </span>
                             {submitted && isCorrect && (
-                              <span className="text-green-500">
+                              <span className="text-green-500 ml-auto">
                                 <CheckCircleIcon />
                               </span>
                             )}
                             {submitted && isSelected && !isCorrect && (
-                              <span className="text-red-500">
+                              <span className="text-red-500 ml-auto">
                                 <XCircleIcon />
                               </span>
                             )}
@@ -253,11 +257,12 @@ export default function TrainingDetails() {
               </div>
 
               {!submitted ? (
-                <div className="mt-8 text-right">
+                // --- RESPONSIVE Submit Button ---
+                <div className="mt-8 flex justify-end">
                   <button
                     onClick={handleSubmitQuiz}
                     disabled={!allQuestionsAnswered}
-                    className="bg-[#FE4982] text-white font-bold py-3 px-8 rounded-lg hover:bg-[#E03A6D] transition-colors disabled:bg-opacity-50 disabled:cursor-not-allowed"
+                    className="w-full sm:w-auto bg-[#FE4982] text-white font-bold py-3 px-8 rounded-lg hover:bg-[#E03A6D] transition-colors disabled:bg-opacity-50 disabled:cursor-not-allowed"
                   >
                     Submit Quiz
                   </button>
@@ -280,10 +285,11 @@ export default function TrainingDetails() {
                       <p className="text-green-600 dark:text-green-400 mt-2">
                         Congratulations! You have passed the quiz.
                       </p>
+                      {/* --- RESPONSIVE Completion Button --- */}
                       <button
                         onClick={handleMarkComplete}
                         disabled={isCompleting}
-                        className="mt-6 bg-green-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-green-700 transition-colors disabled:bg-opacity-50"
+                        className="w-full sm:w-auto mt-6 bg-green-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-green-700 transition-colors disabled:bg-opacity-50"
                       >
                         {isCompleting
                           ? "Completing..."
@@ -293,7 +299,7 @@ export default function TrainingDetails() {
                   ) : (
                     <p className="text-red-600 dark:text-red-400 mt-2">
                       You did not pass the quiz. Please review the material and
-                      try again.
+                      try again later.
                     </p>
                   )}
                 </div>

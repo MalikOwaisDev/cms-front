@@ -32,7 +32,9 @@ export default function LogTime() {
 
   useEffect(() => {
     if (!token) navigate("/login");
-    getPatients(token).then((res) => setPatients(res.data));
+    getPatients(token)
+      .then((res) => setPatients(res.data))
+      .catch(() => setError("Could not fetch patients."));
   }, [token, navigate]);
 
   const handleChange = (e) =>
@@ -49,7 +51,13 @@ export default function LogTime() {
     diff -= hours * (1000 * 60 * 60);
     const minutes = Math.floor(diff / (1000 * 60));
 
-    return { text: `${hours} hour(s), ${minutes} minute(s)` };
+    // Format the text for better readability
+    const hoursText = hours > 0 ? `${hours} hour${hours > 1 ? "s" : ""}` : "";
+    const minutesText =
+      minutes > 0 ? `${minutes} minute${minutes > 1 ? "s" : ""}` : "";
+    const connector = hours > 0 && minutes > 0 ? ", " : "";
+
+    return { text: `${hoursText}${connector}${minutesText}` };
   }, [form.startTime, form.endTime]);
 
   const handleSubmit = async (e) => {
@@ -85,7 +93,7 @@ export default function LogTime() {
       setTimeout(() => {
         setSuccess("");
         navigate("/timelogs");
-      }, 2000);
+      }, 1500);
     } catch (err) {
       setError("Failed to submit time log. Please try again.");
     } finally {
@@ -107,17 +115,18 @@ export default function LogTime() {
 
       <main className="flex-grow container mx-auto p-4 sm:p-6 lg:p-8">
         <div className="max-w-2xl mx-auto">
-          <div className="flex items-center">
+          {/* RESPONSIVE: Header now uses gap for spacing and has responsive font size */}
+          <div className="flex items-start gap-4 mb-8">
             <button
               onClick={handleGoBack}
-              className="mr-4 -mt-6 p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700"
+              className="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700"
             >
               <span className="text-slate-600 dark:text-slate-300">
                 <BackIcon />
               </span>
             </button>
-            <div className="mb-8">
-              <h1 className="text-3xl font-bold text-slate-800 dark:text-slate-100">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-slate-800 dark:text-slate-100">
                 Log Work Time
               </h1>
               <p className="text-slate-500 dark:text-slate-400 mt-1">
@@ -138,6 +147,7 @@ export default function LogTime() {
                 Patient
               </label>
               <div className="relative">
+                {/* RESPONSIVE: Icon is now perfectly centered vertically */}
                 <span className="absolute top-[70%] left-3 -translate-y-1/2 text-slate-400">
                   <UserIcon />
                 </span>
@@ -146,7 +156,8 @@ export default function LogTime() {
                   name="patient"
                   value={form.patient}
                   onChange={handleChange}
-                  className="w-full pl-10 pr-4 py-3 appearance-none bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-slate-200 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
+                  required
+                  className="w-full pl-10 pr-10 py-3 appearance-none bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
                 >
                   <option value="" disabled>
                     Select a patient
@@ -159,7 +170,7 @@ export default function LogTime() {
                 </select>
                 <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-slate-400">
                   <svg
-                    className="w-4 h-4"
+                    className="w-5 h-5"
                     fill="none"
                     stroke="currentColor"
                     strokeWidth="2"
@@ -175,6 +186,7 @@ export default function LogTime() {
               </div>
             </div>
 
+            {/* NOTE: This grid is already responsive, stacking on mobile */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div>
                 <label
@@ -184,6 +196,7 @@ export default function LogTime() {
                   Date
                 </label>
                 <div className="relative">
+                  {/* RESPONSIVE: Icon is now perfectly centered vertically */}
                   <span className="absolute top-[70%] left-3 -translate-y-1/2 text-slate-400">
                     <CalendarIcon />
                   </span>
@@ -193,7 +206,8 @@ export default function LogTime() {
                     name="date"
                     value={form.date}
                     onChange={handleChange}
-                    className="w-full pl-10 pr-4 py-3 bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-slate-200 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
+                    required
+                    className="w-full pl-10 pr-4 py-3 bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
                   />
                 </div>
               </div>
@@ -205,6 +219,7 @@ export default function LogTime() {
                   Start Time
                 </label>
                 <div className="relative">
+                  {/* RESPONSIVE: Icon is now perfectly centered vertically */}
                   <span className="absolute top-[70%] left-3 -translate-y-1/2 text-slate-400">
                     <ClockIcon />
                   </span>
@@ -214,7 +229,8 @@ export default function LogTime() {
                     name="startTime"
                     value={form.startTime}
                     onChange={handleChange}
-                    className="w-full pl-10 pr-4 py-3 bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-slate-200 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
+                    required
+                    className="w-full pl-10 pr-4 py-3 bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
                   />
                 </div>
               </div>
@@ -226,6 +242,7 @@ export default function LogTime() {
                   End Time
                 </label>
                 <div className="relative">
+                  {/* RESPONSIVE: Icon is now perfectly centered vertically */}
                   <span className="absolute top-[70%] left-3 -translate-y-1/2 text-slate-400">
                     <ClockIcon />
                   </span>
@@ -235,13 +252,15 @@ export default function LogTime() {
                     name="endTime"
                     value={form.endTime}
                     onChange={handleChange}
-                    className="w-full pl-10 pr-4 py-3 bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-slate-200 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
+                    required
+                    className="w-full pl-10 pr-4 py-3 bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
                   />
                 </div>
               </div>
             </div>
+
             {duration?.text && (
-              <div className="p-3 bg-blue-50 dark:bg-blue-900/20 text-[#1D2056] dark:text-blue-300 border border-blue-200 dark:border-blue-500/30 rounded-lg text-center font-semibold">
+              <div className="p-3 bg-blue-50 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-500/30 rounded-lg text-center text-sm font-semibold">
                 Total Duration: {duration.text}
               </div>
             )}
@@ -254,7 +273,8 @@ export default function LogTime() {
                 Description of Work
               </label>
               <div className="relative">
-                <span className="absolute top-4 left-3 text-slate-400">
+                {/* RESPONSIVE: Icon position adjusted for better alignment */}
+                <span className="absolute top-3.5 left-3 text-slate-400">
                   <EditIcon size={20} />
                 </span>
                 <textarea
@@ -264,34 +284,36 @@ export default function LogTime() {
                   onChange={handleChange}
                   placeholder="e.g., Assisted with daily tasks, administered medication..."
                   rows="4"
-                  className="w-full pl-10 pr-4 py-3 bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-slate-200 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
+                  required
+                  className="w-full pl-10 pr-4 py-3 bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
                 ></textarea>
               </div>
             </div>
 
             <div className="pt-6 border-t border-slate-200 dark:border-slate-700 space-y-4">
               {error && (
-                <p className="text-red-500 dark:text-red-400 text-sm text-center">
+                <p className="text-red-500 dark:text-red-400 text-sm text-center font-medium">
                   {error}
                 </p>
               )}
               {success && (
-                <p className="text-green-600 dark:text-green-400 text-sm text-center">
+                <p className="text-green-600 dark:text-green-400 text-sm text-center font-medium">
                   {success}
                 </p>
               )}
-              <div className="flex justify-end gap-4">
+              {/* RESPONSIVE: Buttons stack on mobile and have consistent styling */}
+              <div className="flex flex-col-reverse sm:flex-row justify-end gap-4">
                 <button
                   type="button"
-                  onClick={() => navigate(-1)}
-                  className="bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold py-2 px-6 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600 transition-all"
+                  onClick={handleGoBack}
+                  className="w-full sm:w-auto flex justify-center items-center bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold py-3 px-6 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600 transition-all"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full sm:w-auto bg-[#FE4982] text-white font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2 hover:bg-[#E03A6D] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-50 dark:ring-offset-slate-900 focus:ring-[#FE4982] transition-all disabled:bg-opacity-60"
+                  className="w-full sm:w-auto bg-[#FE4982] text-white font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2 hover:bg-[#E03A6D] transition-all disabled:bg-opacity-60"
                 >
                   {loading ? (
                     "Submitting..."

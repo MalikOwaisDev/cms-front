@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, Link, NavLink } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { useUser } from "../hooks/useUser";
@@ -18,16 +18,19 @@ import {
 } from "../Icons";
 
 const CardSkeleton = () => (
-  <div className="space-y-6 animate-pulse">
+  <div className="space-y-4 animate-pulse">
     {[...Array(3)].map((_, i) => (
       <div
         key={i}
-        className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm"
+        className="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm"
       >
-        <div className="h-5 bg-slate-200 dark:bg-slate-700 rounded w-3/4 mb-3"></div>
-        <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded w-full mb-2"></div>
-        <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded w-1/2"></div>
-        <div className="mt-4 h-10 bg-slate-200 dark:bg-slate-700 rounded-lg w-32 ml-auto"></div>
+        <div className="flex flex-col sm:flex-row justify-between gap-4">
+          <div className="w-full sm:w-2/3 space-y-3">
+            <div className="h-6 bg-slate-200 dark:bg-slate-700 rounded w-3/4"></div>
+            <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-1/2"></div>
+          </div>
+          <div className="h-10 sm:h-8 w-full sm:w-32 bg-slate-200 dark:bg-slate-700 rounded-lg self-end sm:self-center"></div>
+        </div>
       </div>
     ))}
   </div>
@@ -36,8 +39,8 @@ const CardSkeleton = () => (
 const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, children }) => {
   if (!isOpen) return null;
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-60 z-50 flex justify-center items-center font-sans">
-      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl p-6 w-full max-w-md m-4 transform transition-all animate-in zoom-in-95 fade-in-0">
+    <div className="fixed inset-0 bg-black bg-opacity-60 z-50 flex justify-center items-center p-4 font-sans">
+      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl p-6 w-full max-w-md m-4">
         <div className="flex items-start gap-4">
           <div className="flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 dark:bg-red-900/30">
             <span className="h-6 w-6 text-red-600 dark:text-red-400">
@@ -53,18 +56,18 @@ const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, children }) => {
             </div>
           </div>
         </div>
-        <div className="mt-6 flex justify-end gap-3">
+        <div className="mt-6 flex flex-col-reverse sm:flex-row justify-end gap-3">
           <button
             type="button"
             onClick={onClose}
-            className="bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold py-2 px-5 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600 transition-all"
+            className="w-full sm:w-auto justify-center flex items-center bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold py-2 px-5 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600 transition-all"
           >
             Cancel
           </button>
           <button
             type="button"
             onClick={onConfirm}
-            className="bg-red-600 text-white font-bold py-2 px-5 rounded-lg hover:bg-red-700 transition-all shadow-sm"
+            className="w-full sm:w-auto justify-center flex items-center bg-red-600 text-white font-bold py-2 px-5 rounded-lg hover:bg-red-700 transition-all shadow-sm"
           >
             Delete
           </button>
@@ -74,10 +77,9 @@ const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, children }) => {
   );
 };
 
-// --- Training List Page Component ---
 export default function TrainingList() {
-  document.title = "Trainings | Care Management System";
-  const { data: user } = useUser();
+  const { userQuery } = useUser();
+  const { data: user } = userQuery;
   const [allTrainings, setAllTrainings] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -102,18 +104,6 @@ export default function TrainingList() {
     fetchData();
   }, [token, navigate]);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-900">
-        <Header />
-        <main className="flex-grow container mx-auto p-4 sm:p-6 lg:p-8">
-          <CardSkeleton />
-        </main>
-        <Footer />
-      </div>
-    );
-  }
-
   return user?.role === "admin" ? (
     <AdminTrainingView
       trainings={allTrainings}
@@ -125,7 +115,6 @@ export default function TrainingList() {
     <CaregiverTrainingView
       allTrainings={allTrainings}
       user={user}
-      token={token}
       loading={loading}
     />
   );
@@ -138,7 +127,7 @@ const AdminTrainingView = ({ trainings, setTrainings, token, loading }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [trainingToDelete, setTrainingToDelete] = useState(null);
   const navigate = useNavigate();
-  const trainingsPerPage = 10;
+  const trainingsPerPage = 5;
 
   const today = new Date();
   const upcoming = trainings.filter(
@@ -161,7 +150,7 @@ const AdminTrainingView = ({ trainings, setTrainings, token, loading }) => {
   };
 
   const handleGoBack = () => {
-    if (window.history.state && window.history.length > 1) {
+    if (window.history.state && window.history.length > 2) {
       navigate(-1);
     } else {
       navigate("/");
@@ -174,7 +163,7 @@ const AdminTrainingView = ({ trainings, setTrainings, token, loading }) => {
       await deleteTraining(trainingToDelete, token);
       const updatedList = trainings.filter((t) => t.tID !== trainingToDelete);
       setTrainings(updatedList);
-      // After deleting, check if the current page is now empty and adjust
+
       const newTotalPages = Math.ceil(
         updatedList.filter((t) =>
           filter === "upcoming"
@@ -197,34 +186,34 @@ const AdminTrainingView = ({ trainings, setTrainings, token, loading }) => {
     <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-900 font-sans">
       <Header />
       <main className="flex-grow container mx-auto p-4 sm:p-6 lg:p-8">
-        <div className="flex items-center mb-8">
-          <button
-            onClick={handleGoBack}
-            className="mr-4 p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700"
-          >
-            <span className="text-slate-600 dark:text-slate-300">
-              <BackIcon />
-            </span>
-          </button>
-          <div className="flex-grow flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-8">
+          <div className="flex items-start gap-4">
+            <button
+              onClick={handleGoBack}
+              className="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 flex-shrink-0"
+            >
+              <span className="text-slate-600 dark:text-slate-300">
+                <BackIcon />
+              </span>
+            </button>
             <div>
-              <h1 className="text-3xl font-bold text-slate-800 dark:text-slate-100">
+              <h1 className="text-2xl sm:text-3xl font-bold text-slate-800 dark:text-slate-100">
                 Manage Trainings
               </h1>
               <p className="text-slate-500 dark:text-slate-400 mt-1">
                 Oversee all training modules for caregivers.
               </p>
             </div>
-            <Link
-              to="/trainings/create"
-              className="w-full sm:w-auto flex items-center justify-center gap-2 bg-[#FE4982] text-white font-bold py-2 px-4 rounded-lg hover:bg-[#E03A6D] transition-all"
-            >
-              <PlusIcon /> Create New Training
-            </Link>
           </div>
+          <Link
+            to="/trainings/create"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 bg-[#FE4982] text-white font-bold py-2.5 px-4 rounded-lg hover:bg-[#E03A6D] transition-all flex-shrink-0"
+          >
+            <PlusIcon /> Create New
+          </Link>
         </div>
 
-        <div className="flex border-b border-slate-200 dark:border-slate-700 mb-6">
+        <div className="flex flex-wrap border-b border-slate-200 dark:border-slate-700 mb-6">
           <button
             onClick={() => {
               setFilter("upcoming");
@@ -245,7 +234,7 @@ const AdminTrainingView = ({ trainings, setTrainings, token, loading }) => {
             }}
             className={`px-4 py-2 text-sm font-semibold transition-colors ${
               filter === "past"
-                ? "border-b-2 border-red-500 text-red-600"
+                ? "border-b-2 border-slate-500 text-slate-600 dark:text-slate-200"
                 : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
             }`}
           >
@@ -254,9 +243,7 @@ const AdminTrainingView = ({ trainings, setTrainings, token, loading }) => {
         </div>
 
         {loading ? (
-          <div className="p-4">
-            <CardSkeleton />
-          </div>
+          <CardSkeleton />
         ) : currentTrainings.length > 0 ? (
           <div className="space-y-4">
             {currentTrainings.map((t) => (
@@ -281,15 +268,18 @@ const AdminTrainingView = ({ trainings, setTrainings, token, loading }) => {
                       Assigned to: {t.assignedTo?.length || 0} caregivers
                     </p>
                   </div>
-                  <div className="flex items-center gap-2 self-start sm:self-center sm:opacity-0 group-hover:opacity-100 transition-opacity">
+                  {/* RESPONSIVE: Actions are always visible on mobile, appear on hover on desktop */}
+                  <div className="w-full sm:w-auto flex items-center gap-2 self-start sm:self-center sm:opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity justify-end">
                     <Link
                       to={`/trainings/edit/${t.tID}`}
+                      title="Edit"
                       className="p-2 rounded-full text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-slate-800 dark:hover:text-slate-100"
                     >
                       <EditIcon size={18} />
                     </Link>
                     <button
                       onClick={() => handleDeleteClick(t.tID)}
+                      title="Delete"
                       className="p-2 rounded-full text-red-500 hover:bg-red-100 dark:hover:bg-red-900/40"
                     >
                       <TrashIcon size={18} />
@@ -300,7 +290,7 @@ const AdminTrainingView = ({ trainings, setTrainings, token, loading }) => {
             ))}
           </div>
         ) : (
-          <div className="flex flex-col text-center py-16 bg-white dark:bg-slate-800/50 rounded-xl">
+          <div className="text-center flex flex-col py-16 bg-white dark:bg-slate-800/50 rounded-xl">
             <span className="mx-auto text-slate-400 dark:text-slate-500">
               <BookOpenIcon size={48} />
             </span>
@@ -313,28 +303,20 @@ const AdminTrainingView = ({ trainings, setTrainings, token, loading }) => {
         {totalPages > 1 && (
           <div className="flex flex-col sm:flex-row justify-between items-center mt-8 pt-4 border-t border-slate-200 dark:border-slate-700 gap-4">
             <div className="text-sm text-slate-600 dark:text-slate-400">
-              Showing{" "}
+              Page{" "}
               <span className="font-semibold text-slate-800 dark:text-slate-200">
-                {(currentPage - 1) * trainingsPerPage + 1}
-              </span>
-              -
-              <span className="font-semibold text-slate-800 dark:text-slate-200">
-                {Math.min(
-                  currentPage * trainingsPerPage,
-                  filteredTrainings.length
-                )}
+                {currentPage}
               </span>{" "}
               of{" "}
               <span className="font-semibold text-slate-800 dark:text-slate-200">
-                {filteredTrainings.length}
-              </span>{" "}
-              results
+                {totalPages}
+              </span>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 w-full sm:w-auto">
               <button
                 onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
                 disabled={currentPage === 1}
-                className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full sm:w-auto flex justify-center items-center gap-2 px-4 py-2 text-sm font-semibold bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-50"
               >
                 <ChevronLeftIcon /> Previous
               </button>
@@ -343,7 +325,7 @@ const AdminTrainingView = ({ trainings, setTrainings, token, loading }) => {
                   setCurrentPage((p) => Math.min(p + 1, totalPages))
                 }
                 disabled={currentPage === totalPages}
-                className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full sm:w-auto flex justify-center items-center gap-2 px-4 py-2 text-sm font-semibold bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-50"
               >
                 Next <ChevronRightIcon size={16} />
               </button>
@@ -373,7 +355,7 @@ const CaregiverTrainingView = ({ allTrainings, user, loading }) => {
   const [filter, setFilter] = useState("pending");
   const [currentPage, setCurrentPage] = useState(1);
   const navigate = useNavigate();
-  const trainingsPerPage = 10;
+  const trainingsPerPage = 5;
 
   useEffect(() => {
     if (user) {
@@ -385,16 +367,17 @@ const CaregiverTrainingView = ({ allTrainings, user, loading }) => {
 
   const StatusBadge = ({ status }) =>
     status === "completed" ? (
-      <div className="flex items-center gap-2 text-sm font-medium text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/30 px-3 py-1 rounded-full">
+      <div className="w-full sm:w-auto flex items-center justify-center gap-2 text-sm font-medium text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/30 px-3 py-1.5 rounded-full">
         <CheckCircleIcon /> Completed
       </div>
     ) : (
-      <div className="flex items-center gap-2 text-sm font-medium text-amber-600 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/30 px-3 py-1 rounded-full">
+      <div className="w-full sm:w-auto flex items-center justify-center gap-2 text-sm font-medium text-amber-600 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/30 px-3 py-1.5 rounded-full">
         <ClockIcon /> Pending
       </div>
     );
+
   const handleGoBack = () => {
-    if (window.history.state && window.history.length > 1) {
+    if (window.history.state && window.history.length > 2) {
       navigate(-1);
     } else {
       navigate("/");
@@ -412,26 +395,26 @@ const CaregiverTrainingView = ({ allTrainings, user, loading }) => {
     <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-900 font-sans">
       <Header />
       <main className="flex-grow container mx-auto p-4 sm:p-6 lg:p-8">
-        <div className="flex items-center">
+        <div className="flex items-start gap-4 mb-8">
           <button
             onClick={handleGoBack}
-            className="mr-4 -mt-6 p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700"
+            className="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 flex-shrink-0"
           >
             <span className="text-slate-600 dark:text-slate-300">
               <BackIcon />
             </span>
           </button>
-          <div className="mb-8">
-            <h1 className="text-4xl font-extrabold text-slate-800 dark:text-slate-100 tracking-tight">
+          <div>
+            <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-800 dark:text-slate-100 tracking-tight">
               My Assigned Trainings
             </h1>
-            <p className="text-slate-500 dark:text-slate-400 mt-2 text-lg">
+            <p className="text-slate-500 dark:text-slate-400 mt-2 text-base sm:text-lg">
               Complete these modules to stay up-to-date.
             </p>
           </div>
         </div>
 
-        <div className="flex border-b border-slate-200 dark:border-slate-700 mb-6">
+        <div className="flex flex-wrap border-b border-slate-200 dark:border-slate-700 mb-6">
           <button
             onClick={() => {
               setFilter("pending");
@@ -462,11 +445,9 @@ const CaregiverTrainingView = ({ allTrainings, user, loading }) => {
         </div>
 
         {loading ? (
-          <div className="p-4">
-            <CardSkeleton />
-          </div>
+          <CardSkeleton />
         ) : currentTrainings.length > 0 ? (
-          <div className="space-y-6">
+          <div className="space-y-4">
             {currentTrainings.map((t) => {
               const isCompleted = t.status === "completed";
               const Wrapper = isCompleted ? "div" : Link;
@@ -478,18 +459,18 @@ const CaregiverTrainingView = ({ allTrainings, user, loading }) => {
                 <Wrapper
                   key={t._id}
                   {...wrapperProps}
-                  className={`block bg-white dark:bg-slate-800 p-6 rounded-xl shadow-md border-l-4 transition-all duration-300 ${
+                  className={`block bg-white dark:bg-slate-800 p-5 sm:p-6 rounded-xl shadow-md border-l-4 transition-all duration-300 ${
                     isCompleted
-                      ? "border-green-500 hover:cursor-auto"
-                      : "border-[#FE4982] hover:scale-[1.005] hover:shadow-xl"
+                      ? "border-green-500"
+                      : "border-[#FE4982] hover:shadow-lg hover:border-pink-400"
                   }`}
                 >
                   <div className="flex flex-col sm:flex-row justify-between gap-4">
-                    <div>
-                      <h2 className="text-xl font-bold text-[#1D2056] dark:text-slate-100">
+                    <div className="flex-grow">
+                      <h2 className="text-lg sm:text-xl font-bold text-[#1D2056] dark:text-slate-100">
                         {t.training.title}
                       </h2>
-                      <p className="text-slate-600 dark:text-slate-300 mt-2 max-w-2xl">
+                      <p className="text-slate-600 dark:text-slate-300 mt-2 text-sm sm:text-base leading-relaxed max-w-2xl line-clamp-2">
                         {t.training.content}
                       </p>
                       <p className="text-sm text-slate-500 dark:text-slate-400 mt-3">
@@ -505,7 +486,7 @@ const CaregiverTrainingView = ({ allTrainings, user, loading }) => {
                         </span>
                       </p>
                     </div>
-                    <div className="flex items-center flex-shrink-0 pt-2 sm:pt-0">
+                    <div className="flex-shrink-0 pt-2 sm:pt-0 self-end sm:self-center">
                       <StatusBadge status={t.status} />
                     </div>
                   </div>
@@ -514,7 +495,7 @@ const CaregiverTrainingView = ({ allTrainings, user, loading }) => {
             })}
           </div>
         ) : (
-          <div className="flex flex-col text-center py-16 bg-white dark:bg-slate-800/50 rounded-xl">
+          <div className="text-center flex flex-col py-16 bg-white dark:bg-slate-800/50 rounded-xl">
             <span className="mx-auto text-slate-400 dark:text-slate-500">
               <BookOpenIcon size={48} />
             </span>
@@ -530,28 +511,20 @@ const CaregiverTrainingView = ({ allTrainings, user, loading }) => {
         {totalPages > 1 && (
           <div className="flex flex-col sm:flex-row justify-between items-center mt-8 pt-4 border-t border-slate-200 dark:border-slate-700 gap-4">
             <div className="text-sm text-slate-600 dark:text-slate-400">
-              Showing{" "}
+              Page{" "}
               <span className="font-semibold text-slate-800 dark:text-slate-200">
-                {(currentPage - 1) * trainingsPerPage + 1}
-              </span>
-              -
-              <span className="font-semibold text-slate-800 dark:text-slate-200">
-                {Math.min(
-                  currentPage * trainingsPerPage,
-                  filteredTrainings.length
-                )}
+                {currentPage}
               </span>{" "}
               of{" "}
               <span className="font-semibold text-slate-800 dark:text-slate-200">
-                {filteredTrainings.length}
-              </span>{" "}
-              results
+                {totalPages}
+              </span>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 w-full sm:w-auto">
               <button
                 onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
                 disabled={currentPage === 1}
-                className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full sm:w-auto flex justify-center items-center gap-2 px-4 py-2 text-sm font-semibold bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-50"
               >
                 <ChevronLeftIcon /> Previous
               </button>
@@ -560,7 +533,7 @@ const CaregiverTrainingView = ({ allTrainings, user, loading }) => {
                   setCurrentPage((p) => Math.min(p + 1, totalPages))
                 }
                 disabled={currentPage === totalPages}
-                className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full sm:w-auto flex justify-center items-center gap-2 px-4 py-2 text-sm font-semibold bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-50"
               >
                 Next <ChevronRightIcon size={16} />
               </button>

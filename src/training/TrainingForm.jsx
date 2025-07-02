@@ -207,23 +207,22 @@ export default function TrainingForm() {
 
       <main className="flex-grow container mx-auto p-4 sm:p-6 lg:p-8">
         <div className="max-w-4xl mx-auto">
-          <div className="flex items-center justify-start">
+          {/* --- RESPONSIVE Header --- */}
+          <div className="flex items-start gap-4 mb-8">
             <button
               onClick={handleGoBack}
-              className="mr-4 -mt-5 p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700"
+              className="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 flex-shrink-0"
             >
               <span className="text-slate-600 dark:text-slate-300">
                 <BackIcon />
               </span>
             </button>
-            <div className="mb-8">
-              <h1 className="text-3xl font-bold text-slate-800 dark:text-slate-100">
-                {" "}
-                Create New Training Module{" "}
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-slate-800 dark:text-slate-100">
+                Create New Training Module
               </h1>
               <p className="text-slate-500 dark:text-slate-400 mt-1">
-                {" "}
-                Design a training module with content, quizzes, and assignments.{" "}
+                Design a training module with content, quizzes, and assignments.
               </p>
             </div>
           </div>

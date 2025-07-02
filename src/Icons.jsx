@@ -950,3 +950,20 @@ export const BookHeartIcon = ({ size = 48 }) => (
     <path d="M16 18.5a2.4 2.4 0 0 1-4 0 2.4 2.4 0 0 1 4 0Z" />{" "}
   </svg>
 );
+
+export const SortIcon = ({ size = 20 }) => (
+  <svg
+    width={size}
+    height={size}
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+      d="M8 9l4-4 4 4m0 6l-4 4-4-4"
+    />
+  </svg>
+);

@@ -18,15 +18,11 @@ import {
 const getCarers = async (token) => {
   try {
     const res = await getCaregivers(token);
-
-    return res.data; // Return caregiver data
+    return res.data;
   } catch (error) {
-    // If it's a known error (404)
     if (error.response && error.response.status === 404) {
       throw new Error("No caregivers found.");
     }
-
-    // If it's any other error (e.g., 500, network issue)
     throw new Error("Unable to fetch caregivers. Please try again later.");
   }
 };
@@ -43,7 +39,7 @@ export default function PatientForm() {
     diagnosis: "",
     address: { street: "", city: "", state: "", postalCode: "", country: "" },
     notes: "",
-    caregiver: "", // Added caregiver to initial state
+    assignedCaregiver: "", // Renamed for clarity, matches edit page
   };
   const [form, setForm] = useState(initialFormState);
   const [loading, setLoading] = useState(false);
@@ -62,9 +58,8 @@ export default function PatientForm() {
       try {
         const data = await getCarers(token);
         setCaregivers(data);
-        setError(""); // clear any previous errors
+        setError("");
       } catch (err) {
-        // expected error messages (from your `getCaregivers`)
         setError(err.message || "Something went wrong.");
       }
     };
@@ -84,6 +79,7 @@ export default function PatientForm() {
     const { name, value } = e.target;
     setForm({ ...form, address: { ...form.address, [name]: value } });
   };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -102,17 +98,21 @@ export default function PatientForm() {
     setLoading(true);
 
     try {
-      await createPatient(form, token);
+      const dataToSend = { ...form, caregiver: form.assignedCaregiver };
+      await createPatient(dataToSend, token);
       setSuccess("Patient registered successfully!");
       setForm(initialFormState);
-      setTimeout(() => setSuccess(""), 2000);
-      navigate("/patients");
+      setTimeout(() => {
+        setSuccess("");
+        navigate("/patients");
+      }, 1500); // Navigate after success message
     } catch (err) {
-      setError(err.message); // Show real error message from backend
+      setError(err.message || "Failed to create patient.");
     } finally {
       setLoading(false);
     }
   };
+
   const handleGoBack = () => {
     if (window.history.state && window.history.length > 1) {
       navigate(-1);
@@ -126,17 +126,18 @@ export default function PatientForm() {
       <Header />
       <main className="flex-grow container mx-auto p-4 sm:p-6 lg:p-8">
         <div className="max-w-4xl mx-auto">
-          <div className="flex items-center">
+          {/* RESPONSIVE: Cleaned up header alignment for all screen sizes */}
+          <div className="flex items-start gap-4 mb-8">
             <button
               onClick={handleGoBack}
-              className="mr-4 p-2 -mt-6 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700"
+              className="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700"
             >
               <span className="text-slate-600 dark:text-slate-300">
                 <BackIcon />
               </span>
             </button>
-            <div className="mb-8">
-              <h1 className="text-3xl font-bold text-slate-800 dark:text-slate-100">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-slate-800 dark:text-slate-100">
                 Register New Patient
               </h1>
               <p className="text-slate-500 dark:text-slate-400 mt-1">
@@ -149,20 +150,22 @@ export default function PatientForm() {
             onSubmit={handleSubmit}
             className="bg-white dark:bg-slate-800 p-6 sm:p-8 rounded-xl shadow-sm space-y-8"
           >
-            {/* Personal Information */}
+            {/* --- Personal Information --- */}
             <fieldset className="space-y-6">
-              <legend className="text-lg font-semibold text-[#1D2056] dark:text-slate-200 border-b border-slate-200 dark:border-slate-700 pb-2">
+              <legend className="text-lg font-semibold text-[#1D2056] dark:text-slate-200 border-b border-slate-200 dark:border-slate-700 pb-2 mb-4">
                 Personal & Contact Info
               </legend>
+              {/* NOTE: This grid is already responsive, no changes needed */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <div>
                   <label
                     htmlFor="name"
-                    className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 after:content-['*'] after:text-red-500 after:ml-0.5 after:font-bold"
+                    className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 after:content-['*'] after:text-red-500 after:ml-0.5"
                   >
                     Full Name
                   </label>
                   <div className="relative">
+                    {/* RESPONSIVE: Vertically centered icon */}
                     <span className="absolute top-[70%] left-3 -translate-y-1/2 text-slate-400">
                       <UserIcon />
                     </span>
@@ -173,18 +176,19 @@ export default function PatientForm() {
                       onChange={handleChange}
                       placeholder="Eleanor Vance"
                       required
-                      className="w-full pl-10 pr-4 text-slate-800 dark:text-slate-200 py-3 bg-slate-100 dark:bg-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
+                      className="w-full pl-10 pr-4 py-3 text-slate-800 dark:text-slate-200 bg-slate-100 dark:bg-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
                     />
                   </div>
                 </div>
                 <div>
                   <label
                     htmlFor="age"
-                    className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 after:content-['*'] after:text-red-500 after:ml-0.5 after:font-bold"
+                    className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 after:content-['*'] after:text-red-500 after:ml-0.5"
                   >
                     Age
                   </label>
                   <div className="relative">
+                    {/* RESPONSIVE: Vertically centered icon */}
                     <span className="absolute top-[70%] left-3 -translate-y-1/2 text-slate-400">
                       <HashIcon />
                     </span>
@@ -200,39 +204,41 @@ export default function PatientForm() {
                     />
                   </div>
                 </div>
-                <div className="relative">
+                <div>
                   <label
                     htmlFor="gender"
-                    className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 after:content-['*'] after:text-red-500 after:ml-0.5 after:font-bold"
+                    className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 after:content-['*'] after:text-red-500 after:ml-0.5"
                   >
                     Gender
                   </label>
-                  <select
-                    id="gender"
-                    name="gender"
-                    value={form.gender}
-                    onChange={handleChange}
-                    required
-                    className="w-full p-3 bg-slate-100 text-slate-800 dark:text-slate-200 dark:bg-slate-700 rounded-lg focus:outline-none appearance-none focus:ring-2 focus:ring-[#FE4982]"
-                  >
-                    <option>Male</option>
-                    <option>Female</option>
-                    <option>Other</option>
-                  </select>
-                  <div className="pointer-events-none absolute inset-y-0 top-6 right-3 flex items-center text-slate-400">
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      viewBox="0 0 24 24"
+                  <div className="relative">
+                    <select
+                      id="gender"
+                      name="gender"
+                      value={form.gender}
+                      onChange={handleChange}
+                      required
+                      className="w-full pl-4 pr-10 py-3 bg-slate-100 text-slate-800 dark:text-slate-200 dark:bg-slate-700 rounded-lg appearance-none focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M19 9l-7 7-7-7"
-                      />
-                    </svg>
+                      <option>Male</option>
+                      <option>Female</option>
+                      <option>Other</option>
+                    </select>
+                    <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-slate-400">
+                      <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M19 9l-7 7-7-7"
+                        />
+                      </svg>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -240,11 +246,12 @@ export default function PatientForm() {
                 <div>
                   <label
                     htmlFor="phone"
-                    className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 after:content-['*'] after:text-red-500 after:ml-0.5 after:font-bold"
+                    className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 after:content-['*'] after:text-red-500 after:ml-0.5"
                   >
                     Phone
                   </label>
                   <div className="relative">
+                    {/* RESPONSIVE: Vertically centered icon */}
                     <span className="absolute top-[70%] left-3 -translate-y-1/2 text-slate-400">
                       <PhoneIcon />
                     </span>
@@ -263,11 +270,12 @@ export default function PatientForm() {
                 <div>
                   <label
                     htmlFor="email"
-                    className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 after:content-['*'] after:text-red-500 after:ml-0.5 after:font-bold"
+                    className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 after:content-['*'] after:text-red-500 after:ml-0.5"
                   >
                     Email
                   </label>
                   <div className="relative">
+                    {/* RESPONSIVE: Vertically centered icon */}
                     <span className="absolute top-[70%] left-3 -translate-y-1/2 text-slate-400">
                       <MailIcon />
                     </span>
@@ -286,19 +294,20 @@ export default function PatientForm() {
               </div>
             </fieldset>
 
-            {/* Address Information */}
+            {/* --- Address Information --- */}
             <fieldset className="space-y-6">
-              <legend className="text-lg font-semibold text-[#1D2056] dark:text-slate-200 border-b border-slate-200 dark:border-slate-700 pb-2">
+              <legend className="text-lg font-semibold text-[#1D2056] dark:text-slate-200 border-b border-slate-200 dark:border-slate-700 pb-2 mb-4">
                 Address
               </legend>
               <div>
                 <label
                   htmlFor="street"
-                  className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 after:content-['*'] after:text-red-500 after:ml-0.5 after:font-bold"
+                  className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 after:content-['*'] after:text-red-500 after:ml-0.5"
                 >
                   Street Address
                 </label>
                 <div className="relative">
+                  {/* RESPONSIVE: Vertically centered icon */}
                   <span className="absolute top-[70%] left-3 -translate-y-1/2 text-slate-400">
                     <MapPinIcon />
                   </span>
@@ -317,7 +326,7 @@ export default function PatientForm() {
                 <div>
                   <label
                     htmlFor="city"
-                    className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 after:content-['*'] after:text-red-500 after:ml-0.5 after:font-bold"
+                    className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 after:content-['*'] after:text-red-500 after:ml-0.5"
                   >
                     City
                   </label>
@@ -366,7 +375,7 @@ export default function PatientForm() {
                 <div>
                   <label
                     htmlFor="country"
-                    className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 after:content-['*'] after:text-red-500 after:ml-0.5 after:font-bold"
+                    className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 after:content-['*'] after:text-red-500 after:ml-0.5"
                   >
                     Country
                   </label>
@@ -383,9 +392,9 @@ export default function PatientForm() {
               </div>
             </fieldset>
 
-            {/* Medical Information */}
+            {/* --- Medical Information --- */}
             <fieldset className="space-y-6">
-              <legend className="text-lg font-semibold text-[#1D2056] dark:text-slate-200 border-b border-slate-200 dark:border-slate-700 pb-2">
+              <legend className="text-lg font-semibold text-[#1D2056] dark:text-slate-200 border-b border-slate-200 dark:border-slate-700 pb-2 mb-4">
                 Medical & Admin
               </legend>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -397,6 +406,7 @@ export default function PatientForm() {
                     Primary Diagnosis
                   </label>
                   <div className="relative">
+                    {/* RESPONSIVE: Vertically centered icon */}
                     <span className="absolute top-[70%] left-3 -translate-y-1/2 text-slate-400">
                       <ActivityIcon />
                     </span>
@@ -410,44 +420,45 @@ export default function PatientForm() {
                     />
                   </div>
                 </div>
-                {/* --- NEW CAREGIVER FIELD --- */}
-                <div className="relative">
+                <div>
                   <label
-                    htmlFor="caregiver"
+                    htmlFor="assignedCaregiver"
                     className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                   >
                     Assign Caregiver
                   </label>
-                  <select
-                    id="caregiver"
-                    name="caregiver"
-                    value={form.caregiver}
-                    onChange={handleChange}
-                    className="w-full p-3 bg-slate-100 text-slate-800 dark:text-slate-200 dark:bg-slate-700 rounded-lg focus:outline-none appearance-none focus:ring-2 focus:ring-[#FE4982]"
-                  >
-                    <option value="" disabled>
-                      Select a caregiver
-                    </option>
-                    {caregivers.map((caregiver) => (
-                      <option key={caregiver._id} value={caregiver._id}>
-                        {caregiver.name}
-                      </option>
-                    ))}
-                  </select>
-                  <div className="pointer-events-none absolute inset-y-0 top-6 right-3 flex items-center text-slate-400">
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      viewBox="0 0 24 24"
+                  <div className="relative">
+                    <select
+                      id="assignedCaregiver"
+                      name="assignedCaregiver"
+                      value={form.assignedCaregiver}
+                      onChange={handleChange}
+                      className="w-full pl-4 pr-10 py-3 bg-slate-100 text-slate-800 dark:text-slate-200 dark:bg-slate-700 rounded-lg appearance-none focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M19 9l-7 7-7-7"
-                      />
-                    </svg>
+                      <option value="" disabled>
+                        Select a caregiver
+                      </option>
+                      {caregivers.map((caregiver) => (
+                        <option key={caregiver._id} value={caregiver._id}>
+                          {caregiver.name}
+                        </option>
+                      ))}
+                    </select>
+                    <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-slate-400">
+                      <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M19 9l-7 7-7-7"
+                        />
+                      </svg>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -470,6 +481,7 @@ export default function PatientForm() {
               </div>
             </fieldset>
 
+            {/* --- Form Actions --- */}
             <div className="pt-6 border-t border-slate-200 dark:border-slate-700 space-y-4">
               {error && (
                 <p className="text-red-500 dark:text-red-400 text-sm text-center">
@@ -481,18 +493,19 @@ export default function PatientForm() {
                   {success}
                 </p>
               )}
-              <div className="flex justify-end gap-4">
+              {/* RESPONSIVE: Button container stacks on mobile and reverses order for better UX */}
+              <div className="flex flex-col-reverse sm:flex-row justify-end gap-4">
                 <button
                   type="button"
-                  onClick={() => navigate(-1)}
-                  className="bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold py-2 px-6 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600"
+                  onClick={handleGoBack}
+                  className="w-full sm:w-auto flex justify-center items-center bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold py-3 px-6 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full sm:w-auto bg-[#FE4982] text-white font-bold py-2 sm:px-6 px-2  rounded-lg flex items-center justify-center gap-2 hover:bg-[#E03A6D] disabled:bg-opacity-60"
+                  className="w-full sm:w-auto bg-[#FE4982] text-white font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2 hover:bg-[#E03A6D] disabled:bg-opacity-60"
                 >
                   {loading ? (
                     "Saving..."
