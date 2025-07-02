@@ -38,7 +38,8 @@ const DashboardCard = ({ title, to, icon, description, colorClass }) => {
 // --- Main Dashboard Page ---
 export default function Dashboard() {
   document.title = "Dashboard | Care Management System";
-  const { data: user } = useUser(); // Using the custom hook to fetch user data
+  const { userQuery } = useUser(); // Using the custom hook to fetch user data
+  const { data: user } = userQuery; // Destructure user data and loading state
   const [error, setError] = useState(""); // State to hold error messages
   const navigate = useNavigate();
   const location = useLocation();

@@ -7,6 +7,11 @@ export const login = async (data) => await axios.post(`${API}/login`, data);
 export const register = async (data) =>
   await axios.post(`${API}/register`, data);
 
+export const updateUser = async (data, token) =>
+  await axios.post(`${API}/update`, data, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
 export const getMe = async (token) =>
   await axios.get(`${API}/me`, {
     headers: { Authorization: `Bearer ${token}` },

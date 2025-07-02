@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, Link, useParams, NavLink } from "react-router-dom";
+import { useNavigate, Link, useParams } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { getPatient } from "../services/patient";
@@ -9,16 +9,17 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
   InvoiceIcon,
+  AlertTriangleIcon, // Kept for modal in case of future use
 } from "../Icons";
 
 const PatientDetailsSkeleton = () => (
   <div className="animate-pulse max-w-4xl mx-auto">
     <div className="bg-white dark:bg-slate-800 p-6 sm:p-8 rounded-xl shadow-sm">
       <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 sm:gap-8">
-        <div className="w-32 h-32 rounded-full bg-slate-200 dark:bg-slate-700 flex-shrink-0"></div>
-        <div className="w-full space-y-3 pt-2">
-          <div className="h-8 w-3/4 bg-slate-200 dark:bg-slate-700 rounded-md"></div>
-          <div className="h-5 w-1/2 bg-slate-200 dark:bg-slate-700 rounded-md"></div>
+        <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-slate-200 dark:bg-slate-700 flex-shrink-0"></div>
+        <div className="w-full space-y-3 pt-2 text-center sm:text-left">
+          <div className="h-8 w-3/4 bg-slate-200 dark:bg-slate-700 rounded-md mx-auto sm:mx-0"></div>
+          <div className="h-5 w-1/2 bg-slate-200 dark:bg-slate-700 rounded-md mx-auto sm:mx-0"></div>
         </div>
       </div>
     </div>
@@ -30,13 +31,12 @@ const PatientDetailsSkeleton = () => (
   </div>
 );
 
-// --- NEW: SKELETON FOR THE INVOICE LIST ---
 const InvoiceSkeleton = () => (
   <div className="animate-pulse space-y-2 p-4 bg-white dark:bg-slate-800 rounded-xl shadow-sm">
     {[...Array(3)].map((_, i) => (
       <div
         key={i}
-        className="h-14 bg-slate-100 dark:bg-slate-700/50 rounded-lg flex items-center justify-between p-4 space-x-4"
+        className="h-16 bg-slate-100 dark:bg-slate-700/50 rounded-lg flex items-center justify-between p-4 space-x-4"
       >
         <div className="flex-1 space-y-2">
           <div className="h-4 bg-slate-200 dark:bg-slate-600 rounded w-1/3"></div>
@@ -49,7 +49,6 @@ const InvoiceSkeleton = () => (
   </div>
 );
 
-// --- NEW: REUSABLE COMPONENT FOR THE INVOICE LIST ---
 const InvoicesList = ({ invoices }) => {
   const getStatusBadge = (status) => {
     switch (status?.toLowerCase()) {
@@ -69,7 +68,7 @@ const InvoicesList = ({ invoices }) => {
           {invoices.map((invoice) => (
             <div
               key={invoice._id}
-              className="flex items-center gap-4 py-3 group"
+              className="flex flex-col sm:flex-row items-start sm:items-center gap-4 py-3 group"
             >
               <div className="flex-grow">
                 <p className="font-bold text-slate-800 dark:text-slate-100">{`Invoice #${invoice.invID}`}</p>
@@ -77,25 +76,27 @@ const InvoicesList = ({ invoices }) => {
                   Due: {new Date(invoice.dueDate).toLocaleDateString()}
                 </p>
               </div>
-              <div className="text-slate-800 dark:text-slate-200 font-semibold">
-                ${invoice.totalAmount.toFixed(2)}
-              </div>
-              <div>
-                <span
-                  className={`px-3 py-1 text-xs font-semibold rounded-full ${getStatusBadge(
-                    invoice.status
-                  )}`}
+              <div className="w-full sm:w-auto flex items-center justify-between sm:justify-end gap-4">
+                <div className="text-slate-800 dark:text-slate-200 font-semibold">
+                  ${invoice.totalAmount.toFixed(2)}
+                </div>
+                <div>
+                  <span
+                    className={`px-3 py-1 text-xs font-semibold rounded-full ${getStatusBadge(
+                      invoice.status
+                    )}`}
+                  >
+                    {invoice.status}
+                  </span>
+                </div>
+                <Link
+                  to={`/invoices/${invoice.invID}`}
+                  className="text-slate-400 group-hover:text-[#FE4982] dark:hover:text-white p-2"
+                  title="View Full Invoice"
                 >
-                  {invoice.status}
-                </span>
+                  <ChevronRightIcon />
+                </Link>
               </div>
-              <Link
-                to={`/invoices/${invoice.invID}`}
-                className="text-slate-400 group-hover:text-[#FE4982] dark:hover:text-white p-2"
-                title="View Full Invoice"
-              >
-                <ChevronRightIcon />
-              </Link>
             </div>
           ))}
         </div>
@@ -110,18 +111,20 @@ const InvoicesList = ({ invoices }) => {
   );
 };
 
-// --- Main Patient Details Page Component ---
 export default function PatientDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { data: user } = useUser(); // Using the custom hook to fetch user data
+  const { userQuery } = useUser();
+  const { data: user } = userQuery;
   const [patient, setPatient] = useState(null);
   const [loading, setLoading] = useState(true);
-  document.title = `Patient ${
-    patient ? patient.name : ""
-  } | Care Management System`;
 
-  // --- NEW: STATE FOR INVOICES ---
+  useEffect(() => {
+    document.title = patient
+      ? `Patient ${patient.name} | Care Management`
+      : "Patient Details | Care Management";
+  }, [patient]);
+
   const [invoices, setInvoices] = useState([]);
   const [invoicesLoading, setInvoicesLoading] = useState(true);
   const [invoicesError, setInvoicesError] = useState("");
@@ -131,34 +134,27 @@ export default function PatientDetails() {
   useEffect(() => {
     const fetchDetails = async () => {
       if (!id || !token) {
-        navigate("/patients"); // Redirect if no ID or token
+        navigate("/patients");
         return;
       }
 
       setLoading(true);
-      setInvoicesLoading(true); // Start loading both patient and invoices
+      setInvoicesLoading(true);
 
       try {
-        // Fetch patient details first
         const patientResponse = await getPatient(id, token);
         setPatient(patientResponse.data);
 
-        // --- NEW: FETCH INVOICES FOR THIS PATIENT ---
-        // Uncomment the line below when your actual API is ready
-        try {
+        // This assumes the patient object contains their invoices
+        if (patientResponse.data.invoices) {
           setInvoices(patientResponse.data.invoices);
-        } catch (error) {
-          console.error("Error fetching invoices:", error);
-          setInvoicesError("Failed to load invoices for this patient.");
         }
       } catch (error) {
         console.error("Error fetching patient data:", error);
-        // You can set a specific error for patient or invoices if you prefer
-        // For simplicity, we'll redirect on major failure
         navigate("/patients");
       } finally {
         setLoading(false);
-        setInvoicesLoading(false); // Stop invoice loading
+        setInvoicesLoading(false);
       }
     };
 
@@ -183,7 +179,7 @@ export default function PatientDetails() {
             className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
           >
             <ChevronLeftIcon />
-            Back
+            Back to Patients
           </button>
         </div>
 
@@ -192,19 +188,19 @@ export default function PatientDetails() {
         ) : (
           patient && (
             <div className="max-w-4xl mx-auto">
-              {/* --- Patient Header Card (Unchanged) --- */}
+              {/* --- Patient Header Card --- */}
               <div className="bg-white dark:bg-slate-800 p-6 sm:p-8 rounded-xl shadow-sm">
                 <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 sm:gap-8">
                   <div className="relative flex-shrink-0">
-                    <span className=" flex items-center justify-center w-32 h-32 text-5xl font-bold text-white capitalize rounded-full object-cover border-4 border-white dark:border-slate-700 bg-[#E5447D] shadow-md ">
+                    <span className="flex items-center justify-center w-24 h-24 sm:w-32 sm:h-32 text-4xl sm:text-5xl font-bold text-white capitalize rounded-full object-cover border-4 border-white dark:border-slate-700 bg-[#E5447D] shadow-md">
                       {patient.name
                         ? patient.name.charAt(0).toUpperCase()
                         : "M"}
                     </span>
                   </div>
                   <div className="w-full text-center sm:text-left">
-                    <div className="flex flex-col sm:flex-row justify-between items-center">
-                      <h1 className="text-3xl font-bold text-slate-800 dark:text-slate-100">
+                    <div className="flex flex-col sm:flex-row justify-between items-center gap-2">
+                      <h1 className="text-2xl sm:text-3xl font-bold text-slate-800 dark:text-slate-100">
                         {patient.name}
                       </h1>
                       {user.role === "admin" && (
@@ -232,14 +228,14 @@ export default function PatientDetails() {
                 </div>
               </div>
 
-              {/* --- Details and Actions Grid (Unchanged) --- */}
+              {/* --- Details and Actions Grid --- */}
               <div className="mt-6 grid grid-cols-1 lg:grid-cols-5 gap-6">
                 <div className="lg:col-span-3 space-y-6">
                   <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm">
                     <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-200 border-b border-slate-100 dark:border-slate-700 pb-3 mb-4">
                       Contact & Address
                     </h3>
-                    <dl className="space-y-4">
+                    <dl className="space-y-4 text-sm">
                       <div className="flex justify-between gap-4">
                         <dt className="text-slate-500 dark:text-slate-400">
                           Phone
@@ -278,7 +274,7 @@ export default function PatientDetails() {
                     <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-200 border-b border-slate-100 dark:border-slate-700 pb-3 mb-4">
                       Admin Info
                     </h3>
-                    <dl className="space-y-3">
+                    <dl className="space-y-3 text-sm">
                       <div className="flex justify-between">
                         <dt className="text-slate-500 dark:text-slate-400">
                           Assigned Caregiver
@@ -313,7 +309,7 @@ export default function PatientDetails() {
                 </div>
               </div>
 
-              {/* --- NEW: INVOICE SECTION ADDED AT THE BOTTOM --- */}
+              {/* --- Invoice Section --- */}
               {user && user.role === "admin" && (
                 <div className="mt-8">
                   <div className="flex items-center gap-3 mb-4">

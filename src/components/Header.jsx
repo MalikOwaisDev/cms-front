@@ -6,7 +6,8 @@ import { useQueryClient } from "@tanstack/react-query"; // Add this import
 
 // --- Main Header Component ---
 export default function Header() {
-  const { data: user } = useUser();
+  const { userQuery } = useUser();
+  const { data: user } = userQuery;
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const queryClient = useQueryClient();
