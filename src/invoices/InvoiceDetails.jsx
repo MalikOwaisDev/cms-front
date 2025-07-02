@@ -4,99 +4,14 @@ import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import axios from "axios";
+import { getInvoiceById, markInvoicePaid } from "../services/invoice";
+import {
+  ChevronLeftIcon,
+  PrintIcon,
+  DownloadIcon,
+  CheckCircleIcon,
+} from "../Icons";
 
-const getInvoiceById = async (id, token) => {
-  const res = await axios.get(
-    `${import.meta.env.VITE_API_URL}/api/invoices/${id}`,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }
-  );
-  return { data: res.data };
-};
-const markInvoicePaid = async (id, token) => {
-  const res = await axios.put(
-    `${import.meta.env.VITE_API_URL}/api/invoices/${id}/pay`,
-    {},
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }
-  );
-  console.log(res);
-  // mockInvoice.status = "paid";
-  return { data: { message: "Invoice marked as paid." } };
-};
-
-const ChevronLeftIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="16"
-    height="16"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <polyline points="15 18 9 12 15 6"></polyline>
-  </svg>
-);
-const PrintIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <polyline points="6 9 6 2 18 2 18 9"></polyline>
-    <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
-    <rect x="6" y="14" width="12" height="8"></rect>
-  </svg>
-);
-const DownloadIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-    <polyline points="7 10 12 15 17 10"></polyline>
-    <line x1="12" y1="15" x2="12" y2="3"></line>
-  </svg>
-);
-const CheckCircleIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-    <polyline points="22 4 12 14.01 9 11.01"></polyline>
-  </svg>
-);
 const InvoiceSkeleton = () => (
   <div className="bg-white dark:bg-slate-800 p-8 rounded-xl shadow-sm animate-pulse">
     <div className="flex justify-between items-start mb-8">
@@ -111,22 +26,6 @@ const InvoiceSkeleton = () => (
       <div className="h-12 w-40 bg-slate-200 dark:bg-slate-700 rounded"></div>
     </div>
   </div>
-);
-const BackIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <line x1="19" y1="12" x2="5" y2="12"></line>
-    <polyline points="12 19 5 12 12 5"></polyline>
-  </svg>
 );
 
 const InvoicePrintLayout = ({ invoice }) => (
@@ -259,6 +158,7 @@ const PrintStyles = () => (
 
 export default function InvoiceDetails() {
   const { id } = useParams();
+  document.title = `Invoice ${id} | Care Management System`;
   const navigate = useNavigate();
   const [invoice, setInvoice] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -366,6 +266,14 @@ export default function InvoiceDetails() {
     );
   };
 
+  const handleGoBack = () => {
+    if (window.history.state && window.history.length > 1) {
+      navigate(-1);
+    } else {
+      navigate("/invoices");
+    }
+  };
+
   return (
     <>
       {/* We hide this with a simple `hidden` class now */}
@@ -382,7 +290,7 @@ export default function InvoiceDetails() {
           <div className="max-w-4xl mx-auto">
             <div className="mb-6">
               <button
-                onClick={() => navigate(-1)}
+                onClick={handleGoBack}
                 className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
               >
                 <ChevronLeftIcon />

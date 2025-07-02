@@ -2,152 +2,21 @@ import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import axios from "axios";
+import { useUser } from "../hooks/useUser";
+import {
+  getCarePlans,
+  updateGoalStatus,
+  deleteCarePlan,
+} from "../services/wellness";
+import {
+  PlusIcon,
+  TargetIcon,
+  ClipboardListIcon,
+  BackIcon,
+  EditIcon,
+  TrashIcon,
+} from "../Icons";
 
-const getCarePlans = async (token) => {
-  const res = await axios.get(
-    `${import.meta.env.VITE_API_URL}/api/wellness/care-plan`,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }
-  );
-  return { data: res.data };
-};
-
-const updateGoalStatus = async ({ planId, goalIndex, status }, token) => {
-  const res = await axios.put(
-    `${import.meta.env.VITE_API_URL}/api/wellness/care-plan/goal`,
-    { planId, goalIndex, status },
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }
-  );
-  return { data: res.data };
-};
-
-const deleteCarePlan = async (planId, token) => {
-  // This function now expects the API identifier, which is `careID`
-  const res = await axios.delete(
-    `${import.meta.env.VITE_API_URL}/api/wellness/care-plan/${planId}`,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }
-  );
-  return { data: res.data };
-};
-
-const PlusIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <line x1="12" y1="5" x2="12" y2="19"></line>
-    <line x1="5" y1="12" x2="19" y2="12"></line>
-  </svg>
-);
-const TargetIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="16"
-    height="16"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <circle cx="12" cy="12" r="10"></circle>
-    <circle cx="12" cy="12" r="6"></circle>
-    <circle cx="12" cy="12" r="2"></circle>
-  </svg>
-);
-const ClipboardListIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="48"
-    height="48"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.5"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <rect width="8" height="4" x="8" y="2" rx="1" ry="1" />
-    <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
-    <path d="M12 11h4" />
-    <path d="M12 16h4" />
-    <path d="M8 11h.01" />
-    <path d="M8 16h.01" />
-  </svg>
-);
-const BackIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <line x1="19" y1="12" x2="5" y2="12"></line>
-    <polyline points="12 19 5 12 12 5"></polyline>
-  </svg>
-);
-const EditIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-  </svg>
-);
-
-const TrashIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <polyline points="3 6 5 6 21 6"></polyline>
-    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-    <line x1="10" y1="11" x2="10" y2="17"></line>
-    <line x1="14" y1="11" x2="14" y2="17"></line>
-  </svg>
-);
-
-// --- Loading Skeleton ---
 const CardSkeleton = () => (
   <div className="space-y-6 animate-pulse">
     {[...Array(2)].map((_, i) => (
@@ -167,11 +36,13 @@ const CardSkeleton = () => (
 );
 // --- Care Plan List Page ---
 export default function CarePlanList() {
+  document.title = "Care Plans | Care Management System";
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState(null);
   const [showConfirm, setShowConfirm] = useState(false);
-  const [planToDelete, setPlanToDelete] = useState(null); // This will now store the entire plan object
+  const { data: user } = useUser();
+  const [planToDelete, setPlanToDelete] = useState(null);
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
 
@@ -185,15 +56,22 @@ export default function CarePlanList() {
       navigate("/login");
       return;
     }
+    const fetchPlans = () => {
+      setLoading(true);
+      getCarePlans(token)
+        .then((res) => setPlans(res.data))
+        .catch(console.error)
+        .finally(() => setLoading(false));
+    };
     fetchPlans();
   }, [token, navigate]);
 
-  const fetchPlans = () => {
-    setLoading(true);
-    getCarePlans(token)
-      .then((res) => setPlans(res.data))
-      .catch(console.error)
-      .finally(() => setLoading(false));
+  const handleGoBack = () => {
+    if (window.history.state && window.history.length > 1) {
+      navigate(-1);
+    } else {
+      navigate("/");
+    }
   };
 
   const handleStatusChange = async (planId, goalIndex, status) => {
@@ -282,7 +160,7 @@ export default function CarePlanList() {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
           <div className="flex items-center">
             <button
-              onClick={() => navigate(-1)}
+              onClick={handleGoBack}
               className="mr-4 p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700"
             >
               <span className="text-slate-600 dark:text-slate-300">
@@ -379,15 +257,17 @@ export default function CarePlanList() {
                       to={`/wellness/plans/${plan.careID}`}
                       className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 p-2"
                     >
-                      <EditIcon />
+                      <EditIcon size={20} />
                     </Link>
-                    <button
-                      onClick={() => confirmDeletion(plan)} // Pass the entire plan object
-                      className="text-slate-400 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 p-2"
-                      title="Delete Care Plan"
-                    >
-                      <TrashIcon />
-                    </button>
+                    {user && user.role === "admin" && (
+                      <button
+                        onClick={() => confirmDeletion(plan)} // Pass the entire plan object
+                        className="text-slate-400 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 p-2"
+                        title="Delete Care Plan"
+                      >
+                        <TrashIcon />
+                      </button>
+                    )}
                   </div>
                 </div>
                 <ul className="space-y-3">
@@ -398,7 +278,7 @@ export default function CarePlanList() {
                     >
                       <div className="flex items-center gap-3">
                         <span className="text-slate-400 dark:text-slate-500 flex-shrink-0">
-                          <TargetIcon />
+                          <TargetIcon size={16} />
                         </span>
                         <span className="text-slate-700 dark:text-slate-200">
                           {g.goal}
@@ -421,7 +301,7 @@ export default function CarePlanList() {
                           </select>
                         )}
                         {g.status !== "achieved" && (
-                          <div className="pointer-events-none absolute inset-y-0  right-[6px] flex items-center text-slate-400">
+                          <div className="pointer-events-none absolute inset-y-0 right-[6px] flex items-center text-slate-400">
                             <svg
                               className="w-3 h-3"
                               fill="none"

@@ -2,157 +2,16 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import axios from "axios";
+import { getTraining, markTrainingComplete } from "../services/training";
+import {
+  BookOpenIcon,
+  BackIcon,
+  CalendarIcon,
+  CheckCircleIcon,
+  XCircleIcon,
+  SearchXIcon,
+} from "../Icons";
 
-const getTrainingDetails = async (id, token) => {
-  const res = await axios.get(
-    `${import.meta.env.VITE_API_URL}/api/trainings/${id}`,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }
-  );
-  return { data: res.data };
-};
-
-const submitQuizAndComplete = async (trainingId, token) => {
-  const res = await axios.put(
-    `${import.meta.env.VITE_API_URL}/api/trainings/complete/${trainingId}`,
-    {},
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }
-  );
-
-  return {
-    data: { message: "Training completed successfully!", data: res.data },
-  };
-};
-
-// --- ICONS ---
-const ChevronLeftIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="16"
-    height="16"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <polyline points="15 18 9 12 15 6"></polyline>
-  </svg>
-);
-const BookOpenIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
-    <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
-  </svg>
-);
-const BackIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <line x1="19" y1="12" x2="5" y2="12"></line>
-    <polyline points="12 19 5 12 12 5"></polyline>
-  </svg>
-);
-const CalendarIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    {" "}
-    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>{" "}
-    <line x1="16" y1="2" x2="16" y2="6"></line>{" "}
-    <line x1="8" y1="2" x2="8" y2="6"></line>{" "}
-    <line x1="3" y1="10" x2="21" y2="10"></line>{" "}
-  </svg>
-);
-const CheckCircleIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    {" "}
-    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>{" "}
-    <polyline points="22 4 12 14.01 9 11.01"></polyline>{" "}
-  </svg>
-);
-const XCircleIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <circle cx="12" cy="12" r="10"></circle>
-    <line x1="15" y1="9" x2="9" y2="15"></line>
-    <line x1="9" y1="9" x2="15" y2="15"></line>
-  </svg>
-);
-const SearchXIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="48"
-    height="48"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.5"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <circle cx="11" cy="11" r="8"></circle>
-    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-    <line x1="14" y1="8" x2="8" y2="14"></line>
-    <line x1="8" y1="8" x2="14" y2="14"></line>
-  </svg>
-);
-
-// --- Skeleton Loader ---
 const TrainingDetailSkeleton = () => (
   <div className="animate-pulse">
     <div className="h-8 bg-slate-200 dark:bg-slate-700 rounded-md w-2/3 mb-4"></div>
@@ -182,6 +41,7 @@ const TrainingDetailSkeleton = () => (
 
 export default function TrainingDetails() {
   const { id } = useParams();
+  document.title = `${id} Training | Care Management System`;
   const navigate = useNavigate();
   const [training, setTraining] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -197,7 +57,7 @@ export default function TrainingDetails() {
       return;
     }
     setLoading(true);
-    getTrainingDetails(id, token)
+    getTraining(id, token)
       .then((res) => setTraining(res.data))
       .catch(console.error)
       .finally(() => setLoading(false));
@@ -221,7 +81,7 @@ export default function TrainingDetails() {
   const handleMarkComplete = async () => {
     setIsCompleting(true);
     try {
-      await submitQuizAndComplete(training._id, token);
+      await markTrainingComplete(training._id, token);
       navigate("/trainings"); // Or wherever you list trainings
     } catch (error) {
       console.error("Failed to submit training", error);
@@ -275,6 +135,14 @@ export default function TrainingDetails() {
     ); // Or a more styled 404 component
   }
 
+  const handleGoBack = () => {
+    if (window.history.state && window.history.length > 1) {
+      navigate(-1);
+    } else {
+      navigate("/trainings");
+    }
+  };
+
   const allQuestionsAnswered =
     Object.keys(answers).length === training.quiz.length;
 
@@ -286,7 +154,7 @@ export default function TrainingDetails() {
           {/* --- Header --- */}
           <div className="flex items-center">
             <button
-              onClick={() => navigate(-1)}
+              onClick={handleGoBack}
               className="mr-4 -mt-6 p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700"
             >
               <span className="text-slate-600 dark:text-slate-300">

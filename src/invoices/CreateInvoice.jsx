@@ -1,114 +1,12 @@
 import { useState, useEffect, useMemo } from "react";
 // Assuming these are set up in your project's routing
-import { useNavigate, Link, NavLink } from "react-router-dom";
+import { useNavigate, Link, NavLink, useSearchParams } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import axios from "axios";
+import { createInvoice } from "../services/invoice";
+import { getPatients } from "../services/patient";
+import { PlusIcon, TrashIcon, SendIcon, BackIcon } from "../Icons";
 
-// --- FORM ICONS ---
-const ChevronLeftIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="16"
-    height="16"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <polyline points="15 18 9 12 15 6"></polyline>
-  </svg>
-);
-const PlusIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <line x1="12" y1="5" x2="12" y2="19"></line>
-    <line x1="5" y1="12" x2="19" y2="12"></line>
-  </svg>
-);
-const TrashIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <polyline points="3 6 5 6 21 6"></polyline>
-    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-  </svg>
-);
-const SendIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <line x1="22" y1="2" x2="11" y2="13"></line>
-    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-  </svg>
-);
-const BackIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <line x1="19" y1="12" x2="5" y2="12"></line>
-    <polyline points="12 19 5 12 12 5"></polyline>
-  </svg>
-);
-
-const getPatients = async (token) => {
-  const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/patients`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-  return { data: res.data };
-};
-const createInvoice = async (invoiceData, token) => {
-  const res = await axios.post(
-    `${import.meta.env.VITE_API_URL}/api/invoices`,
-    invoiceData,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }
-  );
-  return res;
-  // return { data: { message: "Invoice created successfully!" } };
-};
-
-// --- Helper function for default due date ---
 const getDefaultDueDate = () => {
   const date = new Date();
   date.setDate(date.getDate() + 10);
@@ -117,6 +15,9 @@ const getDefaultDueDate = () => {
 
 // --- Main Create Invoice Page Component ---
 export default function CreateInvoice() {
+  document.title = "New Invoice | Care Management System";
+  const [searchParams] = useSearchParams();
+  const patientId = searchParams.get("patientId");
   const navigate = useNavigate();
   const [pID, setpID] = useState("");
   const [services, setServices] = useState([{ description: "", amount: "" }]);
@@ -126,21 +27,17 @@ export default function CreateInvoice() {
   );
   // State for the new due date field
   const [dueDate, setDueDate] = useState(getDefaultDueDate);
-
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const token =
-    typeof window !== "undefined"
-      ? localStorage.getItem("token") || "dummy-token"
-      : "dummy-token";
-
+  const token = localStorage.getItem("token");
   useEffect(() => {
     if (!token) navigate("/login");
     getPatients(token)
       .then((res) => setPatients(res.data))
       .catch((err) => setError("Could not fetch patients."));
-  }, [token, navigate]);
+    setpID(patientId || "");
+  }, [token, navigate, patientId]);
 
   const handleAddService = () =>
     setServices([...services, { description: "", amount: "" }]);
@@ -175,16 +72,12 @@ export default function CreateInvoice() {
         dueDate: dueDate, // <-- Added dueDate to submission data
         status: "unpaid",
       };
-      const res = await createInvoice(invoiceData, token);
-      setSuccess(res.data.message);
-      setpID("");
-      setServices([{ description: "", amount: "" }]);
-      setInvoiceDate(new Date().toISOString().split("T")[0]);
-      setDueDate(getDefaultDueDate()); // Reset due date on success
+      await createInvoice(invoiceData, token);
+      setSuccess("Invoice created successfully!");
       setTimeout(() => {
         navigate("/invoices");
         setSuccess("");
-      }, 4000);
+      }, 2000);
     } catch (err) {
       setError("Failed to create invoice. Please try again.");
     } finally {
@@ -192,6 +85,13 @@ export default function CreateInvoice() {
     }
   };
 
+  const handleGoBack = () => {
+    if (window.history.state && window.history.length > 1) {
+      navigate(-1);
+    } else {
+      navigate("/invoices");
+    }
+  };
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-900 transition-colors duration-300 font-sans">
       <Header />
@@ -201,7 +101,7 @@ export default function CreateInvoice() {
           <div className="flex items-center">
             <div className="mb-6">
               <button
-                onClick={() => navigate(-1)}
+                onClick={handleGoBack}
                 className="mr-4 p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700"
               >
                 <span className="text-slate-600 dark:text-slate-300">

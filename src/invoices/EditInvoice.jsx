@@ -2,140 +2,15 @@ import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate, Link, useParams } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import axios from "axios";
+import { getInvoiceById, updateInvoice } from "../services/invoice";
+import {
+  PlusIcon,
+  TrashIcon,
+  SaveIcon,
+  BackIcon,
+  AlertTriangleIcon,
+} from "../Icons";
 
-// --- ICONS (from original component) ---
-const ChevronLeftIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="16"
-    height="16"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <polyline points="15 18 9 12 15 6"></polyline>
-  </svg>
-);
-const PlusIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <line x1="12" y1="5" x2="12" y2="19"></line>
-    <line x1="5" y1="12" x2="19" y2="12"></line>
-  </svg>
-);
-const TrashIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <polyline points="3 6 5 6 21 6"></polyline>
-    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-  </svg>
-);
-const SaveIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-    <polyline points="17 21 17 13 7 13 7 21"></polyline>
-    <polyline points="7 3 7 8 15 8"></polyline>
-  </svg>
-);
-const BackIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <line x1="19" y1="12" x2="5" y2="12"></line>
-    <polyline points="12 19 5 12 12 5"></polyline>
-  </svg>
-);
-// New Icon for the "Not Found" state
-const AlertTriangleIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="48"
-    height="48"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className="text-amber-500"
-  >
-    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
-    <line x1="12" y1="9" x2="12" y2="13"></line>
-    <line x1="12" y1="17" x2="12.01" y2="17"></line>
-  </svg>
-);
-
-const getInvoiceById = async (invoiceId, token) => {
-  const res = await axios.get(
-    `${import.meta.env.VITE_API_URL}/api/invoices/${invoiceId}`,
-    {
-      headers: { Authorization: `Bearer ${token}` },
-    }
-  );
-  return {
-    data: res.data,
-  };
-};
-
-const updateInvoice = async (invoiceId, invoiceData, token) => {
-  console.log(
-    `Updating invoice ${invoiceId} with token:`,
-    token,
-    "Data:",
-    invoiceData
-  );
-  const res = await axios.put(
-    `${import.meta.env.VITE_API_URL}/api/invoices/${invoiceId}`,
-    invoiceData,
-    {
-      headers: { Authorization: `Bearer ${token}` },
-    }
-  );
-  console.log("Update response:", res.data);
-  return { data: { message: "Invoice updated successfully!" } };
-};
-
-// --- *** NEW: THEMED SKELETON LOADER COMPONENT *** ---
 const InvoiceLoader = () => (
   <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-900 transition-colors duration-300">
     <Header />
@@ -205,7 +80,7 @@ const InvoiceNotFound = ({ invoiceId }) => (
     <main className="flex-grow container mx-auto p-4 flex items-center justify-center">
       <div className="text-center bg-white dark:bg-slate-800 p-12 rounded-xl shadow-md">
         <div className="flex justify-center mb-4">
-          <AlertTriangleIcon />
+          <AlertTriangleIcon size={48} />
         </div>
         <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">
           Invoice Not Found
@@ -232,6 +107,7 @@ const InvoiceNotFound = ({ invoiceId }) => (
 // --- Main Edit Invoice Page Component ---
 export default function EditInvoice() {
   const { id } = useParams();
+  document.title = `Edit ${id} Invoice | Care Management System`;
   const navigate = useNavigate();
 
   // Form state
@@ -314,8 +190,8 @@ export default function EditInvoice() {
         issueDate: invoiceDate,
         dueDate: dueDate,
       };
-      const res = await updateInvoice(id, invoiceData, token);
-      setSuccess(res.data.message);
+      await updateInvoice(id, invoiceData, token);
+      setSuccess("Invoice Updated Sucessfully");
       setTimeout(() => {
         setSuccess("");
         navigate(`/invoices/${id}`);
@@ -327,19 +203,21 @@ export default function EditInvoice() {
     }
   };
 
-  // *** REDESIGNED RENDER LOGIC ***
-
-  // 1. Render the themed skeleton loader while fetching
   if (loading) {
     return <InvoiceLoader />;
   }
 
-  // 2. Render the "Not Found" page if loading is done but invoice doesn't exist
   if (!invoiceExists) {
-    return <InvoiceNotFound invoiceId={invoiceId} />;
+    return <InvoiceNotFound invoiceId={invoiceNumber} />;
   }
 
-  // 3. Render the main page content once data is loaded and exists
+  const handleGoBack = () => {
+    if (window.history.state && window.history.length > 1) {
+      navigate(-1);
+    } else {
+      navigate("/invoices");
+    }
+  };
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-900 transition-colors duration-300 font-sans">
       <Header />
@@ -348,7 +226,7 @@ export default function EditInvoice() {
           <div className="flex items-center ">
             <div className="mb-6">
               <button
-                onClick={() => navigate(-1)}
+                onClick={handleGoBack}
                 className="mr-4 p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700"
               >
                 <span className="text-slate-600 dark:text-slate-300">

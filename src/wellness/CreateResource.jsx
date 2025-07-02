@@ -1,114 +1,20 @@
-import { useState, useEffect } from "react";
-import axios from "axios";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { createResource } from "../services/wellness";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-
-// --- ICONS (Matching the provided design style) ---
-const TitleIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
-    <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
-  </svg>
-);
-const DescriptionIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <line x1="17" y1="10" x2="3" y2="10"></line>
-    <line x1="21" y1="6" x2="3" y2="6"></line>
-    <line x1="21" y1="14" x2="3" y2="14"></line>
-    <line x1="17" y1="18" x2="3" y2="18"></line>
-  </svg>
-);
-const LinkIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.72"></path>
-    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.72-1.72"></path>
-  </svg>
-);
-const CategoryIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <line x1="4" y1="9" x2="20" y2="9"></line>
-    <line x1="4" y1="15" x2="20" y2="15"></line>
-    <line x1="10" y1="3" x2="8" y2="21"></line>
-    <line x1="16" y1="3" x2="14" y2="21"></line>
-  </svg>
-);
-const SaveIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-    <polyline points="17 21 17 13 7 13 7 21"></polyline>
-    <polyline points="7 3 7 8 15 8"></polyline>
-  </svg>
-);
-const BackIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <line x1="19" y1="12" x2="5" y2="12"></line>
-    <polyline points="12 19 5 12 12 5"></polyline>
-  </svg>
-);
+import {
+  TitleIcon,
+  DescriptionIcon,
+  LinkIcon,
+  CategoryIcon,
+  SaveIcon,
+  BackIcon,
+} from "../Icons";
 
 // --- Main Form Component ---
 export default function WellnessResourceForm() {
+  document.title = "New Wellness Resource | Care Management System";
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     title: "",
@@ -147,15 +53,7 @@ export default function WellnessResourceForm() {
     setLoading(true);
     try {
       // Replace with your actual API endpoint
-      const res = await axios.post(
-        `${import.meta.env.VITE_API_URL}/api/wellness/resources`,
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`, // Assuming you store the token in localStorage
-          },
-        }
-      );
+      const res = await createResource(formData, token);
       console.log("Resource created:", res.data);
 
       setSuccess("Wellness resource created successfully!");
@@ -172,6 +70,14 @@ export default function WellnessResourceForm() {
     }
   };
 
+  const handleGoBack = () => {
+    if (window.history.state && window.history.length > 1) {
+      navigate(-1);
+    } else {
+      navigate("/wellness/resources");
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-900 transition-colors duration-300 font-sans">
       <Header />
@@ -181,7 +87,7 @@ export default function WellnessResourceForm() {
           {/* --- Page Header --- */}
           <div className="flex items-center mb-8">
             <button
-              onClick={() => navigate(-1)}
+              onClick={handleGoBack}
               className="mr-4 p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
             >
               <span className="text-slate-600 dark:text-slate-300">

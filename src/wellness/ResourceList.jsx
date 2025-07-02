@@ -2,124 +2,15 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import axios from "axios";
-
-const getResources = async (token) => {
-  // This function is kept as is.
-  const res = await axios.get(
-    `${import.meta.env.VITE_API_URL}/api/wellness/resources`,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }
-  );
-  return { data: res.data };
-};
-
-const getUser = async (token) => {
-  try {
-    const response = await axios.get(
-      `${import.meta.env.VITE_API_URL}/api/auth/me`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-    return response.data;
-  } catch (error) {
-    console.error("Failed to fetch user:", error);
-    throw error;
-  }
-};
-
-const ExternalLinkIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="16"
-    height="16"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    {" "}
-    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>{" "}
-    <polyline points="15 3 21 3 21 9"></polyline>{" "}
-    <line x1="10" y1="14" x2="21" y2="3"></line>{" "}
-  </svg>
-);
-const BookHeartIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="48"
-    height="48"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.5"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    {" "}
-    <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" />{" "}
-    <path d="M16 18.5a2.4 2.4 0 0 1-4 0 2.4 2.4 0 0 1 4 0Z" />{" "}
-  </svg>
-);
-const BackIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    {" "}
-    <line x1="19" y1="12" x2="5" y2="12"></line>{" "}
-    <polyline points="12 19 5 12 12 5"></polyline>{" "}
-  </svg>
-);
-const PlusIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    {" "}
-    <line x1="12" y1="5" x2="12" y2="19"></line>{" "}
-    <line x1="5" y1="12" x2="19" y2="12"></line>{" "}
-  </svg>
-);
-const TrashIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="18"
-    height="18"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    {" "}
-    <polyline points="3 6 5 6 21 6"></polyline>{" "}
-    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>{" "}
-  </svg>
-);
+import { getResources, deleteResource } from "../services/wellness";
+import { useUser } from "../hooks/useUser";
+import {
+  ExternalLinkIcon,
+  BookHeartIcon,
+  BackIcon,
+  PlusIcon,
+  TrashIcon,
+} from "../Icons";
 
 // --- Loading Skeleton ---
 const CardSkeleton = () => (
@@ -194,11 +85,12 @@ const ConfirmationDialog = ({ onConfirm, onCancel }) => {
 
 // --- Wellness Resources Page ---
 export default function ResourceList() {
+  document.title = "Wellness Resources | Care Management System";
   const [resources, setResources] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [resourceToDelete, setResourceToDelete] = useState(null);
-  const [user, setUser] = useState(null);
+  const { data: user } = useUser();
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
 
@@ -207,13 +99,6 @@ export default function ResourceList() {
       navigate("/login");
       return;
     }
-    getUser(token)
-      .then((userData) => {
-        setUser(userData);
-      })
-      .catch((error) => {
-        console.error("Failed to fetch user:", error);
-      });
     getResources(token)
       .then((res) => setResources(res.data))
       .catch(console.error)
@@ -228,16 +113,7 @@ export default function ResourceList() {
   const confirmDelete = async () => {
     if (!resourceToDelete) return;
     try {
-      await axios.delete(
-        `${
-          import.meta.env.VITE_API_URL
-        }/api/wellness/resources/${resourceToDelete}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      await deleteResource(resourceToDelete, token);
       setResources((prev) =>
         prev.filter((res) => res._id !== resourceToDelete)
       );
@@ -281,6 +157,14 @@ export default function ResourceList() {
     );
   };
 
+  const handleGoBack = () => {
+    if (window.history.state && window.history.length > 1) {
+      navigate(-1);
+    } else {
+      navigate("/");
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-900 transition-colors duration-300 font-sans">
       <Header />
@@ -289,7 +173,7 @@ export default function ResourceList() {
         {/* ... (Your existing header and page title JSX remains unchanged) */}
         <div className="flex items-center">
           <button
-            onClick={() => navigate(-1)}
+            onClick={handleGoBack}
             className="mr-4 -mt-6 p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
           >
             <span className="text-slate-600 dark:text-slate-300">
@@ -336,7 +220,7 @@ export default function ResourceList() {
                         onClick={() => handleDeleteClick(res._id)}
                         className="p-2 rounded-full text-red-500 hover:bg-red-100 dark:hover:bg-red-900/40"
                       >
-                        <TrashIcon />
+                        <TrashIcon size={18} />
                       </button>
                     )}
                   </div>

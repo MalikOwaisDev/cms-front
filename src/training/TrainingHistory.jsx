@@ -2,147 +2,17 @@ import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import axios from "axios";
-
-// --- API Service ---
-const getTrainings = async (token) => {
-  const res = await axios.get(
-    `${import.meta.env.VITE_API_URL}/api/trainings/history`,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }
-  );
-  return { data: res.data };
-};
-
-const getUser = async (token) => {
-  const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/auth/me`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-  return res.data;
-};
-
-// --- ICONS (assuming these are defined as in your original code) ---
-const CheckCircleIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    {" "}
-    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>{" "}
-    <polyline points="22 4 12 14.01 9 11.01"></polyline>{" "}
-  </svg>
-);
-const PlusIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    {" "}
-    <line x1="12" y1="5" x2="12" y2="19"></line>{" "}
-    <line x1="5" y1="12" x2="19" y2="12"></line>{" "}
-  </svg>
-);
-const ArchiveIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="48"
-    height="48"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.5"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    {" "}
-    <rect width="20" height="5" x="2" y="3" rx="1" />{" "}
-    <path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8" /> <path d="M10 12h4" />{" "}
-  </svg>
-);
-const ChevronLeftIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="16"
-    height="16"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    {" "}
-    <polyline points="15 18 9 12 15 6"></polyline>{" "}
-  </svg>
-);
-const ChevronRightIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="16"
-    height="16"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    {" "}
-    <polyline points="9 18 15 12 9 6"></polyline>{" "}
-  </svg>
-);
-const SearchIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    {" "}
-    <circle cx="11" cy="11" r="8"></circle>{" "}
-    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>{" "}
-  </svg>
-);
-const BackIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <line x1="19" y1="12" x2="5" y2="12"></line>
-    <polyline points="12 19 5 12 12 5"></polyline>
-  </svg>
-);
+import { getTrainings } from "../services/training";
+import { useUser } from "../hooks/useUser";
+import {
+  CheckCircleIcon,
+  PlusIcon,
+  ArchiveIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  SearchIcon,
+  BackIcon,
+} from "../Icons";
 
 // --- Loading Skeleton ---
 const ListSkeleton = () => (
@@ -167,30 +37,23 @@ const ListSkeleton = () => (
 
 // --- Training History Page ---
 export default function TrainingHistory() {
+  document.title = "Training History | Care Management System";
   const [historyLog, setHistoryLog] = useState([]);
   const [filteredLog, setFilteredLog] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [user, setUser] = useState(null); // <-- NEW: State to hold user info
+  const { data: user } = useUser(); // Use custom hook to fetch user data
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
   const itemsPerPage = 10;
 
   useEffect(() => {
-    let storedUser = null;
-    const fetchUser = async () => {
-      // NEW: Retrieve user info from local storage
-      const res = await getUser(token);
-      if (!token) {
-        navigate("/login");
-        return;
-      }
-      setUser(res);
-      return await storedUser;
-    };
-    storedUser = fetchUser();
-    if (!storedUser) return; // If user fetch fails, exit early
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+    if (!user) return;
     const fetchHistory = async () => {
       await getTrainings(token)
         .then((res) => {
@@ -218,9 +81,9 @@ export default function TrainingHistory() {
             (a, b) => new Date(b.dateCompleted) - new Date(a.dateCompleted)
           );
           // --- NEW: Role-based filtering ---
-          if (storedUser.role === "caregiver") {
+          if (user?.role === "caregiver") {
             const caregiverLog = log.filter(
-              (item) => item.caregiverId === storedUser._id
+              (item) => item.caregiverId === user?._id
             );
             setHistoryLog(caregiverLog);
             setFilteredLog(caregiverLog);
@@ -234,7 +97,7 @@ export default function TrainingHistory() {
         .finally(() => setLoading(false));
     };
     fetchHistory();
-  }, [token, navigate]);
+  }, [token, navigate, user]);
 
   useEffect(() => {
     // This search logic remains unchanged and works for both roles.
@@ -268,6 +131,14 @@ export default function TrainingHistory() {
       ? "Search by training title..."
       : "Search by training or caregiver...";
 
+  const handleGoBack = () => {
+    if (window.history.state && window.history.length > 1) {
+      navigate(-1);
+    } else {
+      navigate("/trainings");
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-900 font-sans">
       <Header />
@@ -275,7 +146,7 @@ export default function TrainingHistory() {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
           <div className="flex items-center">
             <button
-              onClick={() => navigate(-1)}
+              onClick={handleGoBack}
               className="mr-4 p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700"
             >
               <span className="text-slate-600 dark:text-slate-300">
@@ -353,7 +224,7 @@ export default function TrainingHistory() {
                   >
                     <div className="col-span-9 sm:col-span-6 flex items-center gap-4">
                       <span className="text-green-500 flex-shrink-0">
-                        <CheckCircleIcon width={20} height={20} />
+                        <CheckCircleIcon size={24} />
                       </span>
                       <span className="font-semibold text-slate-700 dark:text-slate-200">
                         {log.title}
@@ -407,7 +278,7 @@ export default function TrainingHistory() {
                       disabled={currentPage === totalPages}
                       className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      Next <ChevronRightIcon />
+                      Next <ChevronRightIcon size={16} />
                     </button>
                   </div>
                 </div>

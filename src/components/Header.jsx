@@ -1,95 +1,18 @@
-import axios from "axios";
 import { useState, useEffect, useRef } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
-
-// --- Reusable SVG Icons --- (Code hidden for brevity)
-const SunIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    {" "}
-    <circle cx="12" cy="12" r="5"></circle>{" "}
-    <line x1="12" y1="1" x2="12" y2="3"></line>{" "}
-    <line x1="12" y1="21" x2="12" y2="23"></line>{" "}
-    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>{" "}
-    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>{" "}
-    <line x1="1" y1="12" x2="3" y2="12"></line>{" "}
-    <line x1="21" y1="12" x2="23" y2="12"></line>{" "}
-    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>{" "}
-    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>{" "}
-  </svg>
-);
-const MoonIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    {" "}
-    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>{" "}
-  </svg>
-);
-const MenuIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    {" "}
-    <line x1="3" y1="12" x2="21" y2="12"></line>{" "}
-    <line x1="3" y1="6" x2="21" y2="6"></line>{" "}
-    <line x1="3" y1="18" x2="21" y2="18"></line>{" "}
-  </svg>
-);
-const XIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    {" "}
-    <line x1="18" y1="6" x2="6" y2="18"></line>{" "}
-    <line x1="6" y1="6" x2="18" y2="18"></line>{" "}
-  </svg>
-);
+import { SunIcon, MoonIcon, MenuIcon, XIcon } from "../Icons";
+import { useUser } from "../hooks/useUser"; // your new hook
+import { useQueryClient } from "@tanstack/react-query"; // Add this import
 
 // --- Main Header Component ---
 export default function Header() {
-  // State for mobile menu visibility
+  const { data: user } = useUser();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [user, setUser] = useState({});
-  const [image, setImage] = useState({});
+  const queryClient = useQueryClient();
   const menuRef = useRef(null);
   const toggleRef = useRef(null);
 
-  // State for theme (light/dark mode)
   const navigate = useNavigate();
   const [theme, setTheme] = useState(
     localStorage.getItem("theme") ||
@@ -97,7 +20,7 @@ export default function Header() {
         ? "dark"
         : "light")
   );
-  // Add state for active dropdown and mobile submenu
+
   const [activeDropdown, setActiveDropdown] = useState(null);
   const [activeMobileSubMenu, setActiveMobileSubMenu] = useState(null);
 
@@ -111,33 +34,6 @@ export default function Header() {
     }
     localStorage.setItem("theme", theme);
   }, [theme]);
-
-  useEffect(() => {
-    const fetchUserData = async () => {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        navigate("/login");
-        return;
-      }
-      try {
-        const res = await axios.get(
-          `${import.meta.env.VITE_API_URL}/api/auth/me`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-        setUser(res.data);
-        setImage(res.data.avatar);
-      } catch (err) {
-        console.error("Invalid token", err);
-        localStorage.removeItem("token");
-        navigate("/login");
-      }
-    };
-    fetchUserData();
-  }, [navigate]);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -177,8 +73,9 @@ export default function Header() {
   const handleLogout = () => {
     localStorage.removeItem("token");
     document.cookie = "token=; expires=Thu, 01 Jan 2020 00:00:00 UTC; path=/";
-    navigate("/login");
-    setUser({});
+    // Invalidate the user query to clear out the current user data
+    queryClient.invalidateQueries(["user"]);
+    navigate("/login"); // Redirect to login
   };
 
   const buildMenuItems = (user) => [
@@ -187,7 +84,7 @@ export default function Header() {
       path: "/patients",
       subMenu: [
         { name: "All Patients", path: "/patients" },
-        ...(user.role === "admin"
+        ...(user?.role === "admin"
           ? [{ name: "Add New Patient", path: "/patients/new" }]
           : []),
       ],
@@ -197,7 +94,7 @@ export default function Header() {
       path: "/trainings",
       subMenu: [
         { name: "All Trainings", path: "/trainings" },
-        ...(user.role === "admin"
+        ...(user?.role === "admin"
           ? [{ name: "Create Training", path: "/trainings/create" }]
           : []),
         { name: "Training History", path: "/trainings/history" },
@@ -233,7 +130,7 @@ export default function Header() {
   const menuItems = buildMenuItems(user);
 
   const filteredMenuItems =
-    user.role === "admin"
+    user?.role === "admin"
       ? menuItems
       : menuItems.filter((item) => item.name !== "Invoices");
 
@@ -325,20 +222,20 @@ export default function Header() {
               className="flex items-center space-x-2 hover:opacity-80 transition"
             >
               <div className="w-10 h-10 rounded-full bg-[#FE4982] flex items-center justify-center font-bold text-white">
-                {image ? (
+                {user?.avatar ? (
                   <img
                     className="w-full h-full rounded-full"
-                    src={image}
+                    src={user.avatar}
                     alt={user.name || "User Avatar"}
                   />
                 ) : (
                   <span className="text-xl font-bold">
-                    {user.name ? user.name.charAt(0).toUpperCase() : "M"}
+                    {user?.name ? user.name.charAt(0).toUpperCase() : "M"}
                   </span>
                 )}
               </div>
               <span className="hidden sm:inline font-[600] text-slate-700 dark:text-slate-100">
-                {user.name || user.role}
+                {user?.name || user?.role}
               </span>
             </button>
             {dropdownOpen && (

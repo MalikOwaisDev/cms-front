@@ -2,180 +2,22 @@ import { useState, useEffect } from "react";
 import { useNavigate, Link, NavLink } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import axios from "axios";
+import { createPatient, getCaregivers } from "../services/patient";
 
-const UserIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-    <circle cx="12" cy="7" r="4"></circle>
-  </svg>
-);
-const ActivityIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
-  </svg>
-);
-const HashIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <line x1="4" y1="9" x2="20" y2="9"></line>
-    <line x1="4" y1="15" x2="20" y2="15"></line>
-    <line x1="10" y1="3" x2="8" y2="21"></line>
-    <line x1="16" y1="3" x2="14" y2="21"></line>
-  </svg>
-);
-const PhoneIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
-  </svg>
-);
-const MailIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-    <polyline points="22,6 12,13 2,6"></polyline>
-  </svg>
-);
-const MapPinIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
-    <circle cx="12" cy="10" r="3" />
-  </svg>
-);
-const SaveIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-    <polyline points="17 21 17 13 7 13 7 21"></polyline>
-    <polyline points="7 3 7 8 15 8"></polyline>
-  </svg>
-);
-const BackIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <line x1="19" y1="12" x2="5" y2="12"></line>
-    <polyline points="12 19 5 12 12 5"></polyline>
-  </svg>
-);
+import {
+  UserIcon,
+  ActivityIcon,
+  HashIcon,
+  PhoneIcon,
+  MailIcon,
+  MapPinIcon,
+  SaveIcon,
+  BackIcon,
+} from "../Icons";
 
-const createPatient = async (patientData, token) => {
+const getCarers = async (token) => {
   try {
-    const res = await axios.post(
-      `${import.meta.env.VITE_API_URL}/api/patients/new`,
-      patientData,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
-
-    if (res.status !== 201) {
-      throw new Error("Unexpected response status");
-    }
-
-    return res.data; // Return the actual response data
-  } catch (error) {
-    // Extract detailed error message from backend if available
-    const message =
-      error.response?.data?.message || // Custom error message from server
-      error.response?.data?.error || // Sometimes it's under `error`
-      error.message || // Fallback to generic error
-      "Unknown error occurred";
-
-    console.error("Error creating patient:", message);
-    throw new Error(message); // Re-throw a new error with this message
-  }
-};
-
-const getCaregivers = async (token) => {
-  try {
-    const res = await axios.get(
-      `${import.meta.env.VITE_API_URL}/api/patients/get-carers`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    const res = await getCaregivers(token);
 
     return res.data; // Return caregiver data
   } catch (error) {
@@ -189,16 +31,8 @@ const getCaregivers = async (token) => {
   }
 };
 
-// --- Mock Caregivers Data ---
-// const mockCaregivers = [
-//   { id: "cg1", name: "Dr. Isabella Rossi" },
-//   { id: "cg2", name: "Nurse Liam O'Connell" },
-//   { id: "cg3", name: "Therapist Aisha Khan" },
-//   { id: "cg4", name: "Dr. Kenji Tanaka" },
-// ];
-
-// --- Patient Form Page Component ---
 export default function PatientForm() {
+  document.title = "New Patient | Care Management System";
   const navigate = useNavigate();
   const initialFormState = {
     name: "",
@@ -226,7 +60,7 @@ export default function PatientForm() {
 
     const fetchCaregivers = async () => {
       try {
-        const data = await getCaregivers(token);
+        const data = await getCarers(token);
         setCaregivers(data);
         setError(""); // clear any previous errors
       } catch (err) {
@@ -279,6 +113,13 @@ export default function PatientForm() {
       setLoading(false);
     }
   };
+  const handleGoBack = () => {
+    if (window.history.state && window.history.length > 1) {
+      navigate(-1);
+    } else {
+      navigate("/patients");
+    }
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-900 font-sans">
@@ -287,7 +128,7 @@ export default function PatientForm() {
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center">
             <button
-              onClick={() => navigate(-1)}
+              onClick={handleGoBack}
               className="mr-4 p-2 -mt-6 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700"
             >
               <span className="text-slate-600 dark:text-slate-300">

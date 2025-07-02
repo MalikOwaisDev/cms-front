@@ -2,201 +2,20 @@ import { useState, useEffect } from "react";
 import { useNavigate, Link, NavLink } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import axios from "axios";
-
-const getMe = async (token) => {
-  const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/auth/me`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-  return { data: res.data };
-};
-
-const getTrainings = async (token) => {
-  const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/trainings`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-  return { data: res.data };
-};
-
-const deleteTraining = async (id, token) => {
-  console.log("Deleting training with ID:", id);
-  const res = await axios.delete(
-    `${import.meta.env.VITE_API_URL}/api/trainings/${id}`,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }
-  );
-  console.log("Training deleted:", res.data);
-  return { data: { message: "Training deleted successfully." } };
-};
-
-// --- ICONS ---
-const ClockIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <circle cx="12" cy="12" r="10"></circle>
-    <polyline points="12 6 12 12 16 14"></polyline>
-  </svg>
-);
-const CheckCircleIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-    <polyline points="22 4 12 14.01 9 11.01"></polyline>
-  </svg>
-);
-const BookOpenIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="48"
-    height="48"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.5"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M8 3H2v15h7c1.7 0 3 1.3 3 3V7c0-2.2-1.8-4-4-4Z" />
-    <path d="M16 3h6v15h-7c-1.7 0-3 1.3-3 3V7c0-2.2 1.8-4 4-4Z" />
-    <path d="m9 12 2 2 4-4" />
-  </svg>
-);
-const EditIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="18"
-    height="18"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-  </svg>
-);
-const TrashIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="18"
-    height="18"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <polyline points="3 6 5 6 21 6"></polyline>
-    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-  </svg>
-);
-const PlusIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <line x1="12" y1="5" x2="12" y2="19"></line>
-    <line x1="5" y1="12" x2="19" y2="12"></line>
-  </svg>
-);
-const AlertTriangleIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
-    <line x1="12" y1="9" x2="12" y2="13"></line>
-    <line x1="12" y1="17" x2="12.01" y2="17"></line>
-  </svg>
-);
-const ChevronLeftIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="16"
-    height="16"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <polyline points="15 18 9 12 15 6"></polyline>
-  </svg>
-);
-const ChevronRightIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="16"
-    height="16"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <polyline points="9 18 15 12 9 6"></polyline>
-  </svg>
-);
-const BackIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <line x1="19" y1="12" x2="5" y2="12"></line>
-    <polyline points="12 19 5 12 12 5"></polyline>
-  </svg>
-);
+import { useUser } from "../hooks/useUser";
+import { getTrainings, deleteTraining } from "../services/training";
+import {
+  ClockIcon,
+  CheckCircleIcon,
+  BookOpenIcon,
+  EditIcon,
+  TrashIcon,
+  PlusIcon,
+  AlertTriangleIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  BackIcon,
+} from "../Icons";
 
 const CardSkeleton = () => (
   <div className="space-y-6 animate-pulse">
@@ -222,7 +41,7 @@ const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, children }) => {
         <div className="flex items-start gap-4">
           <div className="flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 dark:bg-red-900/30">
             <span className="h-6 w-6 text-red-600 dark:text-red-400">
-              <AlertTriangleIcon />
+              <AlertTriangleIcon size={24} />
             </span>
           </div>
           <div className="flex-grow">
@@ -257,7 +76,8 @@ const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, children }) => {
 
 // --- Training List Page Component ---
 export default function TrainingList() {
-  const [user, setUser] = useState(null);
+  document.title = "Trainings | Care Management System";
+  const { data: user } = useUser();
   const [allTrainings, setAllTrainings] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -271,12 +91,8 @@ export default function TrainingList() {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const [userRes, trainingsRes] = await Promise.all([
-          getMe(token),
-          getTrainings(token),
-        ]);
-        setUser(userRes.data);
-        setAllTrainings(trainingsRes.data);
+        const res = await getTrainings(token);
+        setAllTrainings(res.data);
       } catch (err) {
         console.error("Failed to load data:", err);
       } finally {
@@ -286,17 +102,17 @@ export default function TrainingList() {
     fetchData();
   }, [token, navigate]);
 
-  // if (loading) {
-  //   return (
-  //     <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-900">
-  //       <Header />
-  //       <main className="flex-grow container mx-auto p-4 sm:p-6 lg:p-8">
-  //         <CardSkeleton />
-  //       </main>
-  //       <Footer />
-  //     </div>
-  //   );
-  // }
+  if (loading) {
+    return (
+      <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-900">
+        <Header />
+        <main className="flex-grow container mx-auto p-4 sm:p-6 lg:p-8">
+          <CardSkeleton />
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   return user?.role === "admin" ? (
     <AdminTrainingView
@@ -344,6 +160,14 @@ const AdminTrainingView = ({ trainings, setTrainings, token, loading }) => {
     setIsModalOpen(true);
   };
 
+  const handleGoBack = () => {
+    if (window.history.state && window.history.length > 1) {
+      navigate(-1);
+    } else {
+      navigate("/");
+    }
+  };
+
   const confirmDelete = async () => {
     if (!trainingToDelete) return;
     try {
@@ -375,7 +199,7 @@ const AdminTrainingView = ({ trainings, setTrainings, token, loading }) => {
       <main className="flex-grow container mx-auto p-4 sm:p-6 lg:p-8">
         <div className="flex items-center mb-8">
           <button
-            onClick={() => navigate(-1)}
+            onClick={handleGoBack}
             className="mr-4 p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700"
           >
             <span className="text-slate-600 dark:text-slate-300">
@@ -462,13 +286,13 @@ const AdminTrainingView = ({ trainings, setTrainings, token, loading }) => {
                       to={`/trainings/edit/${t.tID}`}
                       className="p-2 rounded-full text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-slate-800 dark:hover:text-slate-100"
                     >
-                      <EditIcon />
+                      <EditIcon size={18} />
                     </Link>
                     <button
                       onClick={() => handleDeleteClick(t.tID)}
                       className="p-2 rounded-full text-red-500 hover:bg-red-100 dark:hover:bg-red-900/40"
                     >
-                      <TrashIcon />
+                      <TrashIcon size={18} />
                     </button>
                   </div>
                 </div>
@@ -478,7 +302,7 @@ const AdminTrainingView = ({ trainings, setTrainings, token, loading }) => {
         ) : (
           <div className="flex flex-col text-center py-16 bg-white dark:bg-slate-800/50 rounded-xl">
             <span className="mx-auto text-slate-400 dark:text-slate-500">
-              <BookOpenIcon />
+              <BookOpenIcon size={48} />
             </span>
             <h3 className="mt-4 text-xl font-semibold text-slate-800 dark:text-slate-200">
               No trainings in this category.
@@ -521,7 +345,7 @@ const AdminTrainingView = ({ trainings, setTrainings, token, loading }) => {
                 disabled={currentPage === totalPages}
                 className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Next <ChevronRightIcon />
+                Next <ChevronRightIcon size={16} />
               </button>
             </div>
           </div>
@@ -569,6 +393,13 @@ const CaregiverTrainingView = ({ allTrainings, user, loading }) => {
         <ClockIcon /> Pending
       </div>
     );
+  const handleGoBack = () => {
+    if (window.history.state && window.history.length > 1) {
+      navigate(-1);
+    } else {
+      navigate("/");
+    }
+  };
 
   const filteredTrainings = myTrainings.filter((t) => t.status === filter);
   const totalPages = Math.ceil(filteredTrainings.length / trainingsPerPage);
@@ -583,7 +414,7 @@ const CaregiverTrainingView = ({ allTrainings, user, loading }) => {
       <main className="flex-grow container mx-auto p-4 sm:p-6 lg:p-8">
         <div className="flex items-center">
           <button
-            onClick={() => navigate(-1)}
+            onClick={handleGoBack}
             className="mr-4 -mt-6 p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700"
           >
             <span className="text-slate-600 dark:text-slate-300">
@@ -685,7 +516,7 @@ const CaregiverTrainingView = ({ allTrainings, user, loading }) => {
         ) : (
           <div className="flex flex-col text-center py-16 bg-white dark:bg-slate-800/50 rounded-xl">
             <span className="mx-auto text-slate-400 dark:text-slate-500">
-              <BookOpenIcon />
+              <BookOpenIcon size={48} />
             </span>
             <h3 className="mt-4 text-xl font-semibold text-slate-800 dark:text-slate-200">
               All Clear!
@@ -731,7 +562,7 @@ const CaregiverTrainingView = ({ allTrainings, user, loading }) => {
                 disabled={currentPage === totalPages}
                 className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Next <ChevronRightIcon />
+                Next <ChevronRightIcon size={16} />
               </button>
             </div>
           </div>
