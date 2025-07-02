@@ -2,19 +2,21 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import axios from "axios";
+import { getCaregivers } from "../services/patient";
+import { createTraining } from "../services/training";
+import {
+  BookOpenIcon,
+  BackIcon,
+  AlignLeftIcon,
+  CalendarIcon,
+  SendIcon,
+  PlusIcon,
+  TrashIcon,
+} from "../Icons";
 
-const getCaregivers = async (token) => {
+const getCarers = async (token) => {
   try {
-    const res = await axios.get(
-      `${import.meta.env.VITE_API_URL}/api/patients/get-carers`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    const res = await getCaregivers(token);
     return res.data; // Return caregiver data
   } catch (error) {
     if (error.response && error.response.status === 404) {
@@ -23,166 +25,9 @@ const getCaregivers = async (token) => {
     throw new Error("Unable to fetch caregivers. Please try again later.");
   }
 };
-const createTraining = async (trainingData, token) => {
-  const res = await axios.post(
-    `${import.meta.env.VITE_API_URL}/api/trainings`,
-    trainingData,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }
-  );
-  if (res.status !== 201) {
-    throw new Error("Failed to create training module.");
-  }
-  if (res.status === 403) {
-    throw new Error("UnAuthorized");
-  }
-  return res.data;
-};
-
-// --- ICONS ---
-const ChevronLeftIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="16"
-    height="16"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <polyline points="15 18 9 12 15 6"></polyline>
-  </svg>
-);
-const BookOpenIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    {" "}
-    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>{" "}
-    <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>{" "}
-  </svg>
-);
-const BackIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <line x1="19" y1="12" x2="5" y2="12"></line>
-    <polyline points="12 19 5 12 12 5"></polyline>
-  </svg>
-);
-const AlignLeftIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    {" "}
-    <line x1="17" y1="10" x2="3" y2="10"></line>{" "}
-    <line x1="21" y1="6" x2="3" y2="6"></line>{" "}
-    <line x1="21" y1="14" x2="3" y2="14"></line>{" "}
-    <line x1="17" y1="18" x2="3" y2="18"></line>{" "}
-  </svg>
-);
-const CalendarIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    {" "}
-    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>{" "}
-    <line x1="16" y1="2" x2="16" y2="6"></line>{" "}
-    <line x1="8" y1="2" x2="8" y2="6"></line>{" "}
-    <line x1="3" y1="10" x2="21" y2="10"></line>{" "}
-  </svg>
-);
-const SendIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    {" "}
-    <line x1="22" y1="2" x2="11" y2="13"></line>{" "}
-    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>{" "}
-  </svg>
-);
-const PlusIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="16"
-    height="16"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="3"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    {" "}
-    <line x1="12" y1="5" x2="12" y2="19"></line>{" "}
-    <line x1="5" y1="12" x2="19" y2="12"></line>{" "}
-  </svg>
-);
-const TrashIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="16"
-    height="16"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    {" "}
-    <polyline points="3 6 5 6 21 6"></polyline>{" "}
-    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>{" "}
-  </svg>
-);
-
 // --- Training Form Page Component ---
 export default function TrainingForm() {
+  document.title = "New Training | Care Management System";
   const navigate = useNavigate();
 
   const initialFormState = {
@@ -204,7 +49,7 @@ export default function TrainingForm() {
     if (!token) navigate("/login");
     const fetchCaregivers = async () => {
       try {
-        const data = await getCaregivers(token);
+        const data = await getCarers(token);
         setCaregivers(data);
         setError("");
       } catch (err) {
@@ -348,6 +193,14 @@ export default function TrainingForm() {
     }
   };
 
+  const handleGoBack = () => {
+    if (window.history.state && window.history.length > 1) {
+      navigate(-1);
+    } else {
+      navigate("/trainings");
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-900 transition-colors duration-300 font-sans">
       <Header />
@@ -356,7 +209,7 @@ export default function TrainingForm() {
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center justify-start">
             <button
-              onClick={() => navigate(-1)}
+              onClick={handleGoBack}
               className="mr-4 -mt-5 p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700"
             >
               <span className="text-slate-600 dark:text-slate-300">
@@ -398,7 +251,7 @@ export default function TrainingForm() {
                   {" "}
                   <span className="absolute top-[70%] left-3 -translate-y-1/2 text-slate-400">
                     {" "}
-                    <BookOpenIcon />{" "}
+                    <BookOpenIcon size={20} />{" "}
                   </span>{" "}
                   <input
                     id="title"
@@ -486,7 +339,7 @@ export default function TrainingForm() {
                         className="text-red-500 hover:text-red-700 p-1 rounded-full hover:bg-red-100 dark:hover:bg-red-900/30"
                       >
                         {" "}
-                        <TrashIcon />{" "}
+                        <TrashIcon size={16} />{" "}
                       </button>
                     </div>
                     <input
@@ -527,7 +380,7 @@ export default function TrainingForm() {
                               className="text-slate-500 hover:text-red-600 p-1 rounded-full hover:bg-red-100 dark:hover:bg-red-900/30"
                             >
                               {" "}
-                              <TrashIcon />{" "}
+                              <TrashIcon size={16} />{" "}
                             </button>
                           )}
                         </div>
@@ -538,7 +391,7 @@ export default function TrainingForm() {
                         className="text-sm font-semibold text-[#FE4982] hover:text-[#E03A6D] flex items-center gap-1"
                       >
                         {" "}
-                        <PlusIcon /> Add Option{" "}
+                        <PlusIcon size={16} /> Add Option{" "}
                       </button>
                     </div>
                   </div>
@@ -548,7 +401,7 @@ export default function TrainingForm() {
                   onClick={addQuestion}
                   className="w-full bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold py-3 px-4 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors flex items-center justify-center gap-2"
                 >
-                  <PlusIcon /> Add Question
+                  <PlusIcon size={16} /> Add Question
                 </button>
               </div>
             </fieldset>

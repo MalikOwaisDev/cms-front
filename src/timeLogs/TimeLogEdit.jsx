@@ -2,126 +2,21 @@ import { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import axios from "axios";
-
-// --- ICONS (Reused for consistency) ---
-const UserIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-    <circle cx="12" cy="7" r="4"></circle>
-  </svg>
-);
-const CalendarIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-    <line x1="16" y1="2" x2="16" y2="6"></line>
-    <line x1="8" y1="2" x2="8" y2="6"></line>
-    <line x1="3" y1="10" x2="21" y2="10"></line>
-  </svg>
-);
-const ClockIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <circle cx="12" cy="12" r="10"></circle>
-    <polyline points="12 6 12 12 16 14"></polyline>
-  </svg>
-);
-const EditIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-  </svg>
-);
-const SaveIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-    <polyline points="17 21 17 13 7 13 7 21"></polyline>
-    <polyline points="7 3 7 8 15 8"></polyline>
-  </svg>
-);
-const BackIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <line x1="19" y1="12" x2="5" y2="12"></line>
-    <polyline points="12 19 5 12 12 5"></polyline>
-  </svg>
-);
-
-// --- API Calls ---
-const getTimeLog = (id, token) =>
-  axios.get(`${import.meta.env.VITE_API_URL}/api/time-logs/${id}`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-const getPatients = (token) =>
-  axios.get(`${import.meta.env.VITE_API_URL}/api/patients`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-const updateTimeLog = (id, logData, token) =>
-  axios.put(`${import.meta.env.VITE_API_URL}/api/time-logs/${id}`, logData, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+import { getTimeLog, updateTimeLog } from "../services/timeLog";
+import { getPatients } from "../services/patient";
+import {
+  UserIcon,
+  CalendarIcon,
+  ClockIcon,
+  EditIcon,
+  SaveIcon,
+  BackIcon,
+} from "../Icons";
 
 // --- Edit Time Log Page Component ---
 export default function TimeLogEdit() {
   const { id } = useParams();
+  document.title = `Edit ${id} Time Log | Care Management System`;
   const navigate = useNavigate();
   const [patients, setPatients] = useState([]);
   const [form, setForm] = useState({
@@ -230,6 +125,14 @@ export default function TimeLogEdit() {
     );
   }
 
+  const handleGoBack = () => {
+    if (window.history.state && window.history.length > 1) {
+      navigate(-1);
+    } else {
+      navigate("/timelogs");
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-900 transition-colors duration-300 font-sans">
       <Header />
@@ -237,7 +140,7 @@ export default function TimeLogEdit() {
         <div className="max-w-2xl mx-auto">
           <div className="flex items-center">
             <button
-              onClick={() => navigate(-1)}
+              onClick={handleGoBack}
               className="mr-4 -mt-6 p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700"
             >
               <span className="text-slate-600 dark:text-slate-300">
@@ -374,7 +277,7 @@ export default function TimeLogEdit() {
               </label>
               <div className="relative">
                 <span className="absolute top-4 left-3 text-slate-400">
-                  <EditIcon />
+                  <EditIcon size={20} />
                 </span>
                 <textarea
                   id="description"

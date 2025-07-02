@@ -2,115 +2,16 @@ import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
-import axios from "axios";
+import { useUser } from "./hooks/useUser";
+import {
+  PatientsIcon,
+  TrainingIcon,
+  InvoicesIcon,
+  TimeLogsIcon,
+  WellnessIcon,
+  AlertCircleIcon,
+} from "./Icons";
 
-// --- Reusable SVG Icons for Cards ---
-const PatientsIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
-    <circle cx="9" cy="7" r="4"></circle>
-    <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
-    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-  </svg>
-);
-const TrainingIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="m2 3 2.5 2.5.5.5 2.5 2.5" />
-    <path d="m14 2 6 6-4 4-6-6Z" />
-    <path d="m10 14-1 1-2.5 2.5L2 22" />
-    <path d="m18 6 4 4" />
-    <path d="m20 10-1.5 1.5" />
-  </svg>
-);
-const InvoicesIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
-    <polyline points="14 2 14 8 20 8"></polyline>
-    <line x1="16" y1="13" x2="8" y2="13"></line>
-    <line x1="16" y1="17" x2="8" y2="17"></line>
-  </svg>
-);
-const TimeLogsIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <circle cx="12" cy="12" r="10"></circle>
-    <polyline points="12 6 12 12 16 14"></polyline>
-  </svg>
-);
-const WellnessIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 0 2l-.15.08a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1 0-2l.15-.08a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path>
-    <circle cx="12" cy="12" r="3"></circle>
-  </svg>
-);
-const AlertCircleIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <circle cx="12" cy="12" r="10"></circle>
-    <line x1="12" y1="8" x2="12" y2="12"></line>
-    <line x1="12" y1="16" x2="12.01" y2="16"></line>
-  </svg>
-);
-
-// --- Reusable Dashboard Card Component ---
 const DashboardCard = ({ title, to, icon, description, colorClass }) => {
   return (
     <Link
@@ -136,35 +37,17 @@ const DashboardCard = ({ title, to, icon, description, colorClass }) => {
 
 // --- Main Dashboard Page ---
 export default function Dashboard() {
-  const [user, setUser] = useState(null);
+  document.title = "Dashboard | Care Management System";
+  const { data: user } = useUser(); // Using the custom hook to fetch user data
   const [error, setError] = useState(""); // State to hold error messages
   const navigate = useNavigate();
   const location = useLocation();
 
   useEffect(() => {
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        navigate("/login");
-        return;
-      }
-      const getUser = async () => {
-        const res = await axios.get(
-          `${import.meta.env.VITE_API_URL}/api/auth/me`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-        setUser(res.data); // Mock user data
-      };
-
-      getUser();
-    } catch (e) {
-      // If token decoding fails or another error occurs during setup
-      setError("Your session is invalid or has expired. Please log in again.");
-      console.error("Dashboard initialization failed:", e);
+    const token = localStorage.getItem("token");
+    if (!token) {
+      navigate("/login");
+      return;
     }
   }, [navigate]);
 
@@ -185,34 +68,37 @@ export default function Dashboard() {
   // Loading state
   if (!user && !error) {
     return (
-      <div className="h-screen flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-900 transition-colors duration-300">
-        <div className="flex flex-col items-center justify-center gap-4">
-          {/* Animated SVG Spinner */}
-          <svg
-            className="animate-spin h-10 w-10 text-[#FE4982]"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-          >
-            <circle
-              className="opacity-25"
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              strokeWidth="4"
-            ></circle>
-            <path
-              className="opacity-75"
-              fill="currentColor"
-              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-            ></path>
-          </svg>
+      <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-900 transition-colors duration-300">
+        <Header />
+        <div className="w-full h-[85vh] flex items-center justify-center">
+          <div className="flex flex-col items-center justify-center gap-4">
+            {/* Animated SVG Spinner */}
+            <svg
+              className="animate-spin h-10 w-10 text-[#FE4982]"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              ></circle>
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              ></path>
+            </svg>
 
-          {/* Styled Loading Text */}
-          <p className="text-lg font-medium text-slate-600 dark:text-slate-400">
-            Loading dashboard...
-          </p>
+            {/* Styled Loading Text */}
+            <p className="text-lg font-medium text-slate-600 dark:text-slate-400">
+              Loading dashboard...
+            </p>
+          </div>
         </div>
       </div>
     );
@@ -302,7 +188,7 @@ export default function Dashboard() {
                 Dashboard
               </h1>
               <p className="text-md text-slate-500 dark:text-slate-400 mt-1">
-                Welcome back, {user.name}! Here is your system overview.
+                Welcome back, {user?.name}! Here is your system overview.
               </p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

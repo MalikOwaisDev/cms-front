@@ -2,120 +2,10 @@ import { useState, useEffect, useMemo } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import axios from "axios";
+import { getTimeLogs, deleteTimeLog } from "../services/timeLog";
+import { useUser } from "../hooks/useUser";
+import { PlusIcon, ClockIcon, ViewIcon, DeleteIcon, BackIcon } from "../Icons";
 
-// --- API Calls ---
-const getTimeLogs = async (token) => {
-  const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/time-logs`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-  return { data: res.data };
-};
-
-const getUser = async (token) => {
-  const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/auth/me`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-  return res.data;
-};
-
-const deleteTimeLog = async (logId, token) => {
-  await axios.delete(`${import.meta.env.VITE_API_URL}/api/time-logs/${logId}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-};
-
-// --- SVG ICONS ---
-const PlusIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <line x1="12" y1="5" x2="12" y2="19"></line>
-    <line x1="5" y1="12" x2="19" y2="12"></line>
-  </svg>
-);
-const ClockIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="48"
-    height="48"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.5"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <circle cx="12" cy="12" r="10" />
-    <polyline points="12 6 12 12 16 14" />
-  </svg>
-);
-const ViewIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-    <circle cx="12" cy="12" r="3"></circle>
-  </svg>
-);
-const DeleteIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <polyline points="3 6 5 6 21 6"></polyline>
-    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-    <line x1="10" y1="11" x2="10" y2="17"></line>
-    <line x1="14" y1="11" x2="14" y2="17"></line>
-  </svg>
-);
-const BackIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <line x1="19" y1="12" x2="5" y2="12"></line>
-    <polyline points="12 19 5 12 12 5"></polyline>
-  </svg>
-);
-
-// --- Components ---
 const TableSkeleton = () => (
   <div className="space-y-3 animate-pulse">
     {[...Array(4)].map((_, i) => (
@@ -156,13 +46,13 @@ const ConfirmationDialog = ({ message, onConfirm, onCancel }) => (
   </div>
 );
 
-// --- Main Page Component ---
 export default function TimeLogList() {
+  document.title = "Time Logs | Care Management System";
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortOrder, setSortOrder] = useState("desc");
-  const [user, setUser] = useState(null);
+  const { data: user } = useUser(); // Using the custom hook to fetch user data
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
@@ -172,14 +62,6 @@ export default function TimeLogList() {
       navigate("/login");
       return;
     }
-    getUser(token)
-      .then((res) => {
-        setUser(res);
-      })
-      .catch((error) => {
-        console.error("Failed to fetch user:", error);
-      });
-
     getTimeLogs(token)
       .then((res) => setLogs(res.data))
       .catch(console.error)
@@ -199,6 +81,14 @@ export default function TimeLogList() {
         .then((res) => setLogs(res.data))
         .catch(console.error)
         .finally(() => setLoading(false));
+    }
+  };
+
+  const handleGoBack = () => {
+    if (window.history.state && window.history.length > 1) {
+      navigate(-1);
+    } else {
+      navigate("/");
     }
   };
 
@@ -233,7 +123,7 @@ export default function TimeLogList() {
       <main className="flex-grow container mx-auto p-4 sm:p-6 lg:p-8">
         <div className="flex items-center mb-8">
           <button
-            onClick={() => navigate(-1)}
+            onClick={handleGoBack}
             className="mr-4 p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700"
           >
             <span className="text-slate-600 dark:text-slate-300">
@@ -261,7 +151,6 @@ export default function TimeLogList() {
         </div>
 
         <div className="bg-white dark:bg-slate-800 p-4 sm:p-6 rounded-xl shadow-sm">
-          {/* Search and Sort Controls */}
           <div className="relative flex flex-col md:flex-row gap-4 mb-6 ">
             <input
               type="text"
@@ -375,7 +264,7 @@ export default function TimeLogList() {
           ) : (
             <div className="text-center flex flex-col py-16">
               <span className="mx-auto text-slate-400 dark:text-slate-500">
-                <ClockIcon />
+                <ClockIcon size={48} />
               </span>
               <h3 className="mt-4 text-lg font-semibold text-slate-800 dark:text-slate-200">
                 No Time Logs Found

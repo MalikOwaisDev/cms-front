@@ -3,94 +3,17 @@ import { useNavigate, Link, NavLink } from "react-router-dom";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import axios from "axios";
-
-// --- PAGE ICONS ---
-const ChevronLeftIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="16"
-    height="16"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <polyline points="15 18 9 12 15 6"></polyline>
-  </svg>
-);
-const UserIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-    <circle cx="12" cy="7" r="4"></circle>
-  </svg>
-);
-const CameraIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" />
-    <circle cx="12" cy="13" r="3" />
-  </svg>
-);
-const SaveIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-    <polyline points="17 21 17 13 7 13 7 21"></polyline>
-    <polyline points="7 3 7 8 15 8"></polyline>
-  </svg>
-);
-const BackIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <line x1="19" y1="12" x2="5" y2="12"></line>
-    <polyline points="12 19 5 12 12 5"></polyline>
-  </svg>
-);
+import { useUser } from "./hooks/useUser";
+import { UserIcon, CameraIcon, SaveIcon, BackIcon } from "./Icons";
 
 // --- Profile Page ---
 export default function ProfilePage() {
   const navigate = useNavigate();
-  const [user, setUser] = useState({});
+  const { data: user } = useUser();
   const [isEditMode, setIsEditMode] = useState(false);
+  document.title = `${
+    user && user.name ? user.name : "My"
+  } Profile | Care Management System`; // Set page title
 
   // Form state for editing
   const [formData, setFormData] = useState({});
@@ -136,26 +59,15 @@ export default function ProfilePage() {
         navigate("/login");
         return;
       }
-
-      const res = await axios.get(
-        `${import.meta.env.VITE_API_URL}/api/auth/me`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      setUser(res.data); // Set user
-      setFormData(res.data);
-      setAvatarPreview(res.data.avatar); // Set preview
+      setFormData(user?.data);
+      setAvatarPreview(user?.avatar); // Set preview
     };
 
     getUser().catch((err) => {
       console.error("Failed to fetch user data:", err);
       setError("Failed to load profile data.");
     });
-  }, [navigate]);
+  }, [navigate, user]);
 
   // 💡 Watch for user change and update formData
   useEffect(() => {
@@ -173,6 +85,14 @@ export default function ProfilePage() {
       reader.readAsDataURL(file);
     }
     console.log(file);
+  };
+
+  const handleGoBack = () => {
+    if (window.history.state && window.history.length > 1) {
+      navigate(-1);
+    } else {
+      navigate("/");
+    }
   };
 
   const handleFormChange = (e) => {
@@ -197,7 +117,6 @@ export default function ProfilePage() {
 
     try {
       const res = await updateUserProfile(dataToUpdate);
-      setUser(res.data.user); // Update user state with new data
       setSuccess(res.data.message);
       setIsEditMode(false);
     } catch (err) {
@@ -251,7 +170,7 @@ export default function ProfilePage() {
         <div className="max-w-4xl mx-auto">
           <div className="mb-6 flex items-center">
             <button
-              onClick={() => navigate(-1)}
+              onClick={handleGoBack}
               className="mr-4 -mt-6 p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700"
             >
               <span className="text-slate-600 dark:text-slate-300">
@@ -280,7 +199,7 @@ export default function ProfilePage() {
                   />
                 ) : (
                   <span className=" flex items-center justify-center w-32 h-32 text-3xl font-bold text-white capitalize rounded-full object-cover border-4 border-white dark:border-slate-700 bg-[#E5447D] shadow-md ">
-                    {user.name ? user.name.charAt(0).toUpperCase() : "M"}
+                    {user?.name ? user?.name.charAt(0).toUpperCase() : "M"}
                   </span>
                 )}
 
