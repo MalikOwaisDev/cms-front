@@ -68,7 +68,7 @@ export default function CarePlanForm() {
       await createCarePlan(form, token);
       setSuccess("Care plan created successfully!");
       setTimeout(() => {
-        navigate(`/patients/${form.patient}/wellness`);
+        navigate(`/wellness/plans`);
       }, 1500);
     } catch (err) {
       setError("Failed to create care plan. Please try again.");
