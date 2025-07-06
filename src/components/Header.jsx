@@ -81,6 +81,14 @@ export default function Header() {
 
   const buildMenuItems = (user) => [
     {
+      name: "Visits",
+      path: "/visits",
+      subMenu: [
+        { name: "View Visits", path: "/visits" },
+        { name: "Create Visit", path: "/visits/create" },
+      ],
+    },
+    {
       name: "Patients",
       path: "/patients",
       subMenu: [
@@ -133,7 +141,9 @@ export default function Header() {
   const filteredMenuItems =
     user?.role === "admin"
       ? menuItems
-      : menuItems.filter((item) => item.name !== "Invoices");
+      : menuItems.filter(
+          (item) => item.name !== "Invoices" && item.name !== "Visits"
+        );
 
   const activeLinkStyle = {
     color: "#FE4982",

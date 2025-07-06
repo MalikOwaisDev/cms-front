@@ -35,6 +35,11 @@ import PatientList from "./patients/ListPatients";
 import PatientForm from "./patients/PatientForm";
 import PatientDetails from "./patients/PatientDetails";
 
+//Visits
+import VisitForm from "./visit/VisitForm";
+import VisitsPage from "./visit/VisitsPage";
+import ViewVisitPage from "./visit/ViewVisitPage";
+
 // Fallback
 import NotFound from "./NotFound";
 import PatientEditPage from "./patients/PatientEditDetails";
@@ -154,7 +159,31 @@ function App() {
           </AdminProtectWrapper>
         }
       />
-
+      {/* Visits */}
+      <Route
+        path="/visits/create"
+        element={
+          <AdminProtectWrapper>
+            <VisitForm />
+          </AdminProtectWrapper>
+        }
+      />
+      <Route
+        path="/visits"
+        element={
+          <AdminProtectWrapper>
+            <VisitsPage />
+          </AdminProtectWrapper>
+        }
+      />
+      <Route
+        path="/visits/view/:id"
+        element={
+          <AdminProtectWrapper>
+            <ViewVisitPage />
+          </AdminProtectWrapper>
+        }
+      />
       {/* Fallback */}
       <Route path="*" element={<NotFound />} />
     </Routes>
