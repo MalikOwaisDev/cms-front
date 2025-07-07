@@ -4,6 +4,7 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { useUser } from "../hooks/useUser";
 import { getTrainings, deleteTraining } from "../services/training";
+import { ConfirmationModal } from "../components/ConfirmationModal";
 import {
   ClockIcon,
   CheckCircleIcon,
@@ -11,7 +12,6 @@ import {
   EditIcon,
   TrashIcon,
   PlusIcon,
-  AlertTriangleIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
   BackIcon,
@@ -35,47 +35,6 @@ const CardSkeleton = () => (
     ))}
   </div>
 );
-
-const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, children }) => {
-  if (!isOpen) return null;
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-60 z-50 flex justify-center items-center p-4 font-sans">
-      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl p-6 w-full max-w-md m-4">
-        <div className="flex items-start gap-4">
-          <div className="flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 dark:bg-red-900/30">
-            <span className="h-6 w-6 text-red-600 dark:text-red-400">
-              <AlertTriangleIcon size={24} />
-            </span>
-          </div>
-          <div className="flex-grow">
-            <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">
-              {title}
-            </h3>
-            <div className="mt-2 text-sm text-slate-600 dark:text-slate-400">
-              {children}
-            </div>
-          </div>
-        </div>
-        <div className="mt-6 flex flex-col-reverse sm:flex-row justify-end gap-3">
-          <button
-            type="button"
-            onClick={onClose}
-            className="w-full sm:w-auto justify-center flex items-center bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold py-2 px-5 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600 transition-all"
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            onClick={onConfirm}
-            className="w-full sm:w-auto justify-center flex items-center bg-red-600 text-white font-bold py-2 px-5 rounded-lg hover:bg-red-700 transition-all shadow-sm"
-          >
-            Delete
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
 
 export default function TrainingList() {
   const { userQuery } = useUser();

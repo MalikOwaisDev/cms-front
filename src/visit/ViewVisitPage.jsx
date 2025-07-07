@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import axios from "axios";
-
+import { getVisitById } from "../services/visit";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import {
@@ -73,12 +72,7 @@ export default function ViewVisitPage() {
     const fetchVisitDetails = async () => {
       setLoading(true);
       try {
-        const response = await axios.get(
-          `http://localhost:4000/api/visits/${id}`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
+        const response = await getVisitById(id, token);
         setVisit(response.data.visit);
       } catch (err) {
         console.error("Failed to fetch visit details:", err);
