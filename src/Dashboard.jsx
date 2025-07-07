@@ -423,7 +423,7 @@ export default function Dashboard() {
       const timer = setTimeout(() => {
         setError("");
         window.history.replaceState({}, document.title);
-      }, 5000);
+      }, 2000);
       return () => clearTimeout(timer);
     }
   }, [location.state]);
@@ -726,6 +726,16 @@ export default function Dashboard() {
       },
     },
     {
+      title: "Caregivers",
+      to: "/caregivers",
+      icon: <AlertCircleIcon />,
+      description: "Manage caregiver profiles",
+      colorClass: {
+        bg: "bg-pink-100 dark:bg-pink-900/50",
+        text: "text-pink-600 dark:text-pink-400",
+      },
+    },
+    {
       title: "Training",
       to: "/trainings",
       icon: <TrainingIcon />,
@@ -820,7 +830,9 @@ export default function Dashboard() {
                   </p>
                 ) : visits.length === 0 ? (
                   <div className="text-center py-10 px-6 bg-white dark:bg-slate-800 rounded-xl">
-                    <h3 className="text-lg font-semibold">No Visits Today</h3>
+                    <h3 className="text-lg text-slate-500 font-semibold">
+                      No Visits Today
+                    </h3>
                     <p className="text-slate-500 mt-1">Enjoy your day!</p>
                   </div>
                 ) : (

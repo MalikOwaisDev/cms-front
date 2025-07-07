@@ -2,7 +2,11 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import { createVisit, getCaregivers, getPatients } from "../services/visit";
+import {
+  createVisit,
+  getAvailableCaregivers,
+  getPatients,
+} from "../services/visit";
 import {
   UserIcon,
   PatientIcon, // Assuming you have a patient icon
@@ -52,7 +56,7 @@ export default function VisitForm() {
     const fetchData = async () => {
       try {
         const [caregiversRes, patientsRes] = await Promise.all([
-          getCaregivers(token),
+          getAvailableCaregivers(token),
           getPatients(token),
         ]);
         setCaregivers(caregiversRes.data);

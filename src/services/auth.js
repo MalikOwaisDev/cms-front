@@ -2,10 +2,11 @@ import axios from "axios";
 
 const API = `${import.meta.env.VITE_API_URL}/api/auth`;
 
-export const login = async (data) => await axios.post(`${API}/login`, data);
+export const login = async (data) =>
+  await axios.post(`${API}/login`, data, { withCredentials: true });
 
 export const register = async (data) =>
-  await axios.post(`${API}/register`, data);
+  await axios.post(`${API}/register`, data, { withCredentials: true });
 
 export const updateUser = async (data, token) =>
   await axios.post(`${API}/update`, data, {

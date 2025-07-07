@@ -3,7 +3,39 @@ import { useNavigate } from "react-router-dom";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import { useUser } from "./hooks/useUser";
-import { UserIcon, CameraIcon, SaveIcon, BackIcon } from "./Icons";
+import { UserIcon, CameraIcon, SaveIcon, BackIcon, TrashIcon } from "./Icons";
+import axios from "axios";
+
+// --- Constants ---
+const DAYS_OF_WEEK = [
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+  "Sunday",
+];
+
+// --- NEW: Date Helper Function ---
+// This function calculates the dates for the current week starting from Monday.
+const getWeekDates = () => {
+  const weekDates = {};
+  const today = new Date();
+  const dayOfWeek = today.getDay(); // Sunday: 0, Monday: 1, ...
+  const startOfWeek = new Date(today);
+  const diff = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Calculate difference to get to Monday
+  startOfWeek.setDate(today.getDate() - diff);
+
+  for (let i = 0; i < 7; i++) {
+    const date = new Date(startOfWeek);
+    date.setDate(startOfWeek.getDate() + i);
+    const dayName = DAYS_OF_WEEK[i];
+    // Formats the date to 'YYYY-MM-DD' which is suitable for API calls and input fields
+    weekDates[dayName] = date.toISOString().split("T")[0];
+  }
+  return weekDates;
+};
 
 // --- Profile Page ---
 export default function ProfilePage() {
@@ -12,43 +44,43 @@ export default function ProfilePage() {
   const { data: user, isLoading, isError, error } = userQuery;
   const [isEditMode, setIsEditMode] = useState(false);
 
-  // Set page title
   document.title = `${
     user && user.name ? user.name : "My"
   } Profile | Care Management System`;
-  // Form state for editing
-  const [formData, setFormData] = useState({});
+
+  const [formData, setFormData] = useState({
+    name: "",
+    availability: [],
+    absences: [],
+  });
   const [avatarFile, setAvatarFile] = useState(null);
   const [avatarPreview, setAvatarPreview] = useState("");
-
   const [success, setSuccess] = useState("");
-
   const fileInputRef = useRef(null);
 
-  useEffect(() => {
-    const getUser = async () => {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        navigate("/login");
-        return;
-      }
-      if (user) {
-        setFormData({ name: user?.name });
-        setAvatarPreview(user?.avatar);
-      }
-    };
+  const [isProfileUpdating, setIsProfileUpdating] = useState(false);
+  const [isAvailabilityUpdating, setIsAvailabilityUpdating] = useState(false);
 
-    getUser().catch((err) => {
-      console.error("Failed to fetch user data:", err);
-      // setError("Failed to load profile data.");
-    });
-  }, [navigate, user]);
+  // --- NEW: State to hold the current week's dates ---
+  const [weekDates, setWeekDates] = useState({});
 
   useEffect(() => {
-    if (user && user.name) {
-      setFormData({ name: user.name });
+    const token = localStorage.getItem("token");
+    if (!token) {
+      navigate("/login");
+      return;
     }
-  }, [user]);
+    if (user) {
+      setFormData({
+        name: user?.name || "",
+        availability: user?.availability || [],
+        absences: user?.absences || [],
+      });
+      setAvatarPreview(user?.avatar);
+    }
+    // --- NEW: Calculate and set the week's dates when the component loads ---
+    setWeekDates(getWeekDates());
+  }, [navigate, user]);
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -59,6 +91,7 @@ export default function ProfilePage() {
       reader.readAsDataURL(file);
     }
   };
+
   const handleGoBack = () => {
     if (window.history.state && window.history.length > 1) {
       navigate(-1);
@@ -71,20 +104,113 @@ export default function ProfilePage() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSaveChanges = async (e) => {
+  // --- MODIFIED: Handlers for availability to include the date ---
+  const handleAvailabilityChange = (day, date, field, value) => {
+    let newAvailability = [...(formData.availability || [])];
+    let dayData = newAvailability.find((d) => d.day === day);
+
+    if (!dayData) {
+      // MODIFIED: Include the specific date for the entry
+      dayData = { day, date, startTime: "", endTime: "" };
+      newAvailability.push(dayData);
+    }
+
+    // Ensure the date is always up-to-date for the current week
+    dayData.date = date;
+    dayData[field] = value;
+
+    // Filter out entries where both start and end times are empty
+    const filteredAvailability = newAvailability.filter(
+      (a) => a.startTime || a.endTime
+    );
+
+    setFormData({ ...formData, availability: filteredAvailability });
+  };
+
+  const handleAddAbsence = () => {
+    const newAbsences = [
+      ...(formData.absences || []),
+      { date: "", reason: "" },
+    ];
+    setFormData({ ...formData, absences: newAbsences });
+  };
+
+  const handleAbsenceChange = (index, field, value) => {
+    const newAbsences = [...formData.absences];
+    newAbsences[index][field] = value;
+    setFormData({ ...formData, absences: newAbsences });
+  };
+
+  const handleRemoveAbsence = (index) => {
+    const newAbsences = formData.absences.filter((_, i) => i !== index);
+    setFormData({ ...formData, absences: newAbsences });
+  };
+
+  const handleUpdateProfile = async (e) => {
     e.preventDefault();
+    setIsProfileUpdating(true);
     const dataToUpdate = new FormData();
     dataToUpdate.append("name", formData.name);
+
     if (avatarFile) {
       dataToUpdate.append("avatar", avatarFile);
     }
-    // Call the mutation to update the user
-    updateUserMutation.mutate(dataToUpdate);
-    setSuccess("Profile updated successfully!");
-    setTimeout(() => {
+
+    updateUserMutation.mutate(dataToUpdate, {
+      onSuccess: () => {
+        setSuccess("Profile details updated successfully!");
+        setTimeout(() => setSuccess(""), 2000);
+      },
+      onError: (err) => {
+        console.error("Profile update failed:", err);
+      },
+      onSettled: () => {
+        setIsProfileUpdating(false);
+      },
+    });
+  };
+
+  const handleUpdateAvailability = async (e) => {
+    e.preventDefault();
+    setIsAvailabilityUpdating(true);
+
+    try {
+      const validAvailability = formData.availability.filter(
+        (a) => a.startTime && a.endTime
+      );
+
+      // The payload will now automatically include the 'date' field for each availability entry
+      const payload = {
+        availability: validAvailability,
+        absences: formData.absences,
+      };
+
+      const res = await axios.patch(
+        `${import.meta.env.VITE_API_URL}/api/carer/${user._id}/availability`,
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
+      if (res.status === 201) {
+        setSuccess("Availability updated successfully!");
+        setTimeout(() => {
+          setIsEditMode(false);
+          setSuccess("");
+        }, 1000);
+      } else {
+        setSuccess("");
+        console.error("Failed to update availability:", res.data);
+      }
+    } catch (err) {
+      console.error("Request failed:", err);
       setSuccess("");
-      setIsEditMode(false);
-    }, 1000);
+    } finally {
+      setIsAvailabilityUpdating(false);
+    }
   };
 
   if (!user || isLoading) {
@@ -93,7 +219,6 @@ export default function ProfilePage() {
         <Header />
         <div className="w-full h-[85vh] flex items-center justify-center">
           <div className="flex flex-col items-center justify-center gap-4">
-            {/* Animated SVG Spinner */}
             <svg
               className="animate-spin h-10 w-10 text-[#FE4982]"
               xmlns="http://www.w3.org/2000/svg"
@@ -114,7 +239,6 @@ export default function ProfilePage() {
                 d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
               ></path>
             </svg>
-            {/* Styled Loading Text */}
             <p className="text-lg font-medium text-slate-600 dark:text-slate-400">
               Loading profile...
             </p>
@@ -128,9 +252,9 @@ export default function ProfilePage() {
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-900 transition-colors duration-300 font-sans">
       <Header />
-
       <main className="flex-grow container mx-auto p-4 sm:p-6 lg:p-8">
         <div className="max-w-4xl mx-auto">
+          {/* Header section */}
           <div className="mb-6 flex items-center">
             <button
               onClick={handleGoBack}
@@ -150,9 +274,21 @@ export default function ProfilePage() {
             </div>
           </div>
 
+          {/* Success/Error Messages */}
+          {isError && (
+            <p className="text-red-500 dark:text-red-400 text-sm text-center mb-4">
+              {error.message}
+            </p>
+          )}
+          {success && (
+            <p className="text-green-600 dark:text-green-400 text-sm text-center mb-4">
+              {success}
+            </p>
+          )}
+
           <div className="bg-white dark:bg-slate-800 p-4 sm:p-6 md:p-8 rounded-xl shadow-sm">
+            {/* Personal Info Section */}
             <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
-              {/* --- Avatar Section --- */}
               <div className="relative flex-shrink-0">
                 {avatarPreview ? (
                   <img
@@ -165,7 +301,6 @@ export default function ProfilePage() {
                     {user?.name ? user.name.charAt(0).toUpperCase() : "M"}
                   </span>
                 )}
-
                 {isEditMode && (
                   <button
                     type="button"
@@ -184,17 +319,16 @@ export default function ProfilePage() {
                 />
               </div>
 
-              {/* --- Info/Form Section --- */}
               <div className="w-full mt-4 md:mt-0">
                 {!isEditMode ? (
-                  // --- DISPLAY MODE ---
+                  // DISPLAY MODE
                   <div className="w-full text-center md:text-left">
                     <div className="flex flex-col md:flex-row justify-between items-center">
                       <div>
                         <h2 className="text-xl sm:text-2xl font-bold text-slate-800 dark:text-slate-100">
                           {user.name}
                         </h2>
-                        <p className="text-md text-slate-500 dark:text-slate-400">
+                        <p className="text-md text-slate-500 dark:text-slate-400 capitalize">
                           {user.role}
                         </p>
                       </div>
@@ -219,8 +353,8 @@ export default function ProfilePage() {
                     </div>
                   </div>
                 ) : (
-                  // --- EDIT MODE ---
-                  <form onSubmit={handleSaveChanges} className="w-full">
+                  // EDIT MODE
+                  <form onSubmit={handleUpdateProfile} className="w-full">
                     <div className="space-y-6">
                       <div>
                         <label
@@ -242,47 +376,247 @@ export default function ProfilePage() {
                           />
                         </div>
                       </div>
-                      {isError && (
-                        <p className="text-red-500 dark:text-red-400 text-sm text-center">
-                          {error.message}
-                        </p>
-                      )}
-                      {success && (
-                        <p className="text-green-600 dark:text-green-400 text-sm text-center">
-                          {success}
-                        </p>
-                      )}
-                      <div className="flex flex-col sm:flex-row justify-end gap-4 border-t border-slate-100 dark:border-slate-700 pt-6">
-                        <button
-                          type="button"
-                          onClick={() => setIsEditMode(false)}
-                          className="w-full sm:w-auto bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold py-2 px-6 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600 transition-all"
-                        >
-                          Cancel
-                        </button>
-                        <button
-                          type="submit"
-                          disabled={isLoading}
-                          className="w-full sm:w-auto bg-[#FE4982] text-white font-bold py-2 px-6 rounded-lg flex items-center justify-center gap-2 hover:bg-[#E03A6D] transition-all disabled:bg-opacity-60"
-                        >
-                          {isLoading ? (
-                            "Saving..."
-                          ) : (
-                            <>
-                              <SaveIcon /> Save Changes
-                            </>
-                          )}
-                        </button>
-                      </div>
+                    </div>
+                    <div className="flex justify-end gap-4 mt-6">
+                      <button
+                        type="submit"
+                        onClick={handleUpdateProfile}
+                        disabled={isProfileUpdating}
+                        className="w-full sm:w-auto bg-[#FE4982] text-white font-bold py-2 px-6 rounded-lg flex items-center justify-center gap-2 hover:bg-[#E03A6D] transition-all disabled:bg-opacity-60"
+                      >
+                        {isProfileUpdating ? (
+                          "Saving..."
+                        ) : (
+                          <>
+                            <SaveIcon /> Update Profile
+                          </>
+                        )}
+                      </button>
                     </div>
                   </form>
                 )}
               </div>
             </div>
+
+            {/* CAREGIVER-ONLY SECTION */}
+            {user.role === "caregiver" && (
+              <div className="mt-8 border-t border-slate-200 dark:border-slate-700 pt-6">
+                {!isEditMode ? (
+                  // CAREGIVER DISPLAY MODE
+                  <>
+                    <div className="mb-6">
+                      <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100 mb-3">
+                        Weekly Availability
+                      </h3>
+                      {formData.availability &&
+                      formData.availability.length > 0 ? (
+                        <ul className="space-y-2">
+                          {formData.availability.map((avail) => (
+                            <li
+                              key={avail.day}
+                              className="flex justify-between items-center bg-slate-100 dark:bg-slate-700/50 p-3 rounded-md"
+                            >
+                              <span className="font-medium text-slate-700 dark:text-slate-300">
+                                {avail.day}
+                              </span>
+                              <span className="text-sm text-slate-600 dark:text-slate-400">
+                                {avail.startTime} - {avail.endTime}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p className="text-slate-500 dark:text-slate-400">
+                          No availability set.
+                        </p>
+                      )}
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100 mb-3">
+                        Planned Absences
+                      </h3>
+                      {formData.absences && formData.absences.length > 0 ? (
+                        <ul className="space-y-2">
+                          {formData.absences.map((absence, index) => (
+                            <li
+                              key={index}
+                              className="bg-slate-100 dark:bg-slate-700/50 p-3 rounded-md"
+                            >
+                              <p className="font-medium text-slate-700 dark:text-slate-300">
+                                {new Date(absence.date).toLocaleDateString()}
+                              </p>
+                              <p className="text-sm text-slate-600 dark:text-slate-400">
+                                {absence.reason}
+                              </p>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p className="text-slate-500 dark:text-slate-400">
+                          No absences planned.
+                        </p>
+                      )}
+                    </div>
+                  </>
+                ) : (
+                  // CAREGIVER EDIT MODE
+                  <form onSubmit={handleUpdateAvailability}>
+                    <div className="mb-8">
+                      <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100 mb-4">
+                        Set Weekly Availability
+                      </h3>
+                      <div className="space-y-4">
+                        {DAYS_OF_WEEK.map((day) => {
+                          const dayAvailability = formData.availability?.find(
+                            (d) => d.day === day
+                          ) || { startTime: "", endTime: "" };
+                          return (
+                            <div
+                              key={day}
+                              className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-center"
+                            >
+                              {/* MODIFIED: Label now includes the calculated date */}
+                              <label className="font-medium text-slate-700 dark:text-slate-300">
+                                {day}
+                                <span className="block text-sm text-slate-500 dark:text-slate-400 font-normal">
+                                  {weekDates[day]}
+                                </span>
+                              </label>
+                              <input
+                                type="time"
+                                value={dayAvailability.startTime}
+                                // MODIFIED: Pass the date to the handler
+                                onChange={(e) =>
+                                  handleAvailabilityChange(
+                                    day,
+                                    weekDates[day],
+                                    "startTime",
+                                    e.target.value
+                                  )
+                                }
+                                className="w-full px-3 py-2 dark:text-slate-200 bg-slate-100 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#FE4982]"
+                              />
+                              <input
+                                type="time"
+                                value={dayAvailability.endTime}
+                                // MODIFIED: Pass the date to the handler
+                                onChange={(e) =>
+                                  handleAvailabilityChange(
+                                    day,
+                                    weekDates[day],
+                                    "endTime",
+                                    e.target.value
+                                  )
+                                }
+                                className="w-full px-3 py-2 dark:text-slate-200 bg-slate-100 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#FE4982]"
+                              />
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Edit Absences */}
+                    <div>
+                      <div className="flex justify-between items-center mb-4">
+                        <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100">
+                          Manage Absences
+                        </h3>
+                        <button
+                          type="button"
+                          onClick={handleAddAbsence}
+                          className="text-sm font-semibold text-[#FE4982] hover:underline"
+                        >
+                          + Add Absence
+                        </button>
+                      </div>
+                      <div className="space-y-4">
+                        {formData.absences?.map((absence, index) => (
+                          <div
+                            key={index}
+                            className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-center"
+                          >
+                            <input
+                              type="date"
+                              value={
+                                absence.date
+                                  ? new Date(absence.date)
+                                      .toISOString()
+                                      .split("T")[0]
+                                  : ""
+                              }
+                              onChange={(e) =>
+                                handleAbsenceChange(
+                                  index,
+                                  "date",
+                                  e.target.value
+                                )
+                              }
+                              className="w-full px-3 py-2 dark:text-slate-200 bg-slate-100 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#FE4982]"
+                            />
+                            <div className="relative sm:col-span-2 flex items-center">
+                              <input
+                                type="text"
+                                placeholder="Reason for absence"
+                                value={absence.reason}
+                                onChange={(e) =>
+                                  handleAbsenceChange(
+                                    index,
+                                    "reason",
+                                    e.target.value
+                                  )
+                                }
+                                className="w-full pl-3 pr-10 py-2 dark:text-slate-200 bg-slate-100 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#FE4982]"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveAbsence(index)}
+                                className="absolute right-2 text-slate-500 hover:text-red-500"
+                              >
+                                <TrashIcon />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="flex justify-end gap-4 mt-6">
+                      <button
+                        type="submit"
+                        onClick={handleUpdateAvailability}
+                        disabled={isAvailabilityUpdating}
+                        className="w-full sm:w-auto bg-[#FE4982] text-white font-bold py-2 px-6 rounded-lg flex items-center justify-center gap-2 hover:bg-[#E03A6D] transition-all disabled:bg-opacity-60"
+                      >
+                        {isAvailabilityUpdating ? (
+                          "Saving..."
+                        ) : (
+                          <>
+                            <SaveIcon /> Update Availability
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </form>
+                )}
+              </div>
+            )}
+
+            {/* General Cancel Button */}
+            {isEditMode && (
+              <div className="flex flex-col sm:flex-row justify-end gap-4 border-t border-slate-100 dark:border-slate-700 pt-6 mt-8">
+                <button
+                  type="button"
+                  onClick={() => setIsEditMode(false)}
+                  className="w-full sm:w-auto bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold py-2 px-6 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600 transition-all"
+                >
+                  Cancel
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </main>
-
       <Footer />
     </div>
   );

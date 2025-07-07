@@ -40,6 +40,12 @@ import VisitForm from "./visit/VisitForm";
 import VisitsPage from "./visit/VisitsPage";
 import ViewVisitPage from "./visit/ViewVisitPage";
 
+//caregivers
+import ListCaregivers from "./caregivers/ListCaregivers";
+import ViewCaregiver from "./caregivers/ViewCaregiver";
+import EditCaregiver from "./caregivers/EditCaregiver";
+import NewCaregiver from "./caregivers/NewCaregiver";
+
 // Fallback
 import NotFound from "./NotFound";
 import PatientEditPage from "./patients/PatientEditDetails";
@@ -184,6 +190,41 @@ function App() {
           </AdminProtectWrapper>
         }
       />
+
+      {/* Caregivers */}
+      <Route
+        path="/caregivers"
+        element={
+          <AdminProtectWrapper>
+            <ListCaregivers />
+          </AdminProtectWrapper>
+        }
+      />
+      <Route
+        path="/caregivers/view/:id"
+        element={
+          <AdminProtectWrapper>
+            <ViewCaregiver />
+          </AdminProtectWrapper>
+        }
+      />
+      <Route
+        path="/caregivers/edit/:id"
+        element={
+          <AdminProtectWrapper>
+            <EditCaregiver />
+          </AdminProtectWrapper>
+        }
+      />
+      <Route
+        path="/caregivers/create"
+        element={
+          <AdminProtectWrapper>
+            <NewCaregiver />
+          </AdminProtectWrapper>
+        }
+      />
+
       {/* Fallback */}
       <Route path="*" element={<NotFound />} />
     </Routes>

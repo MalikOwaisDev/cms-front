@@ -2,6 +2,16 @@ import axios from "axios";
 
 const API = `${import.meta.env.VITE_API_URL}/api/visits`;
 
+export const getVisits = (token) =>
+  axios.get(API, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+export const getVisitById = (id, token) =>
+  axios.get(`${API}/${id}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
 export const createVisit = (data, token) =>
   axios.post(API, data, {
     headers: { Authorization: `Bearer ${token}` },
@@ -32,7 +42,17 @@ export const getCaregivers = (token) =>
     headers: { Authorization: `Bearer ${token}` },
   });
 
+export const getAvailableCaregivers = (token) =>
+  axios.get(`${import.meta.env.VITE_API_URL}/api/caregivers/available`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
 export const getPatients = (token) =>
   axios.get(`${import.meta.env.VITE_API_URL}/api/patients`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+export const deleteVisit = (id, token) =>
+  axios.delete(`${API}/${id}`, {
     headers: { Authorization: `Bearer ${token}` },
   });

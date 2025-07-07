@@ -4,68 +4,15 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { getPatients, deletePatient } from "../services/patient";
 import { useUser } from "../hooks/useUser";
+import { ConfirmationModal } from "../components/ConfirmationModal";
 import {
   PlusIcon,
   ChevronRightIcon,
   ChevronLeftIcon,
   UserGroupIcon,
   TrashIcon,
-  AlertTriangleIcon,
   BackIcon,
 } from "../Icons";
-
-// --- CONFIRMATION MODAL COMPONENT ---
-const ConfirmationModal = ({
-  isOpen,
-  modalRef,
-  onClose,
-  onConfirm,
-  title,
-  children,
-}) => {
-  if (!isOpen) return null;
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-60 z-50 flex justify-center items-center p-4 font-sans">
-      <div
-        ref={modalRef}
-        className="modal bg-white dark:bg-slate-800 rounded-xl shadow-2xl p-6 w-full max-w-md m-4 transform transition-all animate-in zoom-in-95 fade-in-0"
-      >
-        <div className="flex items-start gap-4">
-          <div className="flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 dark:bg-red-900/30">
-            <span className="h-6 w-6 text-red-600 dark:text-red-400">
-              <AlertTriangleIcon size={24} />
-            </span>
-          </div>
-          <div className="flex-grow">
-            <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">
-              {title}
-            </h3>
-            <div className="mt-2 text-sm text-slate-600 dark:text-slate-400">
-              {children}
-            </div>
-          </div>
-        </div>
-        <div className="mt-6 flex justify-end gap-3">
-          <button
-            type="button"
-            onClick={onClose}
-            className="bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold py-2 px-5 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600 transition-all duration-200"
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            onClick={onConfirm}
-            className="bg-red-600 text-white font-bold py-2 px-5 rounded-lg hover:bg-red-700 transition-all duration-200 shadow-sm hover:shadow-md"
-          >
-            Delete
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
 
 // --- Loading Skeleton for Patient List ---
 const TableSkeleton = () => (
@@ -110,28 +57,6 @@ export default function ListPatients() {
   const token = localStorage.getItem("token");
 
   const itemsPerPage = 10;
-
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.key === "Escape") setIsModalOpen(false);
-    };
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [isModalOpen]);
-
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (
-        isModalOpen &&
-        modalRef.current &&
-        !modalRef.current.contains(e.target)
-      ) {
-        setIsModalOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [isModalOpen]);
 
   useEffect(() => {
     if (!token) {
