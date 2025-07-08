@@ -78,7 +78,6 @@ export default function InvoiceList() {
       navigate("/");
     }
   };
-
   const StatusBadge = ({ status }) => {
     const paidClasses =
       "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300";
