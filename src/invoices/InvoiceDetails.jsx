@@ -168,24 +168,25 @@ export default function InvoiceDetails() {
 
   useEffect(() => {
     if (!id || !token) {
-      navigate("/login");
+      navigate("/login"); // Redirect to login if no id or token
       return;
     }
+
     const fetchInvoice = async () => {
-      setLoading(true);
-      await getInvoiceById(id, token)
-        .then((res) => {
-          setInvoice(res.data);
-        })
-        .catch((err) => {
-          navigate("/invoices");
-        })
-        .finally(() => {
-          setLoading(false);
-        });
+      setLoading(true); // Show loading state
+      try {
+        const res = await getInvoiceById(id, token); // Fetch invoice data
+        setInvoice(res.data); // Set invoice data to state
+      } catch (err) {
+        console.error("Error fetching invoice:", err); // Log error for debugging
+        navigate("/invoices"); // Redirect to invoices page on error
+      } finally {
+        setLoading(false); // Hide loading state
+      }
     };
-    fetchInvoice();
-  }, [id, token, navigate]);
+
+    fetchInvoice(); // Call fetchInvoice when id or token changes
+  }, [id, token, navigate]); // Dependencies: re-run effect if id, token, or navigate changes
 
   const handleMarkPaid = async () => {
     setLoading(true);

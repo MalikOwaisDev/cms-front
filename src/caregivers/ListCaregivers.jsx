@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { ConfirmationModal } from "../components/ConfirmationModal";
 import { getCaregivers, deleteCaregiver } from "../services/caregiver";
@@ -82,21 +82,25 @@ export default function ListCaregivers() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [caregiverToDelete, setCaregiverToDelete] = useState(null);
 
-  const fetchCaregivers = async () => {
-    setLoading(true);
+  const fetchCaregivers = useCallback(async () => {
+    setLoading(true); // Show loading indicator
     try {
-      const response = await getCaregivers(token);
-      setCaregivers(response.data);
+      const response = await getCaregivers(token); // Fetch caregivers from API
+      setCaregivers(response.data); // Set fetched caregivers data
     } catch (err) {
-      setError("Could not load caregiver data.");
+      // If error response exists, get specific message, else use default
+      const errorMessage =
+        err?.response?.data?.message || "Could not load caregiver data.";
+      setError(errorMessage); // Set the error message
     } finally {
-      setLoading(false);
+      setLoading(false); // Hide loading indicator
     }
-  };
+  }, [token]); // Memoize fetchCaregivers, depend on `token`
 
+  // useEffect with `fetchCaregivers` memoized
   useEffect(() => {
     fetchCaregivers();
-  }, [token]);
+  }, [fetchCaregivers]); // Use memoized version as a dependency
 
   // Handler to open the modal
   const handleDeleteRequest = (id, name) => {

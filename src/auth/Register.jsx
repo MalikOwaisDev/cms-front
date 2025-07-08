@@ -2,82 +2,21 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import { register, logout } from "../services/auth";
+import PasswordValidator from "../components/PasswordValidator";
+import ThemeToggle from "../components/ThemeToggle";
 import {
   UserIcon,
   MailIcon,
   LockIcon,
   EyeIcon,
   EyeOffIcon,
-  CheckCircleIcon,
-  XCircleIcon,
   AlertCircleIcon,
-  SunIcon,
-  MoonIcon,
   KeyIcon,
 } from "../Icons";
 
-// --- Password Validator Component ---
-const PasswordValidator = ({ validation }) => {
-  const validationItems = [
-    { rule: "length", text: "At least 8 characters" },
-    { rule: "number", text: "At least one number (0-9)" },
-    { rule: "symbol", text: "At least one symbol (!@#$...)" },
-  ];
-  return (
-    <div className="space-y-2 mt-3">
-      {validationItems.map((item) => (
-        <p
-          key={item.rule}
-          className={`flex items-center text-sm transition-colors duration-300 ${
-            validation[item.rule]
-              ? "text-green-600 dark:text-green-400"
-              : "text-slate-500 dark:text-slate-400"
-          }`}
-        >
-          {validation[item.rule] ? (
-            <span className="mr-2 flex-shrink-0">
-              <CheckCircleIcon />
-            </span>
-          ) : (
-            <span className="mr-2 flex-shrink-0">
-              <XCircleIcon />
-            </span>
-          )}{" "}
-          {item.text}
-        </p>
-      ))}
-    </div>
-  );
-};
-
-// --- Theme Toggle Button ---
-const ThemeToggle = () => {
-  const [theme, setTheme] = useState(
-    () =>
-      localStorage.getItem("theme") ||
-      (window.matchMedia("(prefers-color-scheme: dark)").matches
-        ? "dark"
-        : "light")
-  );
-  useEffect(() => {
-    const root = window.document.documentElement;
-    if (theme === "dark") root.classList.add("dark");
-    else root.classList.remove("dark");
-    localStorage.setItem("theme", theme);
-  }, [theme]);
-  const toggleTheme = () => setTheme(theme === "light" ? "dark" : "light");
-  return (
-    <button
-      onClick={toggleTheme}
-      className="absolute top-4 right-4 p-2 rounded-full text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors z-10"
-    >
-      {theme === "light" ? <MoonIcon /> : <SunIcon />}
-    </button>
-  );
-};
-
 // --- Main Register Page Component ---
 export default function Register() {
+  document.title = "Register - Care Management System";
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: "",
@@ -175,16 +114,19 @@ export default function Register() {
     setFormData({ ...formData, [name]: value });
     if (name === "password") validatePassword(value);
   };
-
   const handleSendOtp = async () => {
     setError("");
+
+    // Validate form before sending OTP
     if (!isFormComplete || !isPasswordValid) {
       setError(
         "Please fill all details and ensure password is valid before sending OTP."
       );
       return;
     }
+
     setOtpLoading(true);
+
     try {
       const res = await axios.post(
         `${import.meta.env.VITE_API_URL}/api/auth/send-otp`,
@@ -193,11 +135,17 @@ export default function Register() {
           name: formData.name,
         }
       );
-      console.log(res);
+
+      console.log("OTP send response:", res);
+
       setOtpSent(true);
       startTimer();
     } catch (err) {
-      setError("Failed to send OTP. Please try again.", err);
+      // Extract meaningful error message from axios error object
+      const message =
+        err?.response?.data?.message || "Failed to send OTP. Please try again.";
+
+      setError(message);
     } finally {
       setOtpLoading(false);
     }
