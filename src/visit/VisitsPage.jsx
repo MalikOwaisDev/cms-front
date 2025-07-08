@@ -62,15 +62,26 @@ export default function VisitsPage() {
   const [visitToDelete, setVisitToDelete] = useState(null);
 
   const fetchVisits = async () => {
-    setLoading(true);
-    setError("");
+    setLoading(true); // Start loading state
+    setError(""); // Clear previous errors
+
     try {
-      const res = await getVisits(token);
-      setVisits(res.data.visits || []);
+      const res = await getVisits(token); // Make the API call
+      setVisits(res.data.visits || []); // Set visits data, defaulting to an empty array if not available
     } catch (err) {
-      setError("Could not load visits. Please refresh the page.");
+      // Log error for debugging
+      console.error("Error fetching visits:", err);
+
+      // Check for specific error message from the response
+      const errorMessage =
+        err?.response?.data?.message ||
+        err?.message ||
+        "Could not load visits. Please refresh the page."; // Fallback message
+
+      // Set error state with the specific message
+      setError(errorMessage);
     } finally {
-      setLoading(false);
+      setLoading(false); // End loading state
     }
   };
 

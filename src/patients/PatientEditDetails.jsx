@@ -159,12 +159,12 @@ export default function PatientEditPage() {
       ...formData,
       address: { ...formData.address, [e.target.name]: e.target.value },
     });
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError("");
     setSuccess("");
+
     const dataToUpdate = new FormData();
     Object.keys(formData).forEach((key) => {
       if (key === "address") {
@@ -181,25 +181,45 @@ export default function PatientEditPage() {
       setSuccess("Service updated successfully!");
       setTimeout(() => navigate(`/patients/${id}`), 1000);
     } catch (err) {
-      setError("Failed to update profile.");
+      // Check for error response from server
+      const errorMessage =
+        err?.response?.data?.message || "Failed to update profile.";
+      setError(errorMessage); // Set the error message from the server (if any)
+
+      // Optionally log the error for debugging
+      console.error("Error updating profile:", err);
     } finally {
-      setLoading(false);
+      setLoading(false); // Ensure loading state is reset
     }
   };
 
   const confirmDelete = async () => {
     setIsModalOpen(false); // Close modal first
-    setLoading(true);
-    setError("");
-    setSuccess("");
+    setLoading(true); // Set loading state
+    setError(""); // Reset error state
+    setSuccess(""); // Reset success state
+
     try {
+      // Attempt to delete the patient
       await deletePatient(id, token);
+
+      // On success, set the success message
       setSuccess("Service User deleted successfully!");
+
+      // Redirect after a short delay
       setTimeout(() => navigate("/patients"), 1500);
     } catch (err) {
-      setError("Failed to delete service user.");
+      // Check if there is an error message from the backend
+      const errorMessage =
+        err?.response?.data?.message || "Failed to delete service user.";
+
+      // Set the error state
+      setError(errorMessage);
+
+      // Optionally, log the error for debugging
+      console.error("Error deleting service user:", err);
     } finally {
-      setLoading(false);
+      setLoading(false); // Reset loading state
     }
   };
 

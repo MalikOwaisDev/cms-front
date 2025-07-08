@@ -151,6 +151,9 @@ export default function PatientDetails() {
         }
       } catch (error) {
         console.error("Error fetching service user data:", error);
+        setInvoicesError(
+          "Failed to load service user details. Please try again."
+        );
         navigate("/patients");
       } finally {
         setLoading(false);

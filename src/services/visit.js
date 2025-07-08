@@ -42,10 +42,14 @@ export const getCaregivers = (token) =>
     headers: { Authorization: `Bearer ${token}` },
   });
 
-export const getAvailableCaregivers = (token) =>
-  axios.get(`${import.meta.env.VITE_API_URL}/api/caregivers/available`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+export const getAvailableCaregivers = async (token, date) =>
+  axios.post(
+    `${import.meta.env.VITE_API_URL}/api/caregivers/available`,
+    { date },
+    {
+      headers: { Authorization: `Bearer ${token}` },
+    }
+  );
 
 export const getPatients = (token) =>
   axios.get(`${import.meta.env.VITE_API_URL}/api/patients`, {

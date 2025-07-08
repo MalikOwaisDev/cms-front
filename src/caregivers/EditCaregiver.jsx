@@ -47,20 +47,31 @@ export default function EditCaregiver() {
 
   useEffect(() => {
     const fetchCaregiver = async () => {
+      setPageLoading(true); // Set loading state at the start
       try {
         const response = await getCaregiverById(id, token);
         const { name, email, role, avatar } = response.data;
+
+        // Update form data
         setFormData((prev) => ({ ...prev, name, email, role }));
+
+        // Handle avatar if exists
         if (avatar) {
           setExistingAvatar(avatar);
         }
-        document.title = `Edit ${name} | Caregiver`;
+
+        // Set document title
+        document.title = `Edit ${name ? name : "Caregiver"} | Caregiver`;
       } catch (err) {
-        setError("Failed to load caregiver data.");
+        console.error("Error fetching caregiver:", err);
+        setError(
+          err?.response?.data?.message || "Failed to load caregiver data."
+        );
       } finally {
-        setPageLoading(false);
+        setPageLoading(false); // Ensure loading state is cleared
       }
     };
+
     fetchCaregiver();
   }, [id, token]);
 

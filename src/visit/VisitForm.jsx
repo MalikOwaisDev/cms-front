@@ -5,6 +5,7 @@ import Footer from "../components/Footer";
 import {
   createVisit,
   getAvailableCaregivers,
+  getCaregivers,
   getPatients,
 } from "../services/visit";
 import {
@@ -49,24 +50,38 @@ export default function VisitForm() {
   // Fetch caregivers and patients when the component mounts
   useEffect(() => {
     if (!token) {
-      navigate("/login");
+      navigate("/login"); // Redirect to login if no token
       return;
     }
 
     const fetchData = async () => {
+      setLoading(true); // Set loading state to true while fetching data
       try {
+        // Use Promise.all to fetch both caregivers and patients concurrently
         const [caregiversRes, patientsRes] = await Promise.all([
-          getAvailableCaregivers(token),
+          getCaregivers(token),
           getPatients(token),
         ]);
+
+        // Set data once both requests succeed
         setCaregivers(caregiversRes.data);
         setPatients(patientsRes.data);
       } catch (err) {
-        setError("Failed to load caregivers or service users.");
+        // Log the error for debugging purposes
+        console.error("Error fetching caregivers or patients:", err);
+
+        // Set error message with specific feedback
+        if (err?.response?.data?.message) {
+          setError(err.response.data.message); // Display backend error message if available
+        } else {
+          setError("Failed to load caregivers or service users.");
+        }
+      } finally {
+        setLoading(false); // Set loading state to false once requests are done
       }
     };
 
-    fetchData();
+    fetchData(); // Call the function to fetch data
   }, [token, navigate]);
 
   const handleChange = (e) => {
@@ -117,6 +132,11 @@ export default function VisitForm() {
       (_, i) => i !== index
     );
     setForm({ ...form, medicationList: updatedMedications });
+  };
+
+  const handleDateChange = async (date) => {
+    const res = await getAvailableCaregivers(token, date);
+    setCaregivers(res.data);
   };
 
   const handleSubmit = async (e) => {
@@ -265,7 +285,10 @@ export default function VisitForm() {
                       name="date"
                       type="date"
                       value={form.date}
-                      onChange={handleChange}
+                      onChange={(e) => {
+                        handleChange(e);
+                        handleDateChange(e.target.value);
+                      }}
                       required
                       className="w-full pl-10 pr-4 py-3 text-slate-800 dark:text-slate-200 bg-slate-100 dark:bg-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
                     />

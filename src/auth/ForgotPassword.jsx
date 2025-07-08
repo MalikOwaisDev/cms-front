@@ -1,80 +1,20 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
+import ThemeToggle from "../components/ThemeToggle";
+import PasswordValidator from "../components/PasswordValidator";
 import {
   MailIcon,
   LockIcon,
   EyeIcon,
   EyeOffIcon,
-  CheckCircleIcon,
-  XCircleIcon,
   AlertCircleIcon,
-  SunIcon,
-  MoonIcon,
   KeyIcon,
 } from "../Icons";
 
-// --- Helper Components ---
-const PasswordValidator = ({ validation }) => {
-  const items = [
-    { rule: "length", text: "At least 8 characters" },
-    { rule: "number", text: "At least one number (0-9)" },
-    { rule: "symbol", text: "At least one symbol (!@#$...)" },
-  ];
-  return (
-    <div className="space-y-2 mt-3">
-      {items.map((item) => (
-        <p
-          key={item.rule}
-          className={`flex items-center text-sm transition-colors duration-300 ${
-            validation[item.rule]
-              ? "text-green-600 dark:text-green-400"
-              : "text-slate-500 dark:text-slate-400"
-          }`}
-        >
-          {validation[item.rule] ? (
-            <span className="mr-2">
-              <CheckCircleIcon />
-            </span>
-          ) : (
-            <span className="mr-2">
-              <XCircleIcon />
-            </span>
-          )}{" "}
-          {item.text}
-        </p>
-      ))}
-    </div>
-  );
-};
-
-const ThemeToggle = () => {
-  const [theme, setTheme] = useState(
-    () =>
-      localStorage.getItem("theme") ||
-      (window.matchMedia("(prefers-color-scheme: dark)").matches
-        ? "dark"
-        : "light")
-  );
-  useEffect(() => {
-    const root = document.documentElement;
-    theme === "dark"
-      ? root.classList.add("dark")
-      : root.classList.remove("dark");
-    localStorage.setItem("theme", theme);
-  }, [theme]);
-  return (
-    <button
-      onClick={() => setTheme(theme === "light" ? "dark" : "light")}
-      className="absolute top-4 right-4 p-2 rounded-full text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 z-10"
-    >
-      {theme === "light" ? <MoonIcon /> : <SunIcon />}
-    </button>
-  );
-};
-
 // --- Main Forgot Password Page ---
 export default function ForgotPassword() {
+  document.title = "Forgot Password | Care Management System";
   const navigate = useNavigate();
   const [step, setStep] = useState("enterEmail"); // 'enterEmail', 'verifyOtp', 'resetPassword'
   const [formData, setFormData] = useState({
@@ -128,7 +68,6 @@ export default function ForgotPassword() {
       symbol: /[!@#$%^&*(),.?":{}|<>]/.test(password),
     });
   };
-
   const handleSendOtp = async () => {
     setError("");
     if (!formData.email) {
@@ -136,21 +75,32 @@ export default function ForgotPassword() {
       setSuccess("");
       return;
     }
+
     setLoading(true);
+
     try {
-      const res = await axios.post(
+      await axios.post(
         `${import.meta.env.VITE_API_URL}/api/auth/send-pass-otp`,
-        {
-          email: formData.email,
-        }
+        { email: formData.email }
       );
-      console.log(res);
+
+      // Success: OTP sent
       setSuccess(`An OTP has been sent to ${formData.email}.`);
-      setError(""); // Clear previous errors on success
+      setError(""); // Clear any previous errors
       setStep("verifyOtp");
       startTimer();
     } catch (err) {
-      setError("Failed to send OTP. Please check the email and try again.");
+      const status = err?.response?.status;
+      const message = err?.response?.data?.message || "Something went wrong";
+
+      if (status === 400) {
+        setError("Email is required.");
+      } else if (status === 404) {
+        setError("User not found. Please check your email address.");
+      } else {
+        setError(message);
+      }
+
       setSuccess("");
     } finally {
       setLoading(false);
@@ -187,29 +137,42 @@ export default function ForgotPassword() {
 
   const handleResetPassword = async () => {
     setError("");
+    setSuccess("");
+
+    // Check if passwords match
     if (formData.newPassword !== formData.confirmPassword) {
       setError("Passwords do not match.");
-      setSuccess("");
       return;
     }
+
+    // Check password validation status
     if (!Object.values(passwordValidation).every(Boolean)) {
       setError("Your new password does not meet the requirements.");
-      setSuccess("");
       return;
     }
+
     setLoading(true);
+
     try {
-      // Simulate API call to reset password
-      const res = axios.post(`${import.meta.env.VITE_API_URL}/api/auth/reset`, {
-        email: formData.email,
-        password: formData.newPassword,
-      });
-      console.log(res);
+      const res = await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/auth/reset`,
+        {
+          email: formData.email,
+          password: formData.newPassword,
+        }
+      );
+
+      console.log("Password reset response:", res.data);
+
       setSuccess("Password has been reset successfully!");
       setError("");
+
       setTimeout(() => navigate("/login"), 1000);
     } catch (err) {
-      setError("Failed to reset password. Please try again.");
+      const message =
+        err?.response?.data?.message ||
+        "Failed to reset password. Please try again.";
+      setError(message);
       setSuccess("");
     } finally {
       setLoading(false);

@@ -409,12 +409,12 @@ export default function Dashboard() {
   const [isVisitsLoading, setIsVisitsLoading] = useState(false);
   const [notification, setNotification] = useState({ message: "", type: "" });
 
+  const token = localStorage.getItem("token");
   useEffect(() => {
-    const token = localStorage.getItem("token");
     if (!token) {
       navigate("/login");
     }
-  }, [navigate]);
+  }, [navigate, token]);
 
   useEffect(() => {
     if (location.state?.error) {
@@ -436,7 +436,7 @@ export default function Dashboard() {
             "http://localhost:4000/api/visits/today",
             {
               headers: {
-                Authorization: `Bearer ${localStorage.getItem("token")}`,
+                Authorization: `Bearer ${token}`,
               },
             }
           );
@@ -497,7 +497,7 @@ export default function Dashboard() {
           location: address, // Save address
         },
         {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
 
@@ -524,7 +524,7 @@ export default function Dashboard() {
           status: "completed",
         },
         {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
       setVisits(
@@ -541,6 +541,7 @@ export default function Dashboard() {
 
   // --- Handlers for Task and Medication Updates ---
   const handleUpdateTask = async (visitId, taskId, completed) => {
+    // Optimistically update the UI
     setVisits((currentVisits) =>
       currentVisits.map((visit) => {
         if (visit._id === visitId) {
@@ -554,18 +555,27 @@ export default function Dashboard() {
         return visit;
       })
     );
+
     try {
+      // Send the request to the server
       await axios.patch(
         `http://localhost:4000/api/visits/${visitId}/tasks/${taskId}`,
         { completed },
         {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
+
+      // Notify user of success
       showNotification("Task updated.", "success");
     } catch (err) {
+      // Log error to the console for debugging
+      console.error("Error updating task:", err);
+
+      // Show failure notification
       showNotification("Failed to update task.", "error");
-      // Revert on failure
+
+      // Revert the optimistic update in case of failure
       setVisits((currentVisits) =>
         currentVisits.map((visit) => {
           if (visit._id === visitId) {
@@ -584,9 +594,8 @@ export default function Dashboard() {
 
   const handleUpdateMedication = async (visitId, medicationId, status) => {
     // Optimistically update the UI
-    const originalVisits = visits;
-    setVisits((currentVisits) =>
-      currentVisits.map((visit) => {
+    setVisits((prevVisits) =>
+      prevVisits.map((visit) => {
         if (visit._id === visitId) {
           return {
             ...visit,
@@ -599,94 +608,185 @@ export default function Dashboard() {
       })
     );
 
-    // API call
     try {
+      // Make the API call to update medication status
       await axios.patch(
         `http://localhost:4000/api/visits/${visitId}/medications/${medicationId}`,
         { status },
         {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
+
+      // Notify the user of success
       showNotification("Medication status updated.", "success");
     } catch (err) {
-      showNotification("Failed to update medication status.", "error");
-      setVisits(originalVisits); // Revert on failure
+      // Log the error for debugging
+      console.error("Error updating medication:", err);
+
+      // Handle error message from response or fallback to a default message
+      const errorMessage =
+        err?.response?.data?.message ||
+        err?.message ||
+        "Failed to update medication status.";
+
+      // Show error notification
+      showNotification(errorMessage, "error");
+
+      // Revert the optimistic UI update in case of failure
+      setVisits((prevVisits) =>
+        prevVisits.map((visit) => {
+          if (visit._id === visitId) {
+            return {
+              ...visit,
+              medicationList: visit.medicationList.map((med) =>
+                med._id === medicationId ? { ...med, status: !status } : med
+              ),
+            };
+          }
+          return visit;
+        })
+      );
     }
   };
 
   // --- Handlers for Notes Updates ---
   const handleUpdateTaskNotes = async (visitId, taskId, notes) => {
+    // Optimistically update the UI
+    setVisits((prevVisits) =>
+      prevVisits.map((visit) =>
+        visit._id === visitId
+          ? {
+              ...visit,
+              taskList: visit.taskList.map((task) =>
+                task._id === taskId ? { ...task, notes } : task
+              ),
+            }
+          : visit
+      )
+    );
+
     try {
+      // Make the API call to update task notes
       await axios.patch(
         `http://localhost:4000/api/visits/${visitId}/tasks/${taskId}`,
         { notes },
         {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
-      setVisits(
-        visits.map((v) =>
-          v._id === visitId
-            ? {
-                ...v,
-                taskList: v.taskList.map((t) =>
-                  t._id === taskId ? { ...t, notes } : t
-                ),
-              }
-            : v
-        )
-      );
+
+      // Show success notification
       showNotification("Task note saved.", "success");
     } catch (err) {
+      // Log error for debugging
+      console.error("Error saving task note:", err);
+
+      // Show error notification
       showNotification("Failed to save task note.", "error");
+
+      // Revert optimistic UI update on failure
+      setVisits((prevVisits) =>
+        prevVisits.map((visit) =>
+          visit._id === visitId
+            ? {
+                ...visit,
+                taskList: visit.taskList.map(
+                  (task) =>
+                    task._id === taskId ? { ...task, notes: "" } : task // Revert to original notes or empty
+                ),
+              }
+            : visit
+        )
+      );
     }
   };
 
   const handleUpdateVisitNotes = async (visitId, notes) => {
+    // Optimistically update the UI
+    setVisits((prevVisits) =>
+      prevVisits.map((visit) =>
+        visit._id === visitId ? { ...visit, notes } : visit
+      )
+    );
+
     try {
+      // Make the API call to update visit notes
       await axios.patch(
         `http://localhost:4000/api/visits/${visitId}`,
         { notes },
         {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
-      setVisits(visits.map((v) => (v._id === visitId ? { ...v, notes } : v)));
+
+      // Show success notification
       showNotification("Visit note saved.", "success");
     } catch (err) {
+      // Log the error for debugging
+      console.error("Error updating visit note:", err);
+
+      // Show error notification
       showNotification("Failed to save visit note.", "error");
+
+      // Revert the optimistic UI update on failure
+      setVisits((prevVisits) =>
+        prevVisits.map(
+          (visit) => (visit._id === visitId ? { ...visit, notes: "" } : visit) // Revert to original notes or empty
+        )
+      );
     }
   };
 
   // NEW: Handler for updating medication notes
   const handleUpdateMedicationNotes = async (visitId, medicationId, notes) => {
+    // Optimistically update the UI
+    setVisits((prevVisits) =>
+      prevVisits.map((visit) =>
+        visit._id === visitId
+          ? {
+              ...visit,
+              medicationList: visit.medicationList.map((med) =>
+                med._id === medicationId ? { ...med, notes } : med
+              ),
+            }
+          : visit
+      )
+    );
+
     try {
-      // API call to update medication notes
+      // Make the API call to update medication notes
       await axios.patch(
         `http://localhost:4000/api/visits/${visitId}/medications/${medicationId}`,
         { notes },
         {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
 
-      // Update local state for UI consistency
-      setVisits(
-        visits.map((v) =>
-          v._id === visitId
-            ? {
-                ...v,
-                medicationList: v.medicationList.map((med) =>
-                  med._id === medicationId ? { ...med, notes } : med
-                ),
-              }
-            : v
-        )
-      );
+      // Show success notification
       showNotification("Medication note saved.", "success");
     } catch (err) {
+      // Log the error for debugging
+      console.error("Error updating medication note:", err);
+
+      // Show error notification
       showNotification("Failed to save medication note.", "error");
+
+      // Revert the optimistic UI update on failure
+      setVisits((prevVisits) =>
+        prevVisits.map((visit) =>
+          visit._id === visitId
+            ? {
+                ...visit,
+                medicationList: visit.medicationList.map(
+                  (med) =>
+                    med._id === medicationId ? { ...med, notes: "" } : med // Revert to original notes or empty
+                ),
+              }
+            : visit
+        )
+      );
     }
   };
 

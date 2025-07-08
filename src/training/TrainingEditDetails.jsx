@@ -165,18 +165,34 @@ export default function TrainingEditDetails() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
-    setSuccess("");
-    setSubmitting(true);
+    setError(""); // Reset any previous error
+    setSuccess(""); // Reset any previous success message
+    setSubmitting(true); // Set submitting state to true to indicate form submission
+
     try {
+      // Attempt to update training data
       await updateTraining(id, form, token);
+
+      // Set success message
       setSuccess("Training updated successfully!");
+
+      // Redirect after a short delay
       setTimeout(() => {
         navigate("/trainings");
       }, 1500);
     } catch (err) {
-      setError("Failed to update training. Please try again.");
+      // Check if there is a specific error message from the server
+      const errorMessage =
+        err?.response?.data?.message ||
+        "Failed to update training. Please try again.";
+
+      // Set the error message
+      setError(errorMessage);
+
+      // Optionally, log the error for debugging
+      console.error("Error updating training:", err);
     } finally {
+      // Reset the submitting state
       setSubmitting(false);
     }
   };

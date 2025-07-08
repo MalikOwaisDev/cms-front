@@ -57,23 +57,41 @@ export default function CarePlanForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Clear previous messages
     setError("");
     setSuccess("");
+
+    // Validation: Check if all required fields are filled
     if (!form.patient || !form.title || form.goals.some((g) => !g.goal)) {
       setError("Service User, Title, and all Goal fields are required.");
       return;
     }
-    setLoading(true);
+
+    setLoading(true); // Set loading state
+
     try {
+      // Attempt to create the care plan via API
       await createCarePlan(form, token);
       setSuccess("Care plan created successfully!");
+
+      // Delay navigation for the user to read success message
       setTimeout(() => {
         navigate(`/wellness/plans`);
-      }, 1500);
+      }, 1500); // 1.5 seconds delay before navigating
     } catch (err) {
-      setError("Failed to create care plan. Please try again.");
+      // Log error details for debugging
+      console.error("Error creating care plan:", err);
+
+      // Handle error and show specific message
+      const errorMessage =
+        err?.response?.data?.message ||
+        err?.message ||
+        "Failed to create care plan. Please try again.";
+
+      setError(errorMessage); // Show the error message to the user
     } finally {
-      setLoading(false);
+      setLoading(false); // Reset loading state
     }
   };
 
