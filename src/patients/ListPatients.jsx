@@ -42,7 +42,7 @@ const TableSkeleton = () => (
 
 // --- Patient List Page Component ---
 export default function ListPatients() {
-  document.title = "Patients | Care Management System";
+  document.title = "Service Users | Care Management System";
   const modalRef = useRef(null);
   const [patients, setPatients] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -103,11 +103,11 @@ export default function ListPatients() {
         setCurrentPage(newTotalPages || 1);
       }
 
-      setSuccess("Patient deleted successfully.");
+      setSuccess("Service User deleted successfully.");
       setTimeout(() => setSuccess(""), 3000);
     } catch (err) {
-      console.error("Failed to delete patient:", err);
-      setError("Failed to delete patient.");
+      console.error("Failed to delete Service user:", err);
+      setError("Failed to delete service user.");
       setTimeout(() => setError(""), 3000);
     } finally {
       setIsModalOpen(false);
@@ -172,11 +172,11 @@ export default function ListPatients() {
           <div className="flex-grow flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold text-slate-800 dark:text-slate-100">
-                Patients
+                Service Users
               </h1>
               <p className="text-slate-500 dark:text-slate-400 mt-1 sm:mt-2 text-base sm:text-lg">
                 {user && user.role === "admin"
-                  ? "A comprehensive list of all registered patients."
+                  ? "A comprehensive list of all registered service users."
                   : "View Your Parents"}
               </p>
             </div>
@@ -185,7 +185,7 @@ export default function ListPatients() {
                 to="/patients/new"
                 className="w-full sm:w-auto flex items-center justify-center gap-2 bg-[#FE4982] text-white font-bold py-2.5 px-5 rounded-lg hover:bg-[#E03A6D] transition-all"
               >
-                <PlusIcon /> Add New Patient
+                <PlusIcon /> Add New Service User
               </Link>
             )}
           </div>
@@ -212,7 +212,7 @@ export default function ListPatients() {
               {/* --- Table Headers --- */}
               <div className="hidden sm:grid grid-cols-[minmax(0,_3fr)_minmax(0,_2fr)_minmax(0,_1fr)_minmax(0,_2fr)_auto] items-center gap-x-6 px-6 py-4 border-b border-slate-200 dark:border-slate-700">
                 <div className="font-semibold text-sm text-slate-600 dark:text-slate-300">
-                  Patient
+                  Service User
                 </div>
                 <div className="font-semibold text-sm text-slate-600 dark:text-slate-300">
                   Diagnosis
@@ -272,7 +272,7 @@ export default function ListPatients() {
                         <button
                           onClick={() => handleDeleteClick(p._id)}
                           className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-500 p-2 rounded-full hover:bg-red-100 dark:hover:bg-slate-700"
-                          title="Delete Patient"
+                          title="Delete Service User"
                         >
                           <TrashIcon size={18} />
                         </button>
@@ -353,10 +353,10 @@ export default function ListPatients() {
                 <UserGroupIcon />
               </span>
               <h3 className="mt-6 text-2xl font-semibold text-slate-800 dark:text-slate-200">
-                No Patients Found
+                No Service User Found
               </h3>
               <p className="mt-2 text-md text-slate-500 dark:text-slate-400">
-                Get started by adding a new patient to the system.
+                Get started by adding a new service user to the system.
               </p>
             </div>
           )}
@@ -367,12 +367,12 @@ export default function ListPatients() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onConfirm={confirmDelete}
-        title="Delete Patient Confirmation"
+        title="Delete Service User Confirmation"
         modalRef={modalRef}
       >
         <p>
-          Are you sure you want to delete this patient? This action is permanent
-          and cannot be undone.
+          Are you sure you want to delete this service user? This action is
+          permanent and cannot be undone.
         </p>
       </ConfirmationModal>
 

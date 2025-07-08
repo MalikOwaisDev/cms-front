@@ -10,9 +10,12 @@ import {
   MailIcon,
   CalendarIcon,
   IdIcon,
-  ClockIcon, // Added for availability
+  CheckCircleIcon, // Icon for 'Available'
+  XCircleIcon, // Icon for 'Not Available'
   NoteIcon, // Added for absences
-} from "../Icons"; // Make sure to add ClockIcon and NoteIcon to your icons file
+  TrashIcon,
+} from "../Icons"; // Make sure to add CheckCircleIcon and XCircleIcon to your icons file
+import axios from "axios";
 
 export default function ViewCaregiver() {
   const { id } = useParams();
@@ -40,14 +43,35 @@ export default function ViewCaregiver() {
     fetchCaregiver();
   }, [id, token]);
 
+  const handleClearAbsences = async () => {
+    await axios.delete(
+      `${import.meta.env.VITE_API_URL}/api/carer/${id}/absences`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    setCaregiver((prev) => ({
+      ...prev,
+      absences: [], // Clear absences in the state
+    }));
+    setTimeout(() => {
+      navigate(`/caregivers/view/${id}`); // Redirect after clearing
+    }, 1000);
+  };
+
   // Helper to format date for display
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
-    return new Date(dateString).toLocaleDateString("en-US", {
+    const date = new Date(dateString);
+    const day = date.toLocaleDateString("en-US", { weekday: "long" });
+    const formattedDate = date.toLocaleDateString("en-US", {
       year: "numeric",
       month: "long",
       day: "numeric",
     });
+    return { day, formattedDate };
   };
 
   if (loading)
@@ -122,7 +146,7 @@ export default function ViewCaregiver() {
                       <CalendarIcon />
                     </span>
                     <span className="text-slate-700 dark:text-slate-200">
-                      Joined: {formatDate(caregiver.createdAt)}
+                      Joined: {formatDate(caregiver.createdAt).formattedDate}
                     </span>
                   </div>
                   <div className="flex items-center gap-3 col-span-full">
@@ -147,34 +171,48 @@ export default function ViewCaregiver() {
             </div>
           </div>
 
-          {/* --- NEW SECTION: Availability --- */}
+          {/* --- MODIFIED SECTION: Availability --- */}
           <div className="mt-8 bg-white dark:bg-slate-800 rounded-xl shadow-sm p-6 md:p-8">
             <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-6 flex items-center gap-3">
               <CalendarIcon /> Availability
             </h3>
             {caregiver.availability && caregiver.availability.length > 0 ? (
               <ul className="space-y-4">
-                {caregiver.availability.map((slot, index) => (
-                  <li
-                    key={index}
-                    className="p-4 bg-slate-50 dark:bg-slate-700/50 rounded-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4"
-                  >
-                    <div className="flex-1">
-                      <p className="font-semibold text-slate-900 dark:text-slate-100">
-                        {slot.day}
-                      </p>
-                      <p className="text-sm text-slate-500 dark:text-slate-400">
-                        {formatDate(slot.date)}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-3 text-slate-800 dark:text-slate-200">
-                      <ClockIcon className="w-5 h-5" />
-                      <span className="font-mono text-sm bg-slate-200 dark:bg-slate-600 px-2 py-1 rounded">
-                        {slot.startTime} - {slot.endTime}
-                      </span>
-                    </div>
-                  </li>
-                ))}
+                {caregiver.availability.map((slot, index) => {
+                  const { day, formattedDate } = formatDate(slot.date);
+                  return (
+                    <li
+                      key={index}
+                      className="p-4 bg-slate-50 dark:bg-slate-700/50 rounded-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                    >
+                      <div className="flex-1">
+                        <p className="font-semibold text-slate-900 dark:text-slate-100">
+                          {day}
+                        </p>
+                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                          {formattedDate}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        {slot.isAvailable ? (
+                          <span className="flex items-center gap-2 text-green-600 dark:text-green-400">
+                            <CheckCircleIcon className="w-5 h-5" />
+                            <span className="font-semibold text-sm">
+                              Available
+                            </span>
+                          </span>
+                        ) : (
+                          <span className="flex items-center gap-2 text-red-600 dark:text-red-400">
+                            <XCircleIcon className="w-5 h-5" />
+                            <span className="font-semibold text-sm">
+                              Not Available
+                            </span>
+                          </span>
+                        )}
+                      </div>
+                    </li>
+                  );
+                })}
               </ul>
             ) : (
               <p className="text-slate-500 dark:text-slate-400 text-center py-4">
@@ -183,11 +221,22 @@ export default function ViewCaregiver() {
             )}
           </div>
 
-          {/* --- NEW SECTION: Absences --- */}
+          {/* --- UNCHANGED SECTION: Absences --- */}
           <div className="mt-8 bg-white dark:bg-slate-800 rounded-xl shadow-sm p-6 md:p-8">
-            <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-6 flex items-center gap-3">
-              <NoteIcon /> Absence Notes
-            </h3>
+            <div className="flex items-center justify-between">
+              <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-6 flex items-center gap-3">
+                <NoteIcon /> Absence Notes
+              </h3>
+              {caregiver.absences && caregiver.absences.length > 0 && (
+                <button
+                  onClick={handleClearAbsences} // Open modal on click
+                  className="bg-red-500 hover:bg-red-600 text-white font-bold -mt-5 py-2 px-4 rounded-lg flex items-center justify-center sm:justify-start gap-2 disabled:bg-opacity-60"
+                >
+                  <TrashIcon />
+                  Clear
+                </button>
+              )}
+            </div>
             {caregiver.absences && caregiver.absences.length > 0 ? (
               <ul className="space-y-4">
                 {caregiver.absences.map((absence, index) => (
@@ -197,7 +246,7 @@ export default function ViewCaregiver() {
                   >
                     <p className="font-semibold text-slate-900 dark:text-slate-100">
                       <span className="font-bold">Date:</span>{" "}
-                      {formatDate(absence.date)}
+                      {formatDate(absence.date).formattedDate}
                     </p>
                     <p className="text-sm text-slate-600 dark:text-slate-300 mt-2">
                       <span className="font-bold">Reason:</span>{" "}

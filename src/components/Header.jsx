@@ -97,12 +97,12 @@ export default function Header() {
       ],
     },
     {
-      name: "Patients",
+      name: "Service Users",
       path: "/patients",
       subMenu: [
-        { name: "All Patients", path: "/patients" },
+        { name: "All Service Users", path: "/patients" },
         ...(user?.role === "admin"
-          ? [{ name: "Add New Patient", path: "/patients/new" }]
+          ? [{ name: "Add New Service User", path: "/patients/new" }]
           : []),
       ],
     },
@@ -123,14 +123,6 @@ export default function Header() {
       subMenu: [
         { name: "View Invoices", path: "/invoices" },
         { name: "Create Invoice", path: "/invoices/create" },
-      ],
-    },
-    {
-      name: "Time Logs",
-      path: "/timelogs",
-      subMenu: [
-        { name: "My Time Logs", path: "/timelogs" },
-        { name: "New Time log", path: "/timelogs/log" },
       ],
     },
     {

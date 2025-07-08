@@ -62,7 +62,7 @@ export default function VisitForm() {
         setCaregivers(caregiversRes.data);
         setPatients(patientsRes.data);
       } catch (err) {
-        setError("Failed to load caregivers or patients.");
+        setError("Failed to load caregivers or service users.");
       }
     };
 
@@ -221,7 +221,7 @@ export default function VisitForm() {
                     htmlFor="patient"
                     className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 after:content-['*'] after:text-red-500 after:ml-0.5"
                   >
-                    Assign Patient
+                    Assign Service User
                   </label>
                   <div className="relative">
                     <span className="absolute top-[70%] left-3 -translate-y-1/2 text-slate-400">
@@ -236,7 +236,7 @@ export default function VisitForm() {
                       className="w-full pl-10 pr-4 py-3 bg-slate-100 text-slate-800 dark:text-slate-200 dark:bg-slate-700 rounded-lg appearance-none focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
                     >
                       <option value="" disabled>
-                        Select a patient
+                        Select a service user
                       </option>
                       {patients.map((p) => (
                         <option key={p._id} value={p._id}>
@@ -333,7 +333,7 @@ export default function VisitForm() {
                     name="location"
                     value={form.location}
                     onChange={handleChange}
-                    placeholder="e.g., Patient's Home"
+                    placeholder="e.g., Service User's Home"
                     className="w-full pl-10 pr-4 py-3 text-slate-800 dark:text-slate-200 bg-slate-100 dark:bg-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
                   />
                 </div>

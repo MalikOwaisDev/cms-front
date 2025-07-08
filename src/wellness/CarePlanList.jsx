@@ -171,7 +171,7 @@ export default function CarePlanList() {
             </button>
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold text-slate-800 dark:text-slate-100">
-                Patient Care Plans
+                Service User Care Plans
               </h1>
               <p className="text-slate-500 dark:text-slate-400 mt-1">
                 Track and manage the progress of all wellness goals.
@@ -248,7 +248,7 @@ export default function CarePlanList() {
                       {plan.title}
                     </h2>
                     <p className="text-sm text-slate-500 dark:text-slate-400 font-semibold">
-                      Patient: {plan.patient?.name}
+                      Service User: {plan.patient?.name}
                     </p>
                     <p className="text-slate-600 dark:text-slate-300 mt-2 text-sm">
                       {plan.description}
@@ -337,7 +337,7 @@ export default function CarePlanList() {
               <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
                 {activeTab === "ongoing"
                   ? "All care plans are completed or none have been created."
-                  : "Get started by creating a new care plan for a patient."}
+                  : "Get started by creating a new care plan for a service user."}
               </p>
             </div>
           )}

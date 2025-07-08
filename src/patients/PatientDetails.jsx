@@ -78,7 +78,7 @@ const InvoicesList = ({ invoices }) => {
               </div>
               <div className="w-full sm:w-auto flex items-center justify-between sm:justify-end gap-4">
                 <div className="text-slate-800 dark:text-slate-200 font-semibold">
-                  ${invoice.totalAmount.toFixed(2)}
+                  £{invoice.totalAmount.toFixed(2)}
                 </div>
                 <div>
                   <span
@@ -103,7 +103,7 @@ const InvoicesList = ({ invoices }) => {
       ) : (
         <div className="text-center py-8">
           <p className="text-slate-500 dark:text-slate-400">
-            No invoices found for this patient.
+            No invoices found for this service user.
           </p>
         </div>
       )}
@@ -121,8 +121,8 @@ export default function PatientDetails() {
 
   useEffect(() => {
     document.title = patient
-      ? `Patient ${patient.name} | Care Management`
-      : "Patient Details | Care Management";
+      ? `Service User ${patient.name} | Care Management`
+      : "Service User Details | Care Management";
   }, [patient]);
 
   const [invoices, setInvoices] = useState([]);
@@ -150,7 +150,7 @@ export default function PatientDetails() {
           setInvoices(patientResponse.data.invoices);
         }
       } catch (error) {
-        console.error("Error fetching patient data:", error);
+        console.error("Error fetching service user data:", error);
         navigate("/patients");
       } finally {
         setLoading(false);
@@ -179,7 +179,7 @@ export default function PatientDetails() {
             className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
           >
             <ChevronLeftIcon />
-            Back to Patients
+            Back to Service Users
           </button>
         </div>
 
@@ -317,7 +317,7 @@ export default function PatientDetails() {
                       <InvoiceIcon size={24} />
                     </span>
                     <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-200">
-                      Patient Invoices
+                      Service User Invoices
                     </h2>
                   </div>
                   {invoicesLoading ? (

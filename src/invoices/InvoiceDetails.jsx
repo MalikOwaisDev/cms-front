@@ -106,7 +106,7 @@ const InvoicePrintLayout = ({ invoice }) => (
             <tr key={idx} className="border-b border-gray-100">
               <td className="p-4 text-gray-800">{s.description}</td>
               <td className="p-4 text-right text-gray-800">
-                ${s.amount.toFixed(2)}
+                £{s.amount.toFixed(2)}
               </td>
             </tr>
           ))}
@@ -120,17 +120,17 @@ const InvoicePrintLayout = ({ invoice }) => (
         <div className="flex justify-between text-lg">
           <span className="text-gray-600">Subtotal:</span>
           <span className="text-gray-800">
-            ${invoice.totalAmount.toFixed(2)}
+            £{invoice.totalAmount.toFixed(2)}
           </span>
         </div>
         <div className="flex justify-between text-lg">
           <span className="text-gray-600">Tax (0%):</span>
-          <span className="text-gray-800">$0.00</span>
+          <span className="text-gray-800">£0.00</span>
         </div>
         <div className="flex justify-between font-bold text-2xl border-t-2 border-gray-300 pt-3 mt-3">
           <span className="text-gray-900">Total:</span>
           <span className="text-gray-900">
-            ${invoice.totalAmount.toFixed(2)}
+            £{invoice.totalAmount.toFixed(2)}
           </span>
         </div>
       </div>
@@ -365,7 +365,7 @@ export default function InvoiceDetails() {
                                 {s.description}
                               </td>
                               <td className="p-3 text-right text-slate-700 dark:text-slate-300">
-                                ${s.amount.toFixed(2)}
+                                £{s.amount.toFixed(2)}
                               </td>
                             </tr>
                           ))}
@@ -378,15 +378,15 @@ export default function InvoiceDetails() {
                       <div className="w-full max-w-sm space-y-3">
                         <div className="flex justify-between text-slate-600 dark:text-slate-300">
                           <p>Subtotal</p>
-                          <p>${invoice.totalAmount.toFixed(2)}</p>
+                          <p>£{invoice.totalAmount.toFixed(2)}</p>
                         </div>
                         <div className="flex justify-between text-slate-600 dark:text-slate-300">
                           <p>Tax (0%)</p>
-                          <p>$0.00</p>
+                          <p>£0.00</p>
                         </div>
                         <div className="flex justify-between font-bold text-lg text-[#1D2056] dark:text-slate-100 border-t border-slate-200 dark:border-slate-700 pt-3 mt-3 !">
                           <p>Total Amount</p>
-                          <p>${invoice.totalAmount.toFixed(2)}</p>
+                          <p>£{invoice.totalAmount.toFixed(2)}</p>
                         </div>
                       </div>
                     </div>

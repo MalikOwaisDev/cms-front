@@ -17,21 +17,19 @@ const DAYS_OF_WEEK = [
   "Sunday",
 ];
 
-// --- NEW: Date Helper Function ---
-// This function calculates the dates for the current week starting from Monday.
+// --- Date Helper Function ---
 const getWeekDates = () => {
   const weekDates = {};
   const today = new Date();
-  const dayOfWeek = today.getDay(); // Sunday: 0, Monday: 1, ...
+  const dayOfWeek = today.getDay();
   const startOfWeek = new Date(today);
-  const diff = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Calculate difference to get to Monday
+  const diff = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
   startOfWeek.setDate(today.getDate() - diff);
 
   for (let i = 0; i < 7; i++) {
     const date = new Date(startOfWeek);
     date.setDate(startOfWeek.getDate() + i);
     const dayName = DAYS_OF_WEEK[i];
-    // Formats the date to 'YYYY-MM-DD' which is suitable for API calls and input fields
     weekDates[dayName] = date.toISOString().split("T")[0];
   }
   return weekDates;
@@ -61,7 +59,6 @@ export default function ProfilePage() {
   const [isProfileUpdating, setIsProfileUpdating] = useState(false);
   const [isAvailabilityUpdating, setIsAvailabilityUpdating] = useState(false);
 
-  // --- NEW: State to hold the current week's dates ---
   const [weekDates, setWeekDates] = useState({});
 
   useEffect(() => {
@@ -73,12 +70,12 @@ export default function ProfilePage() {
     if (user) {
       setFormData({
         name: user?.name || "",
+        // Ensure availability is an array, defaulting to empty if null/undefined
         availability: user?.availability || [],
         absences: user?.absences || [],
       });
       setAvatarPreview(user?.avatar);
     }
-    // --- NEW: Calculate and set the week's dates when the component loads ---
     setWeekDates(getWeekDates());
   }, [navigate, user]);
 
@@ -104,27 +101,26 @@ export default function ProfilePage() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // --- MODIFIED: Handlers for availability to include the date ---
-  const handleAvailabilityChange = (day, date, field, value) => {
+  // --- MODIFIED: Availability handler for checkbox ---
+  const handleAvailabilityChange = (day, date, isAvailable) => {
     let newAvailability = [...(formData.availability || [])];
-    let dayData = newAvailability.find((d) => d.day === day);
 
-    if (!dayData) {
-      // MODIFIED: Include the specific date for the entry
-      dayData = { day, date, startTime: "", endTime: "" };
-      newAvailability.push(dayData);
+    if (isAvailable) {
+      // Add or update the day's availability
+      const existingDayIndex = newAvailability.findIndex((d) => d.day === day);
+      const availabilityData = { day, date, isAvailable: true };
+
+      if (existingDayIndex > -1) {
+        newAvailability[existingDayIndex] = availabilityData;
+      } else {
+        newAvailability.push(availabilityData);
+      }
+    } else {
+      // Remove the day's availability if checkbox is unchecked
+      newAvailability = newAvailability.filter((d) => d.day !== day);
     }
 
-    // Ensure the date is always up-to-date for the current week
-    dayData.date = date;
-    dayData[field] = value;
-
-    // Filter out entries where both start and end times are empty
-    const filteredAvailability = newAvailability.filter(
-      (a) => a.startTime || a.endTime
-    );
-
-    setFormData({ ...formData, availability: filteredAvailability });
+    setFormData({ ...formData, availability: newAvailability });
   };
 
   const handleAddAbsence = () => {
@@ -170,16 +166,17 @@ export default function ProfilePage() {
     });
   };
 
+  // --- MODIFIED: Update availability payload ---
   const handleUpdateAvailability = async (e) => {
     e.preventDefault();
     setIsAvailabilityUpdating(true);
 
     try {
+      // Filter for entries that are explicitly marked as available
       const validAvailability = formData.availability.filter(
-        (a) => a.startTime && a.endTime
+        (a) => a.isAvailable
       );
 
-      // The payload will now automatically include the 'date' field for each availability entry
       const payload = {
         availability: validAvailability,
         absences: formData.absences,
@@ -411,19 +408,30 @@ export default function ProfilePage() {
                       {formData.availability &&
                       formData.availability.length > 0 ? (
                         <ul className="space-y-2">
-                          {formData.availability.map((avail) => (
-                            <li
-                              key={avail.day}
-                              className="flex justify-between items-center bg-slate-100 dark:bg-slate-700/50 p-3 rounded-md"
-                            >
-                              <span className="font-medium text-slate-700 dark:text-slate-300">
-                                {avail.day}
-                              </span>
-                              <span className="text-sm text-slate-600 dark:text-slate-400">
-                                {avail.startTime} - {avail.endTime}
-                              </span>
-                            </li>
-                          ))}
+                          {DAYS_OF_WEEK.map((day) => {
+                            const avail = formData.availability.find(
+                              (a) => a.day === day
+                            );
+                            return (
+                              <li
+                                key={day}
+                                className="flex justify-between items-center bg-slate-100 dark:bg-slate-700/50 p-3 rounded-md"
+                              >
+                                <span className="font-medium text-slate-700 dark:text-slate-300">
+                                  {day}
+                                </span>
+                                {avail && avail.isAvailable ? (
+                                  <span className="text-sm font-semibold text-green-600 dark:text-green-400">
+                                    Available
+                                  </span>
+                                ) : (
+                                  <span className="text-sm text-slate-500 dark:text-slate-400">
+                                    Unavailable
+                                  </span>
+                                )}
+                              </li>
+                            );
+                          })}
                         </ul>
                       ) : (
                         <p className="text-slate-500 dark:text-slate-400">
@@ -459,7 +467,7 @@ export default function ProfilePage() {
                     </div>
                   </>
                 ) : (
-                  // CAREGIVER EDIT MODE
+                  // CAREGIVER EDIT MODE with Checkbox
                   <form onSubmit={handleUpdateAvailability}>
                     <div className="mb-8">
                       <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100 mb-4">
@@ -469,47 +477,49 @@ export default function ProfilePage() {
                         {DAYS_OF_WEEK.map((day) => {
                           const dayAvailability = formData.availability?.find(
                             (d) => d.day === day
-                          ) || { startTime: "", endTime: "" };
+                          );
+                          const isAvailable =
+                            dayAvailability?.isAvailable || false;
+
                           return (
                             <div
                               key={day}
-                              className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-center"
+                              className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg"
                             >
-                              {/* MODIFIED: Label now includes the calculated date */}
-                              <label className="font-medium text-slate-700 dark:text-slate-300">
-                                {day}
+                              <div>
+                                <label className="font-medium text-slate-700 dark:text-slate-300">
+                                  {day}
+                                </label>
                                 <span className="block text-sm text-slate-500 dark:text-slate-400 font-normal">
                                   {weekDates[day]}
                                 </span>
+                              </div>
+                              <label
+                                htmlFor={`available-${day}`}
+                                className="relative inline-flex items-center cursor-pointer"
+                              >
+                                <input
+                                  type="checkbox"
+                                  id={`available-${day}`}
+                                  className="sr-only peer"
+                                  checked={isAvailable}
+                                  onChange={(e) =>
+                                    handleAvailabilityChange(
+                                      day,
+                                      weekDates[day],
+                                      e.target.checked
+                                    )
+                                  }
+                                />
+                                <div className="w-11 h-6 bg-slate-200 dark:bg-slate-600 rounded-full peer peer-focus:ring-2 peer-focus:ring-pink-400 dark:peer-focus:ring-pink-500 peer-checked:after:translate-x-1/2 peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-slate-500 peer-checked:bg-[#FE4982]"></div>
+                                <span
+                                  className={`inline-block ${
+                                    isAvailable ? "pl-7" : "pl-3"
+                                  } text-sm font-medium text-slate-700 dark:text-slate-300`}
+                                >
+                                  {isAvailable ? "Available" : "Unavailable"}
+                                </span>
                               </label>
-                              <input
-                                type="time"
-                                value={dayAvailability.startTime}
-                                // MODIFIED: Pass the date to the handler
-                                onChange={(e) =>
-                                  handleAvailabilityChange(
-                                    day,
-                                    weekDates[day],
-                                    "startTime",
-                                    e.target.value
-                                  )
-                                }
-                                className="w-full px-3 py-2 dark:text-slate-200 bg-slate-100 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#FE4982]"
-                              />
-                              <input
-                                type="time"
-                                value={dayAvailability.endTime}
-                                // MODIFIED: Pass the date to the handler
-                                onChange={(e) =>
-                                  handleAvailabilityChange(
-                                    day,
-                                    weekDates[day],
-                                    "endTime",
-                                    e.target.value
-                                  )
-                                }
-                                className="w-full px-3 py-2 dark:text-slate-200 bg-slate-100 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#FE4982]"
-                              />
                             </div>
                           );
                         })}

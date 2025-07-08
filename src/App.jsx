@@ -14,6 +14,8 @@ import ProfilePage from "./Profile";
 import TrainingList from "./training/TrainingList";
 import TrainingForm from "./training/TrainingForm";
 import TrainingHistory from "./training/TrainingHistory";
+import TrainingDetails from "./training/TrainingDetails";
+import TrainingEditDetails from "./training/TrainingEditDetails";
 
 // Invoicing
 import InvoiceList from "./invoices/InvoiceList";
@@ -21,19 +23,18 @@ import CreateInvoice from "./invoices/CreateInvoice";
 import InvoiceDetails from "./invoices/InvoiceDetails";
 import EditInvoice from "./invoices/EditInvoice";
 
-// Time Tracking
-import LogTime from "./timeLogs/LogTime";
-import TimeLogList from "./timeLogs/TimeLogList";
-
 // Wellness
 import CarePlanForm from "./wellness/CarePlanForm";
 import CarePlanList from "./wellness/CarePlanList";
 import ResourceList from "./wellness/ResourceList";
+import EditCarePlan from "./wellness/EditCarePlan";
+import CreateResource from "./wellness/CreateResource";
 
 // Patient (optional)
 import PatientList from "./patients/ListPatients";
 import PatientForm from "./patients/PatientForm";
 import PatientDetails from "./patients/PatientDetails";
+import PatientEditPage from "./patients/PatientEditDetails";
 
 //Visits
 import VisitForm from "./visit/VisitForm";
@@ -48,13 +49,7 @@ import NewCaregiver from "./caregivers/NewCaregiver";
 
 // Fallback
 import NotFound from "./NotFound";
-import PatientEditPage from "./patients/PatientEditDetails";
-import TrainingDetails from "./training/TrainingDetails";
-import TrainingEditDetails from "./training/TrainingEditDetails";
-import TimeLogView from "./timeLogs/TimeLogView";
-import TimeLogEdit from "./timeLogs/TimeLogEdit";
-import EditCarePlan from "./wellness/EditCarePlan";
-import CreateResource from "./wellness/CreateResource";
+
 // import Loader from "./Loader";
 
 function App() {
@@ -123,12 +118,6 @@ function App() {
           </AdminProtectWrapper>
         }
       />
-
-      {/* Time Logs */}
-      <Route path="/timelogs" element={<TimeLogList />} />
-      <Route path="/timelogs/log" element={<LogTime />} />
-      <Route path="/timelogs/:id" element={<TimeLogView />} />
-      <Route path="/timelogs/edit/:id" element={<TimeLogEdit />} />
 
       {/* Wellness */}
       <Route path="/wellness/plans" element={<CarePlanList />} />

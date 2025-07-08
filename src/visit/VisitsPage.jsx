@@ -220,7 +220,7 @@ export default function VisitsPage() {
                     Manage Visits
                   </h1>
                   <p className="text-slate-500 dark:text-slate-400 mt-1">
-                    View, track, and schedule all patient visits.
+                    View, track, and schedule all service user visits.
                   </p>
                 </div>
               </div>
@@ -267,7 +267,7 @@ export default function VisitsPage() {
                 </span>
                 <input
                   type="text"
-                  placeholder="Search by patient or caregiver..."
+                  placeholder="Search by service user or caregiver..."
                   value={searchQuery}
                   onChange={(e) => {
                     setSearchQuery(e.target.value);
@@ -292,8 +292,12 @@ export default function VisitsPage() {
                 >
                   <option value="date-desc">Sort by Date (Newest)</option>
                   <option value="date-asc">Sort by Date (Oldest)</option>
-                  <option value="patient-asc">Sort by Patient (A-Z)</option>
-                  <option value="patient-desc">Sort by Patient (Z-A)</option>
+                  <option value="patient-asc">
+                    Sort by Service User (A-Z)
+                  </option>
+                  <option value="patient-desc">
+                    Sort by Service User (Z-A)
+                  </option>
                 </select>
                 <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-slate-400">
                   <svg
@@ -329,7 +333,7 @@ export default function VisitsPage() {
                       <thead className="text-xs text-slate-700 uppercase bg-slate-50 dark:bg-slate-700 dark:text-slate-300">
                         <tr>
                           <th scope="col" className="px-6 py-3">
-                            Patient
+                            Service User
                           </th>
                           <th scope="col" className="px-6 py-3">
                             Caregiver

@@ -256,7 +256,7 @@ export default function TrainingForm() {
                     id="title"
                     value={form.title}
                     onChange={handleFormChange}
-                    placeholder="e.g., Patient Privacy & HIPAA"
+                    placeholder="e.g., Service User Privacy & HIPAA"
                     className="w-full pl-10 pr-4 py-3 bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-slate-200 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
                   />{" "}
                 </div>{" "}

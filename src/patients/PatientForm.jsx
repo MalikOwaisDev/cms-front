@@ -28,7 +28,7 @@ const getCarers = async (token) => {
 };
 
 export default function PatientForm() {
-  document.title = "New Patient | Care Management System";
+  document.title = "New Service User | Care Management System";
   const navigate = useNavigate();
   const initialFormState = {
     name: "",
@@ -100,14 +100,14 @@ export default function PatientForm() {
     try {
       const dataToSend = { ...form, caregiver: form.assignedCaregiver };
       await createPatient(dataToSend, token);
-      setSuccess("Patient registered successfully!");
+      setSuccess("Service User registered successfully!");
       setForm(initialFormState);
       setTimeout(() => {
         setSuccess("");
         navigate("/patients");
       }, 1500); // Navigate after success message
     } catch (err) {
-      setError(err.message || "Failed to create patient.");
+      setError(err.message || "Failed to create service user.");
     } finally {
       setLoading(false);
     }
@@ -138,10 +138,10 @@ export default function PatientForm() {
             </button>
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold text-slate-800 dark:text-slate-100">
-                Register New Patient
+                Register New Service User
               </h1>
               <p className="text-slate-500 dark:text-slate-400 mt-1">
-                Enter the patient's comprehensive details below.
+                Enter the service user's comprehensive details below.
               </p>
             </div>
           </div>
@@ -475,7 +475,7 @@ export default function PatientForm() {
                   value={form.notes}
                   onChange={handleChange}
                   rows="4"
-                  placeholder="Any relevant notes about the patient's condition or preferences."
+                  placeholder="Any relevant notes about the service user's condition or preferences."
                   className="w-full px-4 py-3 text-slate-800 dark:text-slate-200 bg-slate-100 dark:bg-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
                 ></textarea>
               </div>
@@ -511,7 +511,7 @@ export default function PatientForm() {
                     "Saving..."
                   ) : (
                     <>
-                      <SaveIcon /> Save Patient
+                      <SaveIcon /> Save Service User
                     </>
                   )}
                 </button>

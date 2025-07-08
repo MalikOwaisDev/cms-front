@@ -190,7 +190,7 @@ export default function ViewVisitPage() {
                     <PatientIcon />
                     <div>
                       <p className="text-xs text-slate-500 dark:text-slate-400">
-                        Patient
+                        Service User
                       </p>
                       <p className="font-semibold text-slate-700 dark:text-slate-200">
                         {visit.patient?.name || "N/A"}

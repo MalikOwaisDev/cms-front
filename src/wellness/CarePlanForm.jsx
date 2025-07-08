@@ -36,7 +36,7 @@ export default function CarePlanForm() {
     if (!token) navigate("/login");
     getPatients(token)
       .then((res) => setPatients(res.data))
-      .catch(() => setError("Could not load patients."));
+      .catch(() => setError("Could not load service users."));
   }, [token, navigate]);
 
   const handleFormChange = (e) =>
@@ -60,7 +60,7 @@ export default function CarePlanForm() {
     setError("");
     setSuccess("");
     if (!form.patient || !form.title || form.goals.some((g) => !g.goal)) {
-      setError("Patient, Title, and all Goal fields are required.");
+      setError("Service User, Title, and all Goal fields are required.");
       return;
     }
     setLoading(true);
@@ -106,7 +106,8 @@ export default function CarePlanForm() {
                 Create New Care Plan
               </h1>
               <p className="text-slate-500 dark:text-slate-400 mt-1">
-                Develop a personalized health and wellness plan for a patient.
+                Develop a personalized health and wellness plan for a service
+                user.
               </p>
             </div>
           </div>
@@ -125,7 +126,7 @@ export default function CarePlanForm() {
                     htmlFor="patient"
                     className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                   >
-                    Patient
+                    Service User
                   </label>
                   <div className="relative">
                     {/* RESPONSIVE: Centered Icon */}
@@ -140,7 +141,7 @@ export default function CarePlanForm() {
                       className="w-full pl-10 pr-10 py-3 appearance-none bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
                     >
                       <option value="" disabled>
-                        Select a patient
+                        Select a service user
                       </option>
                       {patients.map((p) => (
                         <option key={p._id} value={p._id}>
@@ -213,7 +214,7 @@ export default function CarePlanForm() {
 
             <fieldset>
               <legend className="text-lg font-semibold text-[#1D2056] dark:text-slate-200 mb-4 border-b border-slate-200 dark:border-slate-700 pb-2">
-                Patient Goals
+                Service User Goals
               </legend>
               <div className="space-y-4">
                 {form.goals.map((g, idx) => (

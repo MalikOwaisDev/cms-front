@@ -116,7 +116,7 @@ export default function InvoiceList() {
                 Invoices
               </h1>
               <p className="text-slate-500 dark:text-slate-400 mt-1">
-                Manage and track all patient invoices.
+                Manage and track all Service user invoices.
               </p>
             </div>
             <Link
@@ -141,7 +141,7 @@ export default function InvoiceList() {
                       Invoice ID
                     </th>
                     <th className="p-4 text-sm font-semibold text-slate-500 dark:text-slate-400">
-                      Patient
+                      Service User
                     </th>
                     <th className="p-4 text-sm font-semibold text-slate-500 dark:text-slate-400 hidden md:table-cell">
                       Issue Date
@@ -179,7 +179,7 @@ export default function InvoiceList() {
                         {new Date(inv.issuedDate).toLocaleDateString()}
                       </td>
                       <td className="p-4 text-slate-700 dark:text-slate-200 font-semibold">
-                        ${inv.totalAmount.toFixed(2)}
+                        £{inv.totalAmount.toFixed(2)}
                       </td>
                       <td className="p-4 text-center">
                         <StatusBadge status={inv.status} />
@@ -241,7 +241,7 @@ export default function InvoiceList() {
                         <p className="text-sm text-slate-500 dark:text-slate-400">
                           Amount:{" "}
                           <span className="font-semibold text-slate-700 dark:text-slate-200">
-                            ${inv.totalAmount.toFixed(2)}
+                            £{inv.totalAmount.toFixed(2)}
                           </span>
                         </p>
                         <p className="text-sm text-slate-500 dark:text-slate-400">

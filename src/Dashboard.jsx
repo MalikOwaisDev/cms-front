@@ -10,7 +10,6 @@ import {
   PatientsIcon,
   TrainingIcon,
   InvoicesIcon,
-  TimeLogsIcon,
   WellnessIcon,
   AlertCircleIcon,
   ViewIcon,
@@ -716,10 +715,10 @@ export default function Dashboard() {
       },
     },
     {
-      title: "Patients",
+      title: "Service Users",
       to: "/patients",
       icon: <PatientsIcon />,
-      description: "Manage patient records",
+      description: "Manage service user records",
       colorClass: {
         bg: "bg-sky-100 dark:bg-sky-900/50",
         text: "text-sky-600 dark:text-sky-400",
@@ -756,20 +755,10 @@ export default function Dashboard() {
       },
     },
     {
-      title: "Time Logs",
-      to: "/timelogs",
-      icon: <TimeLogsIcon />,
-      description: "Track caregiver hours",
-      colorClass: {
-        bg: "bg-green-100 dark:bg-green-900/50",
-        text: "text-green-600 dark:text-green-400",
-      },
-    },
-    {
       title: "Wellness Checks",
       to: "/wellness/plans",
       icon: <WellnessIcon />,
-      description: "Monitor patient wellness",
+      description: "Monitor service user wellness",
       colorClass: {
         bg: "bg-teal-100 dark:bg-teal-900/50",
         text: "text-teal-600 dark:text-teal-400",

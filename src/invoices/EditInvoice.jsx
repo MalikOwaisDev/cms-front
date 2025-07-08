@@ -262,7 +262,7 @@ export default function EditInvoice() {
                   htmlFor="patient"
                   className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                 >
-                  Patient
+                  Service User
                 </label>
                 <input
                   id="patient"
@@ -363,7 +363,7 @@ export default function EditInvoice() {
                   Total:
                 </span>
                 <span className="text-3xl font-bold text-[#1D2056] dark:text-slate-100">
-                  ${totalAmount.toFixed(2)}
+                  £{totalAmount.toFixed(2)}
                 </span>
               </div>
               <button

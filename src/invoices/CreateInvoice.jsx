@@ -46,8 +46,8 @@ export default function CreateInvoice() {
     getPatients(token)
       .then((res) => setPatients(res.data))
       .catch((err) => {
-        console.error("Error fetching patients:", err);
-        setError("Could not fetch patients. Please refresh the page.");
+        console.error("Error fetching service users:", err);
+        setError("Could not fetch service users. Please refresh the page.");
       });
 
     // Set patient ID from URL search params if available
@@ -92,7 +92,7 @@ export default function CreateInvoice() {
 
     // Basic validation
     if (!pID || services.some((s) => !s.description || !s.amount)) {
-      setError("Please select a patient and fill all service details.");
+      setError("Please select a service users and fill all service details.");
       return;
     }
 
@@ -169,7 +169,7 @@ export default function CreateInvoice() {
                   htmlFor="patient"
                   className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                 >
-                  Patient
+                  Service Users
                 </label>
                 <div className="relative">
                   <select
@@ -180,7 +180,7 @@ export default function CreateInvoice() {
                     required
                   >
                     <option value="" disabled>
-                      Select a patient
+                      Select a Service User
                     </option>
                     {patients.map((p) => (
                       <option key={p._id} value={p._id}>
@@ -296,7 +296,7 @@ export default function CreateInvoice() {
                   Total:
                 </span>
                 <span className="text-3xl font-bold text-[#1D2056] dark:text-slate-100">
-                  ${totalAmount.toFixed(2)}
+                  £{totalAmount.toFixed(2)}
                 </span>
               </div>
               <button

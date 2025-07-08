@@ -96,7 +96,7 @@ export default function EditCarePlan() {
     setError("");
     setSuccess("");
     if (!form.patient || !form.title || form.goals.some((g) => !g.goal)) {
-      setError("Patient, Title, and all Goal fields are required.");
+      setError("Service User, Title, and all Goal fields are required.");
       return;
     }
     setSubmitting(true);
@@ -182,7 +182,7 @@ export default function EditCarePlan() {
                         htmlFor="patient"
                         className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                       >
-                        Patient
+                        Service User
                       </label>
                       <div className="relative">
                         <span className="absolute top-[70%] left-3 -translate-y-1/2 text-slate-400">
@@ -245,7 +245,7 @@ export default function EditCarePlan() {
 
                 <fieldset>
                   <legend className="text-lg font-semibold text-[#1D2056] dark:text-slate-200 mb-4 border-b border-slate-200 dark:border-slate-700 pb-2">
-                    Patient Goals
+                    Service User Goals
                   </legend>
                   <div className="space-y-4">
                     {form.goals.map((g, idx) => (

@@ -73,7 +73,7 @@ export default function PatientEditPage() {
 
   document.title = `Edit ${
     formData ? formData.name : ""
-  } Patient | Care Management System`;
+  } Service User | Care Management System`;
 
   const [caregivers, setCaregivers] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -121,7 +121,7 @@ export default function PatientEditPage() {
             "",
         });
       } catch (error) {
-        console.error("Error fetching patient data:", error);
+        console.error("Error fetching service user data:", error);
         navigate("/patients");
       } finally {
         setLoading(false);
@@ -178,7 +178,7 @@ export default function PatientEditPage() {
 
     try {
       await updatePatient(id, dataToUpdate, token);
-      setSuccess("Patient updated successfully!");
+      setSuccess("Service updated successfully!");
       setTimeout(() => navigate(`/patients/${id}`), 1000);
     } catch (err) {
       setError("Failed to update profile.");
@@ -194,10 +194,10 @@ export default function PatientEditPage() {
     setSuccess("");
     try {
       await deletePatient(id, token);
-      setSuccess("Patient deleted successfully!");
+      setSuccess("Service User deleted successfully!");
       setTimeout(() => navigate("/patients"), 1500);
     } catch (err) {
-      setError("Failed to delete patient.");
+      setError("Failed to delete service user.");
     } finally {
       setLoading(false);
     }
@@ -241,7 +241,7 @@ export default function PatientEditPage() {
               <div>
                 {/* RESPONSIVE: Title font size adjusts for smaller screens */}
                 <h1 className="text-2xl sm:text-3xl font-bold text-slate-800 dark:text-slate-100">
-                  Edit Patient Profile
+                  Edit Service User Profile
                 </h1>
                 <p className="text-slate-500 dark:text-slate-400 mt-1">
                   Update {formData.name}'s information below.
@@ -569,7 +569,7 @@ export default function PatientEditPage() {
                   value={formData.notes}
                   onChange={handleChange}
                   rows="4"
-                  placeholder="Any relevant notes about the patient's condition or preferences."
+                  placeholder="Any relevant notes about the service user's condition or preferences."
                   className="w-full px-4 py-3 bg-slate-100 text-slate-800 dark:text-slate-200 dark:bg-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE4982]"
                 ></textarea>
               </div>
@@ -617,12 +617,12 @@ export default function PatientEditPage() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onConfirm={confirmDelete}
-        title="Delete Patient"
+        title="Delete Service User"
         modalRef={modalRef}
       >
         <p>
-          Are you sure you want to delete this patient? This action cannot be
-          undone and will permanently remove their data.
+          Are you sure you want to delete this service user? This action cannot
+          be undone and will permanently remove their data.
         </p>
       </ConfirmationModal>
       <Footer />
