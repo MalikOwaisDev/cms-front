@@ -289,7 +289,7 @@ export default function TrainingEditDetails() {
                   Training Title
                 </label>
                 <div className="relative">
-                  <span className="absolute top-[70%] left-3 -translate-y-1/2 text-slate-400">
+                  <span className="absolute top-[50%] left-3 -translate-y-1/2 text-slate-400">
                     <BookOpenIcon size={20} />
                   </span>
                   <input
@@ -328,7 +328,7 @@ export default function TrainingEditDetails() {
                   Completion Deadline
                 </label>
                 <div className="relative">
-                  <span className="absolute top-[70%] left-3 -translate-y-1/2 text-slate-400">
+                  <span className="absolute top-[50%] left-3 -translate-y-1/2 text-slate-400">
                     <CalendarIcon />
                   </span>
                   <input

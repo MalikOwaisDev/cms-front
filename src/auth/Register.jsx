@@ -289,7 +289,7 @@ export default function Register() {
                 </button>
               </div>
               <div className="relative">
-                <span className="absolute top-[70%] left-3 -translate-y-1/2 text-slate-400">
+                <span className="absolute top-[50%] left-3 -translate-y-1/2 text-slate-400">
                   <UserIcon />
                 </span>
                 <input
@@ -304,7 +304,7 @@ export default function Register() {
                 />
               </div>
               <div className="relative">
-                <span className="absolute top-[70%] left-3 -translate-y-1/2 text-slate-400">
+                <span className="absolute top-[50%] left-3 -translate-y-1/2 text-slate-400">
                   <MailIcon />
                 </span>
                 <input
@@ -319,7 +319,7 @@ export default function Register() {
                 />
               </div>
               <div className="relative">
-                <span className="absolute top-[70%] left-3 -translate-y-1/2 text-slate-400">
+                <span className="absolute top-[50%] left-3 -translate-y-1/2 text-slate-400">
                   <LockIcon />
                 </span>
                 <input
@@ -334,7 +334,7 @@ export default function Register() {
                 />
                 <button
                   type="button"
-                  className="absolute top-[70%] -translate-y-1/2 right-3 cursor-pointer text-slate-400 hover:text-[#1D2056] dark:hover:text-slate-200"
+                  className="absolute top-[50%] -translate-y-1/2 right-3 cursor-pointer text-slate-400 hover:text-[#1D2056] dark:hover:text-slate-200"
                   onClick={() => setShowPassword(!showPassword)}
                 >
                   {showPassword ? <EyeOffIcon /> : <EyeIcon />}

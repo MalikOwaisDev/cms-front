@@ -188,7 +188,7 @@ export default function Header() {
                 {item.name}
                 <svg
                   className={`h-4 w-4 transition-transform duration-200 ease-out ${
-                    activeDropdown === index ? "rotate-90" : ""
+                    activeDropdown === index ? "rotate-180" : ""
                   }`}
                   fill="none"
                   stroke="currentColor"
@@ -224,7 +224,7 @@ export default function Header() {
         <div className="flex items-center space-x-4">
           <button
             onClick={toggleTheme}
-            className="rounded-full p-2 text-slate-600 transition-colors hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-white/10"
+            className="rounded-full p-2 text-slate-600 transition-colors hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-white/10 hover:cursor-pointer"
           >
             {theme === "light" ? <MoonIcon /> : <SunIcon />}
           </button>
@@ -303,7 +303,7 @@ export default function Header() {
                   </NavLink>
                   <svg
                     className={`h-5 w-5 transition-transform duration-300 ease-out ${
-                      activeMobileSubMenu === index ? "rotate-90" : ""
+                      activeMobileSubMenu === index ? "rotate-180" : ""
                     }`}
                     fill="none"
                     stroke="currentColor"

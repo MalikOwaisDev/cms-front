@@ -185,7 +185,7 @@ export default function EditCarePlan() {
                         Service User
                       </label>
                       <div className="relative">
-                        <span className="absolute top-[70%] left-3 -translate-y-1/2 text-slate-400">
+                        <span className="absolute top-[50%] left-3 -translate-y-1/2 text-slate-400">
                           <UserIcon />
                         </span>
                         <input
@@ -205,7 +205,7 @@ export default function EditCarePlan() {
                         Plan Title
                       </label>
                       <div className="relative">
-                        <span className="absolute top-[70%] left-3 -translate-y-1/2 text-slate-400">
+                        <span className="absolute top-[50%] left-3 -translate-y-1/2 text-slate-400">
                           <ClipboardIcon />
                         </span>
                         <input
@@ -251,7 +251,7 @@ export default function EditCarePlan() {
                     {form.goals.map((g, idx) => (
                       <div key={idx} className="flex items-center gap-3">
                         <div className="relative flex-grow">
-                          <span className="absolute top-[70%] left-3 -translate-y-1/2 text-slate-400">
+                          <span className="absolute top-[50%] left-3 -translate-y-1/2 text-slate-400">
                             <TargetIcon />
                           </span>
                           <input

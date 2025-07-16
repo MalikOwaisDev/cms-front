@@ -37,6 +37,7 @@ const CardSkeleton = () => (
 );
 
 export default function TrainingList() {
+  document.title = "Training | Care Management System";
   const { userQuery } = useUser();
   const { data: user } = userQuery;
   const [allTrainings, setAllTrainings] = useState([]);

@@ -305,7 +305,7 @@ export default function PatientEditPage() {
                     Full Name
                   </label>
                   <div className="relative">
-                    <span className="absolute top-[70%] left-3 -translate-y-1/2 text-slate-400">
+                    <span className="absolute top-[50%] left-3 -translate-y-1/2 text-slate-400">
                       <UserIcon />
                     </span>
                     <input
@@ -325,7 +325,7 @@ export default function PatientEditPage() {
                     Age
                   </label>
                   <div className="relative">
-                    <span className="absolute top-[70%] left-3 -translate-y-1/2 text-slate-400">
+                    <span className="absolute top-[50%] left-3 -translate-y-1/2 text-slate-400">
                       <HashIcon />
                     </span>
                     <input
@@ -384,7 +384,7 @@ export default function PatientEditPage() {
                     Phone
                   </label>
                   <div className="relative">
-                    <span className="absolute top-[70%] left-3 -translate-y-1/2 text-slate-400">
+                    <span className="absolute top-[50%] left-3 -translate-y-1/2 text-slate-400">
                       <PhoneIcon />
                     </span>
                     <input
@@ -405,7 +405,7 @@ export default function PatientEditPage() {
                     Email
                   </label>
                   <div className="relative">
-                    <span className="absolute top-[70%] left-3 -translate-y-1/2 text-slate-400">
+                    <span className="absolute top-[50%] left-3 -translate-y-1/2 text-slate-400">
                       <MailIcon />
                     </span>
                     <input
@@ -433,7 +433,7 @@ export default function PatientEditPage() {
                   Street Address
                 </label>
                 <div className="relative">
-                  <span className="absolute top-[70%] left-3 -translate-y-1/2 text-slate-400">
+                  <span className="absolute top-[50%] left-3 -translate-y-1/2 text-slate-400">
                     <MapPinIcon />
                   </span>
                   <input
@@ -522,7 +522,7 @@ export default function PatientEditPage() {
                     Primary Diagnosis
                   </label>
                   <div className="relative">
-                    <span className="absolute top-[70%] left-3 -translate-y-1/2 text-slate-400">
+                    <span className="absolute top-[50%] left-3 -translate-y-1/2 text-slate-400">
                       <ActivityIcon />
                     </span>
                     <input
