@@ -210,18 +210,18 @@ export default function Register() {
   };
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900 p-4 font-sans transition-colors duration-300">
+    <div className="flex relative justify-center items-center p-4 min-h-screen font-sans transition-colors duration-300 bg-slate-50 dark:bg-slate-900">
       <ThemeToggle />
       <div
         className={`w-full max-w-md transform transition-all duration-700 ease-out ${
           isMounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
         }`}
       >
-        <div className="text-center mb-8">
+        <div className="mb-8 text-center">
           <img
             src="/logo3.png"
             alt="MindfulTrust Logo"
-            className="mx-auto h-16 sm:h-20 block dark:hidden"
+            className="block mx-auto h-16 sm:h-20 dark:hidden"
             onError={(e) => {
               e.target.style.display = "none";
             }}
@@ -229,45 +229,45 @@ export default function Register() {
           <img
             src="/logo2.png"
             alt="MindfulTrust Logo"
-            className="mx-auto h-16 sm:h-20 hidden dark:block"
+            className="hidden mx-auto h-16 sm:h-20 dark:block"
             onError={(e) => {
               e.target.style.display = "none";
             }}
           />
         </div>
 
-        <div className="bg-white dark:bg-slate-800 p-6 sm:p-8 rounded-2xl shadow-lg">
+        <div className="p-6 bg-white rounded-2xl shadow-lg dark:bg-slate-800 sm:p-8">
           <h2 className="text-2xl sm:text-3xl font-bold text-center text-[#1D2056] dark:text-slate-100 mb-2">
             Create Your Account
           </h2>
-          <p className="text-center text-slate-500 dark:text-slate-400 mb-8">
+          <p className="mb-8 text-center text-slate-500 dark:text-slate-400">
             Join our community of care professionals.
           </p>
 
           {error && (
             <div
-              className="bg-red-100 dark:bg-red-900/20 border border-red-300 dark:border-red-500/30 text-red-800 dark:text-red-300 px-4 py-3 rounded-lg relative mb-6 flex items-center"
+              className="flex relative items-center px-4 py-3 mb-6 text-red-800 bg-red-100 rounded-lg border border-red-300 dark:bg-red-900/20 dark:border-red-500/30 dark:text-red-300"
               role="alert"
             >
-              <span className="mr-3 flex-shrink-0">
+              <span className="flex-shrink-0 mr-3">
                 <AlertCircleIcon size={20} />
               </span>
-              <span className="block sm:inline text-sm">{error}</span>
+              <span className="block text-sm sm:inline">{error}</span>
             </div>
           )}
 
           <form onSubmit={handleSubmit}>
             <div className="space-y-4">
               <div className="flex flex-col items-center space-y-2">
-                <div className="w-24 h-24 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center overflow-hidden border-2 border-white dark:border-slate-600 shadow-sm">
+                <div className="flex overflow-hidden justify-center items-center w-24 h-24 rounded-full border-2 border-white shadow-sm bg-slate-100 dark:bg-slate-700 dark:border-slate-600">
                   {avatarPreview ? (
                     <img
                       src={avatarPreview}
                       alt="Avatar Preview"
-                      className="w-full h-full object-cover"
+                      className="object-cover w-full h-full"
                     />
                   ) : (
-                    <span className="w-12 h-12 flex items-center justify-center text-slate-400 dark:text-slate-500">
+                    <span className="flex justify-center items-center w-12 h-12 text-slate-400 dark:text-slate-500">
                       <UserIcon size={30} />
                     </span>
                   )}
@@ -341,7 +341,7 @@ export default function Register() {
                 </button>
               </div>
               <PasswordValidator validation={passwordValidation} />
-              <div className="my-4 relative">
+              <div className="relative my-4">
                 <select
                   name="role"
                   id="role"
@@ -353,7 +353,7 @@ export default function Register() {
                   <option value="caregiver">Caregiver</option>
                   <option value="admin">Admin</option>
                 </select>
-                <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-slate-400">
+                <div className="flex absolute inset-y-0 right-3 items-center pointer-events-none text-slate-400">
                   <svg
                     className="w-4 h-4"
                     fill="none"
@@ -375,16 +375,16 @@ export default function Register() {
                   type="button"
                   onClick={handleSendOtp}
                   disabled={otpLoading || !isFormComplete || !isPasswordValid}
-                  className="w-full bg-slate-600 dark:bg-slate-500 text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center gap-2 hover:bg-slate-700 dark:hover:bg-slate-600 transition-all disabled:bg-opacity-60 disabled:cursor-not-allowed"
+                  className="flex gap-2 justify-center items-center px-4 py-3 w-full font-bold text-white rounded-lg transition-all bg-slate-600 dark:bg-slate-500 hover:bg-slate-700 dark:hover:bg-slate-600 disabled:bg-opacity-60 disabled:cursor-not-allowed"
                 >
                   {otpLoading ? "Sending..." : "Send OTP"}
                 </button>
               )}
 
               {otpSent && !isOtpVerified && (
-                <div className="space-y-4 pt-4 border-t border-slate-200 dark:border-slate-700">
+                <div className="pt-4 space-y-4 border-t border-slate-200 dark:border-slate-700">
                   <div className="relative">
-                    <span className="absolute top-[77%] left-3 -translate-y-1/2 text-slate-400">
+                    <span className="absolute top-[50%] left-3 -translate-y-1/2 text-slate-400">
                       <KeyIcon />
                     </span>
                     <input
@@ -398,12 +398,12 @@ export default function Register() {
                       required
                     />
                   </div>
-                  <div className="flex items-center gap-4">
+                  <div className="flex gap-4 items-center">
                     <button
                       type="button"
                       onClick={handleVerifyOtp}
                       disabled={verifyLoading}
-                      className="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center gap-2 hover:bg-blue-700 transition-all disabled:bg-opacity-60"
+                      className="flex gap-2 justify-center items-center px-4 py-3 w-full font-bold text-white bg-blue-600 rounded-lg transition-all hover:bg-blue-700 disabled:bg-opacity-60"
                     >
                       {verifyLoading ? "Verifying..." : "Verify OTP"}
                     </button>
@@ -411,7 +411,7 @@ export default function Register() {
                       type="button"
                       onClick={handleSendOtp}
                       disabled={isTimerActive}
-                      className="flex-shrink-0 bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold py-3 px-4 rounded-lg transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+                      className="flex-shrink-0 px-4 py-3 font-bold rounded-lg transition-all bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 disabled:opacity-60 disabled:cursor-not-allowed"
                     >
                       {isTimerActive ? `Resend (${timer}s)` : "Resend"}
                     </button>
@@ -431,7 +431,7 @@ export default function Register() {
             </div>
           </form>
 
-          <p className="text-sm mt-8 text-center text-slate-600 dark:text-slate-400">
+          <p className="mt-8 text-sm text-center text-slate-600 dark:text-slate-400">
             Already have an account?{" "}
             <Link
               to="/login"
