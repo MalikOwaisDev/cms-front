@@ -127,7 +127,7 @@ export default function PatientForm() {
       <main className="flex-grow container mx-auto p-4 sm:p-6 lg:p-8">
         <div className="max-w-4xl mx-auto">
           {/* RESPONSIVE: Cleaned up header alignment for all screen sizes */}
-          <div className="flex items-start gap-4 mb-8">
+          <div className="flex items-center gap-4 mb-8">
             <button
               onClick={handleGoBack}
               className="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700"
@@ -166,7 +166,7 @@ export default function PatientForm() {
                   </label>
                   <div className="relative">
                     {/* RESPONSIVE: Vertically centered icon */}
-                    <span className="absolute top-[70%] left-3 -translate-y-1/2 text-slate-400">
+                    <span className="absolute top-[50%] left-3 -translate-y-1/2 text-slate-400">
                       <UserIcon />
                     </span>
                     <input
@@ -189,7 +189,7 @@ export default function PatientForm() {
                   </label>
                   <div className="relative">
                     {/* RESPONSIVE: Vertically centered icon */}
-                    <span className="absolute top-[70%] left-3 -translate-y-1/2 text-slate-400">
+                    <span className="absolute top-[50%] left-3 -translate-y-1/2 text-slate-400">
                       <HashIcon />
                     </span>
                     <input
@@ -252,7 +252,7 @@ export default function PatientForm() {
                   </label>
                   <div className="relative">
                     {/* RESPONSIVE: Vertically centered icon */}
-                    <span className="absolute top-[70%] left-3 -translate-y-1/2 text-slate-400">
+                    <span className="absolute top-[50%] left-3 -translate-y-1/2 text-slate-400">
                       <PhoneIcon />
                     </span>
                     <input
@@ -276,7 +276,7 @@ export default function PatientForm() {
                   </label>
                   <div className="relative">
                     {/* RESPONSIVE: Vertically centered icon */}
-                    <span className="absolute top-[70%] left-3 -translate-y-1/2 text-slate-400">
+                    <span className="absolute top-[50%] left-3 -translate-y-1/2 text-slate-400">
                       <MailIcon />
                     </span>
                     <input
@@ -308,7 +308,7 @@ export default function PatientForm() {
                 </label>
                 <div className="relative">
                   {/* RESPONSIVE: Vertically centered icon */}
-                  <span className="absolute top-[70%] left-3 -translate-y-1/2 text-slate-400">
+                  <span className="absolute top-[50%] left-3 -translate-y-1/2 text-slate-400">
                     <MapPinIcon />
                   </span>
                   <input
@@ -407,7 +407,7 @@ export default function PatientForm() {
                   </label>
                   <div className="relative">
                     {/* RESPONSIVE: Vertically centered icon */}
-                    <span className="absolute top-[70%] left-3 -translate-y-1/2 text-slate-400">
+                    <span className="absolute top-[50%] left-3 -translate-y-1/2 text-slate-400">
                       <ActivityIcon />
                     </span>
                     <input

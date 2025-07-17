@@ -82,7 +82,7 @@ export default function WellnessResourceForm() {
       <main className="flex-grow container mx-auto p-4 sm:p-6 lg:p-8">
         <div className="max-w-3xl mx-auto">
           {/* --- RESPONSIVE Page Header --- */}
-          <div className="flex items-start gap-4 mb-8">
+          <div className="flex items-center gap-4 mb-8">
             <button
               onClick={handleGoBack}
               className="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors flex-shrink-0"
@@ -119,7 +119,7 @@ export default function WellnessResourceForm() {
                 </label>
                 <div className="relative">
                   {/* RESPONSIVE: Centered Icon */}
-                  <span className="absolute top-[70%] left-3 -translate-y-1/2 text-slate-400">
+                  <span className="absolute top-[50%] left-3 -translate-y-1/2 text-slate-400">
                     <TitleIcon />
                   </span>
                   <input
@@ -169,7 +169,7 @@ export default function WellnessResourceForm() {
                     Resource Link (URL)
                   </label>
                   <div className="relative">
-                    <span className="absolute top-[70%] left-3 -translate-y-1/2 text-slate-400">
+                    <span className="absolute top-[50%] left-3 -translate-y-1/2 text-slate-400">
                       <LinkIcon />
                     </span>
                     <input
@@ -191,7 +191,7 @@ export default function WellnessResourceForm() {
                     Category
                   </label>
                   <div className="relative">
-                    <span className="absolute top-[70%] left-3 -translate-y-1/2 text-slate-400">
+                    <span className="absolute top-[50%] left-3 -translate-y-1/2 text-slate-400">
                       <CategoryIcon />
                     </span>
                     <select

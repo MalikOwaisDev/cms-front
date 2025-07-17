@@ -177,7 +177,7 @@ export default function VisitForm() {
       <Header />
       <main className="flex-grow container mx-auto p-4 sm:p-6 lg:p-8">
         <div className="max-w-4xl mx-auto">
-          <div className="flex items-start gap-4 mb-8">
+          <div className="flex items-center gap-4 mb-8">
             <button
               onClick={handleGoBack}
               className="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700"
@@ -214,7 +214,7 @@ export default function VisitForm() {
                     Assign Caregiver
                   </label>
                   <div className="relative">
-                    <span className="absolute top-[70%] left-3 -translate-y-1/2 text-slate-400">
+                    <span className="absolute top-[50%] left-3 -translate-y-1/2 text-slate-400">
                       <UserIcon />
                     </span>
                     <select
@@ -244,7 +244,7 @@ export default function VisitForm() {
                     Assign Service User
                   </label>
                   <div className="relative">
-                    <span className="absolute top-[70%] left-3 -translate-y-1/2 text-slate-400">
+                    <span className="absolute top-[50%] left-3 -translate-y-1/2 text-slate-400">
                       <PatientIcon />
                     </span>
                     <select
@@ -277,7 +277,7 @@ export default function VisitForm() {
                     Date
                   </label>
                   <div className="relative">
-                    <span className="absolute top-[70%] left-3 -translate-y-1/2 text-slate-400">
+                    <span className="absolute top-[50%] left-3 -translate-y-1/2 text-slate-400">
                       <CalendarIcon />
                     </span>
                     <input
@@ -302,7 +302,7 @@ export default function VisitForm() {
                     Start Time
                   </label>
                   <div className="relative">
-                    <span className="absolute top-[70%] left-3 -translate-y-1/2 text-slate-400">
+                    <span className="absolute top-[50%] left-3 -translate-y-1/2 text-slate-400">
                       <ClockIcon />
                     </span>
                     <input
@@ -324,7 +324,7 @@ export default function VisitForm() {
                     End Time
                   </label>
                   <div className="relative">
-                    <span className="absolute top-[70%] left-3 -translate-y-1/2 text-slate-400">
+                    <span className="absolute top-[50%] left-3 -translate-y-1/2 text-slate-400">
                       <ClockIcon />
                     </span>
                     <input
@@ -348,7 +348,7 @@ export default function VisitForm() {
                   Location (optional)
                 </label>
                 <div className="relative">
-                  <span className="absolute top-[70%] left-3 -translate-y-1/2 text-slate-400">
+                  <span className="absolute top-[50%] left-3 -translate-y-1/2 text-slate-400">
                     <MapPinIcon />
                   </span>
                   <input

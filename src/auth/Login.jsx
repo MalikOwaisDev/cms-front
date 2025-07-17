@@ -113,12 +113,87 @@ export default function Login() {
             <h2 className="lgn-form-head">Sign In</h2>
             {/* <p className="lgn-form-p-des">Welcome Back User!</p> */}
 
+<<<<<<< HEAD
             {error && (
               <>
                 {error && (
                   <div
                     className="bg-red-100 dark:bg-red-900/20 border border-red-300 dark:border-red-500/30 text-red-800 dark:text-red-300 px-4 py-3 rounded-lg relative mb-6 flex items-center"
                     role="alert"
+=======
+          {error && (
+            <div
+              className="bg-red-100 dark:bg-red-900/20 border border-red-300 dark:border-red-500/30 text-red-800 dark:text-red-300 px-4 py-3 rounded-lg relative mb-6 flex items-center"
+              role="alert"
+            >
+              <span className="mr-3 flex-shrink-0">
+                <AlertCircleIcon size={20} />
+              </span>
+              <span className="block sm:inline text-sm">{error}</span>
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} noValidate>
+            <div className="space-y-4">
+              <div className="relative">
+                <span className="absolute top-[50%] left-3 -translate-y-1/2 text-slate-400">
+                  <MailIcon />
+                </span>
+                <input
+                  name="email"
+                  type="email"
+                  placeholder="Email Address"
+                  className="w-full pl-10 pr-4 py-3 bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-slate-200 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE4982] transition-colors"
+                  value={formData.email}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+              <div className="relative">
+                <span className="absolute top-[50%] left-3 -translate-y-1/2 text-slate-400">
+                  <LockIcon />
+                </span>
+                <input
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Password"
+                  className="w-full pl-10 pr-10 py-3 bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-slate-200 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE4982] transition-colors"
+                  value={formData.password}
+                  onChange={handleChange}
+                  required
+                />
+                <button
+                  type="button"
+                  className="absolute top-[50%] -translate-y-1/2 right-3 cursor-pointer text-slate-400 hover:text-[#1D2056] dark:hover:text-slate-200"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? <EyeOffIcon /> : <EyeIcon />}
+                </button>
+              </div>
+            </div>
+
+            <div className="text-right my-6">
+              <Link
+                to="/forgot-password"
+                className="text-sm font-semibold text-slate-500 dark:text-slate-400 hover:text-[#FE4982] hover:underline"
+              >
+                Forgot Password?
+              </Link>
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading || !isFormComplete}
+              className="w-full bg-[#FE4982] text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center gap-2 hover:bg-[#E03A6D] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-slate-800 focus:ring-[#FE4982] transition-all duration-300 ease-in-out disabled:bg-opacity-60 disabled:cursor-not-allowed"
+            >
+              {loading ? (
+                <>
+                  <svg
+                    className="animate-spin h-5 w-5"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+>>>>>>> new-branch
                   >
                     <span className="mr-3 flex-shrink-0">
                       <AlertCircleIcon size={20} />

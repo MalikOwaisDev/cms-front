@@ -361,7 +361,7 @@ export default function ProfilePage() {
                           Full Name
                         </label>
                         <div className="relative">
-                          <span className="absolute top-[70%] left-3 -translate-y-1/2 text-slate-400">
+                          <span className="absolute top-[50%] left-3 -translate-y-1/2 text-slate-400">
                             <UserIcon />
                           </span>
                           <input

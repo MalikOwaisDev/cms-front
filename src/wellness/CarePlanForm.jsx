@@ -110,7 +110,7 @@ export default function CarePlanForm() {
       <main className="flex-grow container mx-auto p-4 sm:p-6 lg:p-8">
         <div className="max-w-3xl mx-auto">
           {/* --- RESPONSIVE Header --- */}
-          <div className="flex items-start gap-4 mb-8">
+          <div className="flex items-center gap-4 mb-8">
             <button
               onClick={handleGoBack}
               className="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 flex-shrink-0"
@@ -148,7 +148,7 @@ export default function CarePlanForm() {
                   </label>
                   <div className="relative">
                     {/* RESPONSIVE: Centered Icon */}
-                    <span className="absolute top-[70%] left-3 -translate-y-1/2 text-slate-400">
+                    <span className="absolute top-[50%] left-3 -translate-y-1/2 text-slate-400">
                       <UserIcon />
                     </span>
                     <select
@@ -192,7 +192,7 @@ export default function CarePlanForm() {
                     Plan Title
                   </label>
                   <div className="relative">
-                    <span className="absolute top-[70%] left-3 -translate-y-1/2 text-slate-400">
+                    <span className="absolute top-[50%] left-3 -translate-y-1/2 text-slate-400">
                       <ClipboardIcon />
                     </span>
                     <input
@@ -238,7 +238,7 @@ export default function CarePlanForm() {
                 {form.goals.map((g, idx) => (
                   <div key={idx} className="flex items-center gap-3">
                     <div className="relative flex-grow">
-                      <span className="absolute top-[70%] left-3 -translate-y-1/2 text-slate-400">
+                      <span className="absolute top-[50%] left-3 -translate-y-1/2 text-slate-400">
                         <TargetIcon />
                       </span>
                       <input
