@@ -73,63 +73,53 @@ export default function Login() {
       );
     } finally {
       setLoading(false);
-
-      // setTimeout(() => {
-      //   setError("");
-      // }, 5000);
     }
   };
 
   return (
-    <>
-      <Helmet>
-        <title>Login</title>
-      </Helmet>
-      {/* // UI Improvement: Added a subtle gradient background for more depth */}
-      {/* UI Improvement: Added entry animations for the entire form */}
-      <div className="lgn-hero">
-        {/* <ThemeToggle /> */}
-        <div className="frm-cnt">
-          <div className="logo-cont">
-            <img
-              src="/logo3.png"
-              alt="MindfulTrust Logo"
-              className="mn-logo logo-light"
-              onError={(e) => {
-                e.target.style.display = "none";
-              }}
-            />
-            {/* <img
-              src="/logo2.png"
-              alt="MindfulTrust Logo"
-              className="mn-logo-dark"
-              onError={(e) => {
-                e.target.style.display = "none";
-              }}
-            /> */}
-          </div>
+    <div className="flex relative justify-center items-center p-4 min-h-screen font-sans transition-colors duration-300 bg-slate-50 dark:bg-slate-900">
+      <ThemeToggle />
+      <div
+        className={`w-full max-w-md transform transition-all duration-700 ease-out ${
+          isMounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
+        }`}
+      >
+        <div className="mb-8 text-center">
+          <img
+            src="/logo3.png"
+            alt="MindfulTrust Logo"
+            className="block mx-auto h-16 sm:h-20 dark:hidden"
+            onError={(e) => {
+              e.target.style.display = "none";
+            }}
+          />
+          <img
+            src="/logo2.png"
+            alt="MindfulTrust Logo"
+            className="hidden mx-auto h-16 sm:h-20 dark:block"
+            onError={(e) => {
+              e.target.style.display = "none";
+            }}
+          />
+        </div>
 
-          <div className="lgn-form-dv-cnt">
-            <h2 className="lgn-form-head">Sign In</h2>
-            {/* <p className="lgn-form-p-des">Welcome Back User!</p> */}
+        <div className="p-6 bg-white rounded-2xl shadow-lg dark:bg-slate-800 sm:p-8">
+          <h2 className="text-2xl sm:text-3xl font-bold text-center text-[#1D2056] dark:text-slate-100 mb-2">
+            Welcome Back!
+          </h2>
+          <p className="mb-8 text-center text-slate-500 dark:text-slate-400">
+            Sign in to continue to your dashboard.
+          </p>
 
-<<<<<<< HEAD
-            {error && (
-              <>
-                {error && (
-                  <div
-                    className="bg-red-100 dark:bg-red-900/20 border border-red-300 dark:border-red-500/30 text-red-800 dark:text-red-300 px-4 py-3 rounded-lg relative mb-6 flex items-center"
-                    role="alert"
-=======
           {error && (
             <div
-              className="bg-red-100 dark:bg-red-900/20 border border-red-300 dark:border-red-500/30 text-red-800 dark:text-red-300 px-4 py-3 rounded-lg relative mb-6 flex items-center"
+              className="flex relative items-center px-4 py-3 mb-6 text-red-800 bg-red-100 rounded-lg border border-red-300 dark:bg-red-900/20 dark:border-red-500/30 dark:text-red-300"
               role="alert"
             >
-              <span className="mr-3 flex-shrink-0">
+              <span className="flex-shrink-0 mr-3">
                 <AlertCircleIcon size={20} />
               </span>
-              <span className="block sm:inline text-sm">{error}</span>
+              <span className="block text-sm sm:inline">{error}</span>
             </div>
           )}
 
@@ -172,7 +162,7 @@ export default function Login() {
               </div>
             </div>
 
-            <div className="text-right my-6">
+            <div className="my-6 text-right">
               <Link
                 to="/forgot-password"
                 className="text-sm font-semibold text-slate-500 dark:text-slate-400 hover:text-[#FE4982] hover:underline"
@@ -189,111 +179,44 @@ export default function Login() {
               {loading ? (
                 <>
                   <svg
-                    className="animate-spin h-5 w-5"
+                    className="w-5 h-5 animate-spin"
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
                     viewBox="0 0 24 24"
->>>>>>> new-branch
                   >
-                    <span className="mr-3 flex-shrink-0">
-                      <AlertCircleIcon size={20} />
-                    </span>
-                    <span className="block sm:inline text-sm">{error}</span>
-                  </div>
-                )}
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                  <span>Signing In...</span>
+                </>
+              ) : (
+                <>Login</>
+              )}
+            </button>
+          </form>
 
-                <div className="auth-error-flag" role="alert">
-                  <AlertCircleIcon className="mr-3 flex-shrink-0" />
-                  <span className="error-flag-txt">{error}</span>
-                </div>
-              </>
-            )}
-
-            <form onSubmit={handleSubmit} noValidate className="frm">
-              <div className="input-controller-cnt">
-                <div className="inpt-cont">
-                  <input
-                    name="email"
-                    type="email"
-                    placeholder="Email Address"
-                    className="inpt-fld"
-                    value={formData.email}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
-
-                <div className="inpt-cont">
-                  <input
-                    name="password"
-                    type={showPassword ? "text" : "password"}
-                    placeholder="Password"
-                    className="inpt-fld"
-                    value={formData.password}
-                    onChange={handleChange}
-                    required
-                  />
-                  <button
-                    type="button"
-                    className="eye-ico"
-                    onClick={() => setShowPassword(!showPassword)}
-                    aria-label="Reveal Password"
-                  >
-                    {showPassword ? <EyeOffIcon /> : <EyeIcon />}
-                  </button>
-                </div>
-              </div>
-
-              <div className="frgt-txt-cnt">
-                <Link to="/forgot-password" className="frgt-txt">
-                  Forgot Password?
-                </Link>
-              </div>
-
-              <button
-                type="submit"
-                disabled={loading || !isFormComplete}
-                className="mn-login-btn"
-              >
-                {loading ? (
-                  <>
-                    <svg
-                      className="animate-spin h-5 w-5"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      ></circle>
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      ></path>
-                    </svg>
-                    <span>Signing In...</span>
-                  </>
-                ) : (
-                  <> Login </>
-                )}
-              </button>
-            </form>
-
-            <p className="dnt-text">
-              Don't have an account?{" "}
-              <Link to="/register" className="dnt-lnk">
-                Register Here
-              </Link>
-            </p>
-          </div>
+          <p className="mt-8 text-sm text-center text-slate-600 dark:text-slate-400">
+            Don't have an account?{" "}
+            <Link
+              to="/register"
+              className="font-semibold text-[#FE4982] hover:underline"
+            >
+              Register Here
+            </Link>
+          </p>
         </div>
       </div>
-    </>
+    </div>
   );
 }
